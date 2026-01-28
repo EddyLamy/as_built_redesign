@@ -1,0 +1,187 @@
+{
+  "masterTemplate": {
+    "version": "1.1",
+    "description": "Template base para criar turbinas eólicas dinamicamente (4 ou 5 secções de torre)",
+    "componentes": [
+      {
+        "ordem": 1,
+        "nome": "Anchor bolts",
+        "tipo": "Foundation",
+        "categoria": "Civil Works",
+        "obrigatorio": true
+      },
+      {
+        "ordem": 2,
+        "nome": "Base Flange 1",
+        "tipo": "Foundation",
+        "categoria": "Civil Works",
+        "obrigatorio": true
+      },
+      {
+        "ordem": 3,
+        "nome": "Base Flange 2",
+        "tipo": "Foundation",
+        "categoria": "Civil Works",
+        "obrigatorio": true
+      },
+      {
+        "ordem": 4,
+        "nome": "Tower Section - Bottom",
+        "tipo": "Tower",
+        "categoria": "Main Components",
+        "obrigatorio": true
+      },
+      {
+        "ordem": 5,
+        "nome": "Tower Section - Middle 1",
+        "tipo": "Tower",
+        "categoria": "Main Components",
+        "obrigatorio": true
+      },
+      {
+        "ordem": 6,
+        "nome": "Tower Section - Middle 2",
+        "tipo": "Tower",
+        "categoria": "Main Components",
+        "obrigatorio": true
+      },
+      {
+        "ordem": 7,
+        "nome": "Tower Section - Middle 3",
+        "tipo": "Tower",
+        "categoria": "Main Components",
+        "obrigatorio": false
+      },
+      {
+        "ordem": 8,
+        "nome": "Tower Section - Top",
+        "tipo": "Tower",
+        "categoria": "Main Components",
+        "obrigatorio": true
+      },
+      {
+        "ordem": 9,
+        "nome": "Nacelle",
+        "tipo": "Nacelle",
+        "categoria": "Main Components",
+        "obrigatorio": true
+      },
+      {
+        "ordem": 10,
+        "nome": "Nacelle Top Cooler",
+        "tipo": "Nacelle",
+        "categoria": "Main Components",
+        "obrigatorio": false
+      },
+      {
+        "ordem": 11,
+        "nome": "Trafo",
+        "tipo": "Electrical",
+        "categoria": "Electrical Systems",
+        "obrigatorio": true
+      },
+      {
+        "ordem": 12,
+        "nome": "Hub",
+        "tipo": "Rotor",
+        "categoria": "Main Components",
+        "obrigatorio": true
+      },
+      {
+        "ordem": 13,
+        "nome": "Blade 1 / a",
+        "tipo": "Rotor",
+        "categoria": "Main Components",
+        "obrigatorio": true
+      },
+      {
+        "ordem": 14,
+        "nome": "Blade 2 / b",
+        "tipo": "Rotor",
+        "categoria": "Main Components",
+        "obrigatorio": true
+      },
+      {
+        "ordem": 15,
+        "nome": "Blade 3 / c",
+        "tipo": "Rotor",
+        "categoria": "Main Components",
+        "obrigatorio": true
+      },
+      {
+        "ordem": 16,
+        "nome": "Drive Train",
+        "tipo": "Mechanical",
+        "categoria": "Mechanical Systems",
+        "obrigatorio": true
+      },
+      {
+        "ordem": 17,
+        "nome": "Ground Controller",
+        "tipo": "Electrical",
+        "categoria": "Electrical Systems",
+        "obrigatorio": true
+      },
+      {
+        "ordem": 18,
+        "nome": "Service Lift",
+        "tipo": "Auxiliary",
+        "categoria": "Auxiliary Systems",
+        "obrigatorio": true
+      },
+      {
+        "ordem": 19,
+        "nome": "MV Cable",
+        "tipo": "Electrical",
+        "categoria": "Electrical Systems",
+        "obrigatorio": true
+      },
+      {
+        "ordem": 20,
+        "nome": "ResQ",
+        "tipo": "Safety",
+        "categoria": "Safety Systems",
+        "obrigatorio": true
+      },
+      {
+        "ordem": 21,
+        "nome": "SWG",
+        "tipo": "Electrical",
+        "categoria": "Electrical Systems",
+        "obrigatorio": true
+      }
+    ],
+    "categorias": [
+      {
+        "nome": "Civil Works",
+        "descricao": "Fundações e preparação civil",
+        "cor": "#94A3B8"
+      },
+      {
+        "nome": "Main Components",
+        "descricao": "Componentes principais (Torre, Nacelle, Rotor)",
+        "cor": "#1E3A8A"
+      },
+      {
+        "nome": "Electrical Systems",
+        "descricao": "Sistemas elétricos e controlo",
+        "cor": "#EA580C"
+      },
+      {
+        "nome": "Mechanical Systems",
+        "descricao": "Sistemas mecânicos",
+        "cor": "#059669"
+      },
+      {
+        "nome": "Auxiliary Systems",
+        "descricao": "Sistemas auxiliares",
+        "cor": "#0891B2"
+      },
+      {
+        "nome": "Safety Systems",
+        "descricao": "Sistemas de segurança",
+        "cor": "#DC2626"
+      }
+    ]
+  }
+}
