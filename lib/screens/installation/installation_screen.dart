@@ -51,8 +51,8 @@ class _InstallationScreenState extends ConsumerState<InstallationScreen> {
       appBar: AppBar(
         title: Row(
           children: [
-            Icon(Icons.construction, color: Colors.white),
-            SizedBox(width: 12),
+            const Icon(Icons.construction, color: Colors.white),
+            const SizedBox(width: 12),
             Text(t.translate('installation_module')),
           ],
         ),
@@ -63,15 +63,15 @@ class _InstallationScreenState extends ConsumerState<InstallationScreen> {
           // 🔍 BARRA DE PESQUISA
           // ════════════════════════════════════════════════════════════════
           Padding(
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
                 hintText: t.translate('search_turbines'),
-                prefixIcon: Icon(Icons.search),
+                prefixIcon: const Icon(Icons.search),
                 suffixIcon: _searchQuery.isNotEmpty
                     ? IconButton(
-                        icon: Icon(Icons.clear),
+                        icon: const Icon(Icons.clear),
                         onPressed: () {
                           setState(() {
                             _searchController.clear();
@@ -84,7 +84,7 @@ class _InstallationScreenState extends ConsumerState<InstallationScreen> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 contentPadding:
-                    EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               ),
               onChanged: (value) {
                 setState(() {
@@ -124,11 +124,11 @@ class _InstallationScreenState extends ConsumerState<InstallationScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 16),
+            const CircularProgressIndicator(),
+            const SizedBox(height: 16),
             Text(
               t.translate('loading_turbines'),
-              style: TextStyle(color: AppColors.mediumGray),
+              style: const TextStyle(color: AppColors.mediumGray),
             ),
           ],
         ),
@@ -141,28 +141,29 @@ class _InstallationScreenState extends ConsumerState<InstallationScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline, size: 64, color: AppColors.errorRed),
-            SizedBox(height: 16),
+            const Icon(Icons.error_outline,
+                size: 64, color: AppColors.errorRed),
+            const SizedBox(height: 16),
             Text(
               t.translate('error_loading_turbines'),
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: AppColors.errorRed,
               ),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
               error.toString(),
-              style: TextStyle(color: AppColors.mediumGray),
+              style: const TextStyle(color: AppColors.mediumGray),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             ElevatedButton.icon(
               onPressed: () {
                 ref.invalidate(turbinasProvider);
               },
-              icon: Icon(Icons.refresh),
+              icon: const Icon(Icons.refresh),
               label: Text(t.translate('retry')),
             ),
           ],
@@ -192,22 +193,22 @@ class _InstallationScreenState extends ConsumerState<InstallationScreen> {
                   size: 64,
                   color: AppColors.mediumGray,
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 Text(
                   _searchQuery.isEmpty
                       ? t.translate('no_turbines_created')
                       : t.translate('no_turbines_found'),
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 Text(
                   _searchQuery.isEmpty
                       ? t.translate('create_turbines_in_asbuilt')
                       : t.translate('try_adjusting_search'),
-                  style: TextStyle(color: AppColors.mediumGray),
+                  style: const TextStyle(color: AppColors.mediumGray),
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -217,7 +218,7 @@ class _InstallationScreenState extends ConsumerState<InstallationScreen> {
 
         // Grid de turbinas
         return Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
           child: GridView.builder(
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: MediaQuery.of(context).size.width > 600 ? 4 : 2,
@@ -265,7 +266,7 @@ class _InstallationScreenState extends ConsumerState<InstallationScreen> {
         onTap: () => _openTurbineDetails(turbina),
         borderRadius: BorderRadius.circular(12),
         child: Padding(
-          padding: EdgeInsets.all(16),
+          padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -275,7 +276,7 @@ class _InstallationScreenState extends ConsumerState<InstallationScreen> {
               Row(
                 children: [
                   Container(
-                    padding: EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
                       color: progressColor.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
@@ -286,23 +287,23 @@ class _InstallationScreenState extends ConsumerState<InstallationScreen> {
                       size: 28,
                     ),
                   ),
-                  SizedBox(width: 12),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           turbina.nome,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                             color: AppColors.darkGray,
                           ),
                         ),
-                        SizedBox(height: 2),
+                        const SizedBox(height: 2),
                         Text(
                           _getTurbinaModelo(turbina),
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 12,
                             color: AppColors.mediumGray,
                           ),
@@ -313,7 +314,7 @@ class _InstallationScreenState extends ConsumerState<InstallationScreen> {
                 ],
               ),
 
-              Spacer(),
+              const Spacer(),
 
               // ────────────────────────────────────────────────────────────
               // PROGRESSO
@@ -326,7 +327,7 @@ class _InstallationScreenState extends ConsumerState<InstallationScreen> {
                     children: [
                       Text(
                         t.translate('progress'),
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 12,
                           color: AppColors.mediumGray,
                         ),
@@ -341,7 +342,7 @@ class _InstallationScreenState extends ConsumerState<InstallationScreen> {
                       ),
                     ],
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   ClipRRect(
                     borderRadius: BorderRadius.circular(4),
                     child: LinearProgressIndicator(
@@ -354,7 +355,7 @@ class _InstallationScreenState extends ConsumerState<InstallationScreen> {
                 ],
               ),
 
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
 
               // ────────────────────────────────────────────────────────────
               // STATUS
@@ -369,11 +370,11 @@ class _InstallationScreenState extends ConsumerState<InstallationScreen> {
                       shape: BoxShape.circle,
                     ),
                   ),
-                  SizedBox(width: 6),
+                  const SizedBox(width: 6),
                   Expanded(
                     child: Text(
                       turbina.status ?? t.translate('pending'),
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 11,
                         color: AppColors.mediumGray,
                         fontWeight: FontWeight.w500,
@@ -425,6 +426,7 @@ class _InstallationScreenState extends ConsumerState<InstallationScreen> {
           turbineName: turbina.nome,
           turbineModel: _getTurbinaModelo(turbina),
           turbineSequence: 1, // TODO: Adicionar campo sequence na Turbina
+          numberOfMiddleSections: turbina.numberOfMiddleSections ?? 3,
         ),
       ),
     );

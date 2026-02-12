@@ -4,20 +4,20 @@ class Project {
   final String id;
   final String userId;
   final String nome;
-  final String projectId; // SP-40195
+  final String projectId;
   final String projectManager;
   final String siteManager;
-  final int totalTurbinas;
+  final int totalTurbinas; // Mantido como solicitado
+  final int numeroTurbinas; // ADICIONADO para resolver os erros de compilação
   final String turbineType;
   final String foundationType;
-  // ❌ REMOVIDO: final int towerSections; (vai para cada turbina)
   final DateTime? siteOpeningDate;
   final DateTime? estimatedGridAvailability;
   final DateTime? estimatedHandover;
   final String? localizacao;
-  final String? morada; // 🆕 NOVO CAMPO (opcional)
-  final String? coordenadasGPS; // 🆕 NOVO CAMPO (opcional)
-  final String status; // 'Planejado', 'Em Progresso', 'Concluído'
+  final String? morada;
+  final String? coordenadasGPS;
+  final String status;
   final DateTime createdAt;
   final String createdBy;
 
@@ -29,15 +29,15 @@ class Project {
     required this.projectManager,
     required this.siteManager,
     this.totalTurbinas = 0,
+    this.numeroTurbinas = 0, // Adicionado ao construtor
     required this.turbineType,
     required this.foundationType,
-    // ❌ REMOVIDO: this.towerSections = 4,
     this.siteOpeningDate,
     this.estimatedGridAvailability,
     this.estimatedHandover,
     this.localizacao,
-    this.morada, // 🆕 NOVO
-    this.coordenadasGPS, // 🆕 NOVO
+    this.morada,
+    this.coordenadasGPS,
     this.status = 'Planejado',
     required this.createdAt,
     required this.createdBy,
@@ -51,9 +51,9 @@ class Project {
       'projectManager': projectManager,
       'siteManager': siteManager,
       'totalTurbinas': totalTurbinas,
+      'numeroTurbinas': numeroTurbinas, // Persistindo o novo campo
       'turbineType': turbineType,
       'foundationType': foundationType,
-      // ❌ REMOVIDO: 'towerSections': towerSections,
       'siteOpeningDate':
           siteOpeningDate != null ? Timestamp.fromDate(siteOpeningDate!) : null,
       'estimatedGridAvailability': estimatedGridAvailability != null
@@ -63,8 +63,8 @@ class Project {
           ? Timestamp.fromDate(estimatedHandover!)
           : null,
       'localizacao': localizacao,
-      'morada': morada, // 🆕 NOVO
-      'coordenadasGPS': coordenadasGPS, // 🆕 NOVO
+      'morada': morada,
+      'coordenadasGPS': coordenadasGPS,
       'status': status,
       'createdAt': Timestamp.fromDate(createdAt),
       'createdBy': createdBy,
@@ -80,9 +80,9 @@ class Project {
       projectManager: map['projectManager'] ?? '',
       siteManager: map['siteManager'] ?? '',
       totalTurbinas: map['totalTurbinas'] ?? 0,
+      numeroTurbinas: map['numeroTurbinas'] ?? 0, // Lendo do Firestore
       turbineType: map['turbineType'] ?? '',
       foundationType: map['foundationType'] ?? '',
-      // ❌ REMOVIDO: towerSections: map['towerSections'] ?? 4,
       siteOpeningDate: map['siteOpeningDate'] != null
           ? (map['siteOpeningDate'] as Timestamp).toDate()
           : null,
@@ -93,23 +93,20 @@ class Project {
           ? (map['estimatedHandover'] as Timestamp).toDate()
           : null,
       localizacao: map['localizacao'],
-      morada: map['morada'], // 🆕 NOVO
-      coordenadasGPS: map['coordenadasGPS'], // 🆕 NOVO
+      morada: map['morada'],
+      coordenadasGPS: map['coordenadasGPS'],
       status: map['status'] ?? 'Planejado',
-      createdAt: (map['createdAt'] as Timestamp).toDate(),
+      createdAt: map['createdAt'] != null
+          ? (map['createdAt'] as Timestamp).toDate()
+          : DateTime.now(),
       createdBy: map['createdBy'] ?? '',
     );
   }
 
-  // ============================================================================
-  // 🔔 NOTIFICATION SYSTEM - MÉTODO NOVO
-  // ============================================================================
-  /// Criar Project a partir de DocumentSnapshot do Firestore
   factory Project.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
+    final data = doc.data() as Map<String, dynamic>? ?? {};
     return Project.fromMap(doc.id, data);
   }
-  // ============================================================================
 
   Project copyWith({
     String? id,
@@ -119,15 +116,15 @@ class Project {
     String? projectManager,
     String? siteManager,
     int? totalTurbinas,
+    int? numeroTurbinas, // Adicionado ao copyWith
     String? turbineType,
     String? foundationType,
-    // ❌ REMOVIDO: int? towerSections,
     DateTime? siteOpeningDate,
     DateTime? estimatedGridAvailability,
     DateTime? estimatedHandover,
     String? localizacao,
-    String? morada, // 🆕 NOVO
-    String? coordenadasGPS, // 🆕 NOVO
+    String? morada,
+    String? coordenadasGPS,
     String? status,
     DateTime? createdAt,
     String? createdBy,
@@ -140,16 +137,16 @@ class Project {
       projectManager: projectManager ?? this.projectManager,
       siteManager: siteManager ?? this.siteManager,
       totalTurbinas: totalTurbinas ?? this.totalTurbinas,
+      numeroTurbinas: numeroTurbinas ?? this.numeroTurbinas,
       turbineType: turbineType ?? this.turbineType,
       foundationType: foundationType ?? this.foundationType,
-      // ❌ REMOVIDO: towerSections: towerSections ?? this.towerSections,
       siteOpeningDate: siteOpeningDate ?? this.siteOpeningDate,
       estimatedGridAvailability:
           estimatedGridAvailability ?? this.estimatedGridAvailability,
       estimatedHandover: estimatedHandover ?? this.estimatedHandover,
       localizacao: localizacao ?? this.localizacao,
-      morada: morada ?? this.morada, // 🆕 NOVO
-      coordenadasGPS: coordenadasGPS ?? this.coordenadasGPS, // 🆕 NOVO
+      morada: morada ?? this.morada,
+      coordenadasGPS: coordenadasGPS ?? this.coordenadasGPS,
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
       createdBy: createdBy ?? this.createdBy,

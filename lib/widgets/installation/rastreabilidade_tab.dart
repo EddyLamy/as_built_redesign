@@ -34,10 +34,11 @@ class RastreabilidadeTab extends ConsumerWidget {
               ElevatedButton.icon(
                 onPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Exportação disponível em breve')),
+                    const SnackBar(
+                        content: Text('Exportação disponível em breve')),
                   );
                 },
-                icon: Icon(Icons.download),
+                icon: const Icon(Icons.download),
                 label: Text(t['exportar'] ?? 'Exportar'),
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
               ),
@@ -65,7 +66,8 @@ class RastreabilidadeTab extends ConsumerWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.table_chart, size: 64, color: Colors.grey),
+                      const Icon(Icons.table_chart,
+                          size: 64, color: Colors.grey),
                       const SizedBox(height: 16),
                       Text(
                         t['nenhumDadoEncontrado'] ?? 'Nenhum dado encontrado',
@@ -85,25 +87,31 @@ class RastreabilidadeTab extends ConsumerWidget {
                     columns: [
                       DataColumn(
                           label: Text(t['componente'] ?? 'Componente',
-                              style: TextStyle(fontWeight: FontWeight.bold))),
-                      DataColumn(
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.bold))),
+                      const DataColumn(
                           label: Text('VUI',
                               style: TextStyle(fontWeight: FontWeight.bold))),
                       DataColumn(
                           label: Text(t['serial'] ?? 'Serial',
-                              style: TextStyle(fontWeight: FontWeight.bold))),
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.bold))),
                       DataColumn(
                           label: Text(t['item'] ?? 'Item',
-                              style: TextStyle(fontWeight: FontWeight.bold))),
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.bold))),
                       DataColumn(
                           label: Text(t['dataRececao'] ?? 'Data Receção',
-                              style: TextStyle(fontWeight: FontWeight.bold))),
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.bold))),
                       DataColumn(
                           label: Text(t['dataInstalacao'] ?? 'Data Instalação',
-                              style: TextStyle(fontWeight: FontWeight.bold))),
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.bold))),
                       DataColumn(
                           label: Text(t['posicao'] ?? 'Posição',
-                              style: TextStyle(fontWeight: FontWeight.bold))),
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.bold))),
                     ],
                     rows: items.map((item) {
                       return DataRow(cells: [

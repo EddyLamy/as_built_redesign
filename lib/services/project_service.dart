@@ -6,13 +6,12 @@ class ProjectService {
 
   // Stream de todos os projetos do usuário
   Stream<List<Project>> getProjects(String userId) {
-    print('🔍 BUSCANDO PROJETOS COM userId = $userId');
     return _firestore
         .collection('projects')
-        .where('userId', isEqualTo: userId) // ← MUDANÇA AQUI
+        .where('userId', isEqualTo: userId)
         .snapshots()
         .map((snapshot) => snapshot.docs
-            .map((doc) => Project.fromMap(doc.id, doc.data()))
+            .map((doc) => Project.fromFirestore(doc)) // Mais seguro
             .toList());
   }
 
@@ -22,14 +21,12 @@ class ProjectService {
         .collection('projects')
         .doc(projectId)
         .snapshots()
-        .map((doc) {
-      if (!doc.exists) return null;
-      return Project.fromMap(doc.id, doc.data()!);
-    });
+        .map((doc) => doc.exists ? Project.fromFirestore(doc) : null);
   }
 
   // Criar novo projeto
   Future<String> createProject(Project project) async {
+    // Garante que o toMap() inclua todos os campos novos (morada, coordenadas, etc)
     final docRef = await _firestore.collection('projects').add(project.toMap());
     return docRef.id;
   }
@@ -50,6 +47,8 @@ class ProjectService {
   Future<void> incrementTotalTurbinas(String projectId) async {
     await _firestore.collection('projects').doc(projectId).update({
       'totalTurbinas': FieldValue.increment(1),
+      // Mantenha numeroTurbinas em sincronia se o UI mobile ainda o usar
+      'numeroTurbinas': FieldValue.increment(1),
     });
   }
 
@@ -57,6 +56,7 @@ class ProjectService {
   Future<void> decrementTotalTurbinas(String projectId) async {
     await _firestore.collection('projects').doc(projectId).update({
       'totalTurbinas': FieldValue.increment(-1),
+      'numeroTurbinas': FieldValue.increment(-1),
     });
   }
 }

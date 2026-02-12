@@ -6,12 +6,17 @@ import '../../core/localization/translation_helper.dart';
 import '../screens/auth/login_screen.dart';
 import '../../widgets/create_project_dialog.dart';
 import '../widgets/generate_report_dialog.dart';
+import '../providers/app_providers.dart';
+import '../screens/settings/settings_screen.dart';
+import '../screens/team/team_management_screen.dart';
+import '../screens/help/help_screen.dart';
 
 // ============================================================================
 // 🏗️ IMPORT DA TELA DE INSTALAÇÃO
 // ============================================================================
 import '../screens/installation/installation_screen.dart';
 import '../screens/dashboard/dashboard_screen.dart';
+import '../screens/mobile/gruas_gerais_screen.dart';
 
 // ============================================================================
 // 🎯 MÓDULOS DO SISTEMA
@@ -47,9 +52,9 @@ class EnhancedDrawer extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                Icon(Icons.wind_power, size: 48, color: Colors.white),
-                SizedBox(height: 12),
-                Text(
+                const Icon(Icons.wind_power, size: 48, color: Colors.white),
+                const SizedBox(height: 12),
+                const Text(
                   'As-Built System',
                   style: TextStyle(
                     color: Colors.white,
@@ -72,8 +77,8 @@ class EnhancedDrawer extends ConsumerWidget {
           // 🔄 SELETOR DE MÓDULO
           // ============================================================================
           Container(
-            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            padding: EdgeInsets.all(4),
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
               color: AppColors.borderGray,
               borderRadius: BorderRadius.circular(12),
@@ -92,13 +97,14 @@ class EnhancedDrawer extends ConsumerWidget {
 
                       // Navega para Dashboard se não estiver lá
                       Navigator.of(context).pushAndRemoveUntil(
-                        MaterialPageRoute(builder: (_) => DashboardScreen()),
+                        MaterialPageRoute(
+                            builder: (_) => const DashboardScreen()),
                         (route) => false,
                       );
                     },
                   ),
                 ),
-                SizedBox(width: 4),
+                const SizedBox(width: 4),
                 Expanded(
                   child: _ModuleButton(
                     label: t.translate('installation'),
@@ -112,7 +118,7 @@ class EnhancedDrawer extends ConsumerWidget {
                       // ✅ NAVEGA PARA A TELA DE INSTALAÇÃO
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (_) => InstallationScreen(),
+                          builder: (_) => const InstallationScreen(),
                         ),
                       );
                     },
@@ -122,7 +128,7 @@ class EnhancedDrawer extends ConsumerWidget {
             ),
           ),
 
-          Divider(),
+          const Divider(),
 
           // ============================================================================
           // 📱 MENU PRINCIPAL
@@ -133,16 +139,17 @@ class EnhancedDrawer extends ConsumerWidget {
               children: [
                 // Dashboard
                 ListTile(
-                  leading: Icon(Icons.dashboard, color: AppColors.primaryBlue),
+                  leading: Icon(Icons.dashboard, color: AppColors.mediumGray),
                   title: Text(t.translate('dashboard')),
                   selected: currentModule == AppModule.asBuilt,
-                  selectedTileColor: AppColors.primaryBlue.withOpacity(0.1),
+                  selectedTileColor: AppColors.mediumGray.withOpacity(0.1),
                   onTap: () {
                     ref.read(currentModuleProvider.notifier).state =
                         AppModule.asBuilt;
                     Navigator.pop(context);
                     Navigator.of(context).pushAndRemoveUntil(
-                      MaterialPageRoute(builder: (_) => DashboardScreen()),
+                      MaterialPageRoute(
+                          builder: (_) => const DashboardScreen()),
                       (route) => false,
                     );
                   },
@@ -161,95 +168,154 @@ class EnhancedDrawer extends ConsumerWidget {
 
                 // Relatórios
                 ListTile(
-                  leading: Icon(Icons.analytics, color: AppColors.mediumGray),
+                  leading: Icon(Icons.description, color: AppColors.mediumGray),
                   title: Text(t.translate('reports')),
                   onTap: () {
                     Navigator.pop(context);
-                    _showComingSoonDialog(context);
+
+                    // Obter projeto selecionado
+                    final projectId = ref.read(selectedProjectIdProvider);
+
+                    if (projectId == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content:
+                              Text('Por favor, selecione um projeto primeiro'),
+                          backgroundColor: Colors.orange,
+                        ),
+                      );
+                      return;
+                    }
+
+                    // Obter nome do projeto
+                    final projectAsync = ref.read(selectedProjectProvider);
+
+                    projectAsync.whenData((project) {
+                      if (project != null) {
+                        showDialog(
+                          context: context,
+                          builder: (_) => GenerateReportDialog(
+                            projectId: project.id,
+                            projectName: project.nome,
+                          ),
+                        );
+                      }
+                    });
                   },
                 ),
 
-                // Equipe
+                // Gruas Gerais
                 ListTile(
-                  leading: Icon(Icons.group, color: AppColors.mediumGray),
-                  title: Text(t.translate('team')),
+                  leading: const Icon(Icons.precision_manufacturing,
+                      color: AppColors.mediumGray),
+                  title: Text(t.translate('general_cranes')),
                   onTap: () {
                     Navigator.pop(context);
-                    _showComingSoonDialog(context);
+                    final projectId = ref.read(selectedProjectIdProvider);
+                    final projectAsync = ref.read(selectedProjectProvider);
+
+                    if (projectId == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content:
+                              Text('Por favor, selecione um projeto primeiro'),
+                          backgroundColor: Colors.orange,
+                        ),
+                      );
+                      return;
+                    }
+
+                    projectAsync.whenData((project) {
+                      if (project != null) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => GruasGeraisScreen(
+                              projectId: projectId,
+                              projectName: project.nome,
+                            ),
+                          ),
+                        );
+                      }
+                    });
                   },
                 ),
 
-                Divider(),
-
-                // Configurações
-                ListTile(
-                  leading: Icon(Icons.settings, color: AppColors.mediumGray),
-                  title: Text(t.translate('settings')),
-                  onTap: () {
-                    Navigator.pop(context);
-                    _showComingSoonDialog(context);
-                  },
-                ),
-
-                // Ajuda
+                // ══════════════════════════════════════════════════════════════
+                // TEAM
+                // ══════════════════════════════════════════════════════════════
                 ListTile(
                   leading:
-                      Icon(Icons.help_outline, color: AppColors.mediumGray),
+                      const Icon(Icons.groups, color: AppColors.mediumGray),
+                  title: Text(t.translate('team')),
+                  onTap: () {
+                    final selectedProjectId =
+                        ref.read(selectedProjectIdProvider);
+
+                    if (selectedProjectId == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text(t.translate('select_project_first'))),
+                      );
+                      return;
+                    }
+
+                    Navigator.pop(context); // Fechar drawer
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            TeamManagementScreen(projectId: selectedProjectId),
+                      ),
+                    );
+                  },
+                ),
+
+                // ══════════════════════════════════════════════════════════════
+                // SETTINGS
+                // ══════════════════════════════════════════════════════════════
+                ListTile(
+                  leading:
+                      const Icon(Icons.settings, color: AppColors.mediumGray),
+                  title: Text(t.translate('settings')),
+                  onTap: () {
+                    Navigator.pop(context); // Fechar drawer
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                    );
+                  },
+                ),
+
+                // ══════════════════════════════════════════════════════════════
+                // HELP
+                // ══════════════════════════════════════════════════════════════
+                ListTile(
+                  leading: const Icon(Icons.help_outline,
+                      color: AppColors.mediumGray),
                   title: Text(t.translate('help')),
                   onTap: () {
-                    Navigator.pop(context);
-                    _showHelpDialog(context);
+                    Navigator.pop(context); // Fechar drawer
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const HelpScreen()),
+                    );
                   },
                 ),
               ],
             ),
           ),
 
-          ListTile(
-            leading: Icon(Icons.description),
-            title: Text('Relatórios'),
-            onTap: () {
-              Navigator.pop(context); // Fecha drawer
-
-              // Obter projeto selecionado
-              final projectId = ref.read(selectedProjectIdProvider);
-
-              if (projectId == null) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Por favor, selecione um projeto primeiro'),
-                    backgroundColor: Colors.orange,
-                  ),
-                );
-                return;
-              }
-
-              // Obter nome do projeto
-              final projectAsync = ref.read(selectedProjectProvider);
-
-              projectAsync.whenData((project) {
-                if (project != null) {
-                  showDialog(
-                    context: context,
-                    builder: (_) => GenerateReportDialog(
-                      projectId: project.id,
-                      projectName: project.nome,
-                    ),
-                  );
-                }
-              });
-            },
-          ),
           // ============================================================================
           // 🚪 LOGOUT
           // ============================================================================
-          Divider(),
+          const Divider(),
           ListTile(
             leading: Icon(Icons.logout, color: AppColors.errorRed),
             title: Text(t.translate('logout')),
             onTap: () => _handleLogout(context),
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
         ],
       ),
     );
@@ -270,16 +336,16 @@ class EnhancedDrawer extends ConsumerWidget {
         title: Row(
           children: [
             Icon(Icons.info_outline, color: AppColors.primaryBlue),
-            SizedBox(width: 12),
-            Text('Em Breve'),
+            const SizedBox(width: 12),
+            const Text('Em Breve'),
           ],
         ),
-        content: Text(
+        content: const Text(
             'Esta funcionalidade está em desenvolvimento e estará disponível em breve!'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('OK'),
+            child: const Text('OK'),
           ),
         ],
       ),
@@ -293,11 +359,11 @@ class EnhancedDrawer extends ConsumerWidget {
         title: Row(
           children: [
             Icon(Icons.help_outline, color: AppColors.primaryBlue),
-            SizedBox(width: 12),
-            Text('Ajuda'),
+            const SizedBox(width: 12),
+            const Text('Ajuda'),
           ],
         ),
-        content: Column(
+        content: const Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -326,7 +392,7 @@ class EnhancedDrawer extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Fechar'),
+            child: const Text('Fechar'),
           ),
         ],
       ),
@@ -337,19 +403,19 @@ class EnhancedDrawer extends ConsumerWidget {
     final shouldLogout = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Confirmar Logout'),
-        content: Text('Tem certeza que deseja sair?'),
+        title: const Text('Confirmar Logout'),
+        content: const Text('Tem certeza que deseja sair?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text('Cancelar'),
+            child: const Text('Cancelar'),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.errorRed,
             ),
-            child: Text('Sair'),
+            child: const Text('Sair'),
           ),
         ],
       ),
@@ -359,7 +425,7 @@ class EnhancedDrawer extends ConsumerWidget {
       await FirebaseAuth.instance.signOut();
       if (context.mounted) {
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => LoginScreen()),
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
         );
       }
     }
@@ -387,8 +453,8 @@ class _ModuleButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
-        duration: Duration(milliseconds: 200),
-        padding: EdgeInsets.symmetric(vertical: 12),
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.primaryBlue : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
@@ -400,7 +466,7 @@ class _ModuleButton extends StatelessWidget {
               color: isSelected ? Colors.white : AppColors.mediumGray,
               size: 24,
             ),
-            SizedBox(height: 4),
+            const SizedBox(height: 4),
             Text(
               label,
               style: TextStyle(
@@ -434,17 +500,17 @@ class _HelpItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         children: [
           Icon(icon, color: AppColors.primaryBlue, size: 20),
-          SizedBox(width: 12),
+          const SizedBox(width: 12),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 title,
-                style: TextStyle(
+                style: const TextStyle(
                   fontWeight: FontWeight.w600,
                   fontSize: 14,
                 ),

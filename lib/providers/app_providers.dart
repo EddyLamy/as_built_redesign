@@ -10,6 +10,7 @@ import '../services/project_service.dart';
 import '../services/turbina_service.dart';
 import '../services/componente_service.dart';
 import '../services/project_phase_service.dart';
+import 'auth_providers.dart';
 
 // ============================================================================
 // 🔔 NOTIFICATION SYSTEM - NOVO
@@ -278,26 +279,8 @@ final currentPhaseProvider =
 // ============================================================================
 // AUTH / SESSION (EXISTENTE)
 // ============================================================================
-
-// AUTH STREAM (Firebase SDK)
-final authStateProvider = StreamProvider<User?>((ref) {
-  return FirebaseAuth.instance.authStateChanges();
-});
-
-// Provider de user atual (SDK apenas)
-final currentUserProvider = Provider<User?>((ref) {
-  return FirebaseAuth.instance.currentUser;
-});
-
-// Guarda apenas o userId vindo do REST (String) – porque não existe class UserSession no projeto
-final userSessionProvider = StateProvider<String?>((ref) => null);
-
-// USER ID UNIFICADO (REST ou SDK) - ÚNICO
-final currentUserIdProvider = Provider<String?>((ref) {
-  final restUserId = ref.watch(userSessionProvider);
-  final firebaseUser = FirebaseAuth.instance.currentUser;
-  return restUserId ?? firebaseUser?.uid;
-});
+// AUTH PROVIDERS - Moved to auth_providers.dart
+// ============================================================================
 
 // ============================================================================
 // SERVICE PROVIDERS (EXISTENTE)

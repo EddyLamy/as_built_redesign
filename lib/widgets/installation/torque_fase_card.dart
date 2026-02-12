@@ -64,7 +64,8 @@ class TorqueFaseCard extends ConsumerWidget {
       error: (error, _) => Card(
         child: Padding(
           padding: const EdgeInsets.all(16),
-          child: Text('Erro: $error', style: TextStyle(color: Colors.red)),
+          child:
+              Text('Erro: $error', style: const TextStyle(color: Colors.red)),
         ),
       ),
     );
@@ -87,7 +88,7 @@ class TorqueFaseCard extends ConsumerWidget {
             children: [
               Icon(Icons.construction, color: progressoColor, size: 20),
               const SizedBox(width: 8),
-              Text(
+              const Text(
                 'Torque & Tensioning',
                 style: TextStyle(
                   fontWeight: FontWeight.w600,

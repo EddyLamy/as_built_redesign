@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:image_picker/image_picker.dart';
 import 'dart:async';
 import '../../core/theme/app_colors.dart';
 import '../../providers/app_providers.dart';
@@ -196,41 +195,44 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
         appBar: AppBar(
           title: turbinaAsync.when(
             data: (turbina) => Text(turbina?.nome ?? 'Turbina'),
-            loading: () => Text('Loading...'),
-            error: (_, __) => Text('Error'),
+            loading: () => const Text('Loading...'),
+            error: (_, __) => const Text('Error'),
           ),
         ),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              SizedBox(
+              const SizedBox(
                 width: 80,
                 height: 80,
                 child: CircularProgressIndicator(strokeWidth: 6),
               ),
-              SizedBox(height: 24),
+              const SizedBox(height: 24),
               Text(
                 t.translate('preparing_components'),
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style:
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
               Padding(
-                padding: EdgeInsets.symmetric(horizontal: 48),
+                padding: const EdgeInsets.symmetric(horizontal: 48),
                 child: Text(
                   t.translate('migration_once_per_turbine'),
-                  style: TextStyle(fontSize: 14, color: AppColors.mediumGray),
+                  style: const TextStyle(
+                      fontSize: 14, color: AppColors.mediumGray),
                   textAlign: TextAlign.center,
                 ),
               ),
-              SizedBox(height: 24),
+              const SizedBox(height: 24),
               Container(
-                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 decoration: BoxDecoration(
                   color: AppColors.primaryBlue.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Column(
+                child: const Column(
                   children: [
                     Text(
                       '🔧 Auto-fixing components...',
@@ -270,7 +272,7 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh),
             onPressed: () {
               final turbinaService = ref.read(turbinaServiceProvider);
               turbinaService.atualizarProgressoTurbina(widget.turbinaId);
@@ -286,7 +288,7 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
           }
           return _buildContent(context, turbina, t);
         },
-        loading: () => Center(child: CircularProgressIndicator()),
+        loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => Center(child: Text('Error: $error')),
       ),
     );
@@ -317,7 +319,7 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
         ),
       ),
       child: Padding(
-        padding: EdgeInsets.all(24),
+        padding: const EdgeInsets.all(24),
         child: Column(
           children: [
             SizedBox(
@@ -349,7 +351,7 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
                       ),
                       Text(
                         turbina.status,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 14,
                           color: AppColors.mediumGray,
                         ),
@@ -498,7 +500,7 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
     };
 
     return Padding(
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       child: Column(
         children: categories.entries.map((entry) {
           return _buildCategoryCard(entry.key, entry.value, t);
@@ -517,7 +519,7 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
     ].contains(categoria);
 
     return Card(
-      margin: EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 12),
       child: Column(
         children: [
           InkWell(
@@ -527,11 +529,11 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
               });
             },
             child: Padding(
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
                   Container(
-                    padding: EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
                       color: categoryColor.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
@@ -542,11 +544,11 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
                       size: 24,
                     ),
                   ),
-                  SizedBox(width: 12),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       t.translate(categoria.toLowerCase().replaceAll(' ', '_')),
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
@@ -579,7 +581,7 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
           ),
           if (isExpanded)
             Padding(
-              padding: EdgeInsets.fromLTRB(16, 0, 16, 16),
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
               child: allowsDynamicComponents
                   ? _buildComponentsGridWithDynamic(
                       components, categoria, t) // ← NOVO
@@ -598,7 +600,7 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
       List<Map<String, dynamic>> components, TranslationHelper t) {
     return GridView.builder(
       shrinkWrap: true,
-      physics: NeverScrollableScrollPhysics(),
+      physics: const NeverScrollableScrollPhysics(),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: MediaQuery.of(context).size.width > 600 ? 8 : 4,
         crossAxisSpacing: 10,
@@ -769,16 +771,16 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
         onTap: () => _openComponentDetails(component),
         borderRadius: BorderRadius.circular(8),
         child: Container(
-          padding: EdgeInsets.all(8),
+          padding: const EdgeInsets.all(8),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Icon(component['icon'] as IconData, size: 28, color: statusColor),
-              SizedBox(height: 4),
+              const SizedBox(height: 4),
               Text(
                 displayName,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 9,
                   fontWeight: FontWeight.w600,
                   color: AppColors.darkGray,
@@ -788,10 +790,10 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
                 overflow: TextOverflow.ellipsis,
               ),
               if (vui != null && vui.isNotEmpty) ...[
-                SizedBox(height: 2),
+                const SizedBox(height: 2),
                 Text(
                   vui,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 8,
                     color: AppColors.mediumGray,
                     fontWeight: FontWeight.w500,
@@ -801,7 +803,7 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
-              SizedBox(height: 4),
+              const SizedBox(height: 4),
               Text(
                 '${progresso.toStringAsFixed(0)}%',
                 style: TextStyle(
@@ -830,16 +832,16 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
         onTap: () => _openComponentDetails(component),
         borderRadius: BorderRadius.circular(8),
         child: Container(
-          padding: EdgeInsets.all(8),
+          padding: const EdgeInsets.all(8),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(component['icon'] as IconData,
                   size: 28, color: AppColors.mediumGray),
-              SizedBox(height: 4),
+              const SizedBox(height: 4),
               Text(
                 displayName,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 9,
                   fontWeight: FontWeight.w600,
                   color: AppColors.mediumGray,
@@ -848,8 +850,8 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
-              SizedBox(height: 4),
-              Text(
+              const SizedBox(height: 4),
+              const Text(
                 '0%',
                 style: TextStyle(
                   fontSize: 13,
@@ -871,8 +873,8 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
       margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       child: Container(
-        padding: EdgeInsets.all(8),
-        child: Center(
+        padding: const EdgeInsets.all(8),
+        child: const Center(
           child: SizedBox(
             width: 20,
             height: 20,
@@ -893,12 +895,12 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
         onTap: () => _openComponentDetails(component),
         borderRadius: BorderRadius.circular(8),
         child: Container(
-          padding: EdgeInsets.all(8),
+          padding: const EdgeInsets.all(8),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(Icons.error_outline, size: 28, color: Colors.red[300]),
-              SizedBox(height: 4),
+              const SizedBox(height: 4),
               Text(
                 'Erro',
                 style: TextStyle(
@@ -1048,7 +1050,6 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
         if (nameQuerySnapshot.docs.isNotEmpty) {
           print('✅ ENCONTRADO por nome!');
           final doc = nameQuerySnapshot.docs.first;
-          final data = doc.data();
 
           print(
               '⚠️  PROBLEMA: Componente existe mas não tem hardcodedId correto!');
@@ -1078,7 +1079,7 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
           SnackBar(
             content: Text('Component not found: $componentName'),
             backgroundColor: AppColors.errorRed,
-            duration: Duration(seconds: 3),
+            duration: const Duration(seconds: 3),
           ),
         );
       }
@@ -1092,7 +1093,7 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
           SnackBar(
             content: Text('Error: $error'),
             backgroundColor: AppColors.errorRed,
-            duration: Duration(seconds: 3),
+            duration: const Duration(seconds: 3),
           ),
         );
       }
@@ -1106,15 +1107,15 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
   Color _getCategoryColor(String categoria) {
     switch (categoria) {
       case 'Civil Works':
-        return Color(0xFF94A3B8);
+        return const Color(0xFF94A3B8);
       case 'Main Components':
-        return Color(0xFF1E3A8A);
+        return const Color(0xFF1E3A8A);
       case 'Electrical Systems':
-        return Color(0xFFEA580C);
+        return const Color(0xFFEA580C);
       case 'Mechanical Systems':
-        return Color(0xFF059669);
+        return const Color(0xFF059669);
       case 'Auxiliary Systems':
-        return Color(0xFF0891B2);
+        return const Color(0xFF0891B2);
       default:
         return AppColors.mediumGray;
     }
@@ -1357,7 +1358,7 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
 
         return GridView.builder(
           shrinkWrap: true,
-          physics: NeverScrollableScrollPhysics(),
+          physics: const NeverScrollableScrollPhysics(),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: MediaQuery.of(context).size.width > 600 ? 8 : 4,
             crossAxisSpacing: 10,
@@ -1401,8 +1402,8 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
             title: Row(
               children: [
                 Icon(Icons.add_circle, color: categoryColor),
-                SizedBox(width: 12),
-                Text('Adicionar Componente'),
+                const SizedBox(width: 12),
+                const Text('Adicionar Componente'),
               ],
             ),
             content: SingleChildScrollView(
@@ -1412,23 +1413,23 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Nome do Componente',
+                    const Text('Nome do Componente',
                         style: TextStyle(
                             fontSize: 14, fontWeight: FontWeight.w600)),
-                    SizedBox(height: 8),
+                    const SizedBox(height: 8),
                     TextField(
                       controller: nameController,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         hintText: 'Ex: Spare Part 1',
                         border: OutlineInputBorder(),
                         prefixIcon: Icon(Icons.label),
                       ),
                     ),
-                    SizedBox(height: 24),
-                    Text('Fases de Integração',
+                    const SizedBox(height: 24),
+                    const Text('Fases de Integração',
                         style: TextStyle(
                             fontSize: 14, fontWeight: FontWeight.w600)),
-                    SizedBox(height: 12),
+                    const SizedBox(height: 12),
                     Container(
                       decoration: BoxDecoration(
                         border: Border.all(color: Colors.grey[300]!),
@@ -1445,7 +1446,7 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
                             title: Row(
                               children: [
                                 Text(phaseIcon),
-                                SizedBox(width: 8),
+                                const SizedBox(width: 8),
                                 Text(phaseName),
                               ],
                             ),
@@ -1466,14 +1467,14 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
                     ),
                     if (selectedPhases.isEmpty)
                       Padding(
-                        padding: EdgeInsets.only(top: 12),
+                        padding: const EdgeInsets.only(top: 12),
                         child: Container(
-                          padding: EdgeInsets.all(12),
+                          padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
                             color: Colors.orange.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: Row(
+                          child: const Row(
                             children: [
                               Icon(Icons.info_outline,
                                   color: Colors.orange, size: 20),
@@ -1491,7 +1492,7 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: Text('Cancelar'),
+                child: const Text('Cancelar'),
               ),
               ElevatedButton.icon(
                 onPressed: nameController.text.trim().isEmpty ||
@@ -1503,8 +1504,8 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
                         await _createDynamicComponent(
                             componentName, categoria, selectedPhases.toList());
                       },
-                icon: Icon(Icons.add),
-                label: Text('Criar'),
+                icon: const Icon(Icons.add),
+                label: const Text('Criar'),
                 style: ElevatedButton.styleFrom(backgroundColor: categoryColor),
               ),
             ],
@@ -1528,7 +1529,7 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Row(
               children: [
                 SizedBox(
@@ -1619,7 +1620,7 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
           SnackBar(
             content: Text('✅ "$componentName" criado!'),
             backgroundColor: Colors.green,
-            duration: Duration(seconds: 3),
+            duration: const Duration(seconds: 3),
           ),
         );
         setState(() {});
@@ -1632,7 +1633,7 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
           SnackBar(
             content: Text('❌ Erro: $e'),
             backgroundColor: Colors.red,
-            duration: Duration(seconds: 5),
+            duration: const Duration(seconds: 5),
           ),
         );
       }
@@ -1664,12 +1665,10 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
   final _serialNumberController = TextEditingController();
   final _vuiController = TextEditingController();
   final _observacoesController = TextEditingController();
-  final ImagePicker _imagePicker = ImagePicker();
 
   bool _isLoading = false;
   bool _isBlocked = false;
   String? _blockReason;
-  DateTime? _blockDate;
   String? _blockedBy;
 
   List<String> _photos = [];
@@ -1982,14 +1981,14 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
             _buildHeader(t),
             Expanded(
               child: SingleChildScrollView(
-                padding: EdgeInsets.all(16),
+                padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     if (_isSyncingFromInstallation)
                       Container(
-                        padding: EdgeInsets.all(12),
-                        margin: EdgeInsets.only(bottom: 16),
+                        padding: const EdgeInsets.all(12),
+                        margin: const EdgeInsets.only(bottom: 16),
                         decoration: BoxDecoration(
                           color: AppColors.primaryBlue.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(8),
@@ -1998,15 +1997,15 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
                         ),
                         child: Row(
                           children: [
-                            SizedBox(
+                            const SizedBox(
                               width: 16,
                               height: 16,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             ),
-                            SizedBox(width: 12),
+                            const SizedBox(width: 12),
                             Text(
                               t.translate('syncing_from_installation'),
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 12,
                                 color: AppColors.primaryBlue,
                               ),
@@ -2016,17 +2015,17 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
                       ),
                     _buildNAToggle(t, isNA),
                     if (!isNA) ...[
-                      SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       _buildProgressSection(t),
-                      SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       _buildStatusDropdown(t),
-                      SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       _buildAutoFilledFields(t),
-                      SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       _buildAggregatedNotes(t),
-                      SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       _buildPhotosGallery(t),
-                      SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       _buildObservationsField(t),
                     ],
                   ],
@@ -2046,8 +2045,8 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
 
   Widget _buildHeader(TranslationHelper t) {
     return Container(
-      padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(
+      padding: const EdgeInsets.all(16),
+      decoration: const BoxDecoration(
         color: AppColors.primaryBlue,
         border: Border(bottom: BorderSide(color: AppColors.borderGray)),
       ),
@@ -2059,7 +2058,7 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
               children: [
                 Text(
                   widget.componente.nome,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -2067,7 +2066,7 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
                 ),
                 Text(
                   widget.componente.categoria,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Colors.white70,
                     fontSize: 14,
                   ),
@@ -2084,7 +2083,7 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
                   _isBlocked ? t.translate('unblock') : t.translate('block'),
             ),
           IconButton(
-            icon: Icon(Icons.close, color: Colors.white),
+            icon: const Icon(Icons.close, color: Colors.white),
             onPressed: () => Navigator.pop(context),
           ),
         ],
@@ -2100,13 +2099,13 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
       child: SwitchListTile(
         title: Text(
           t.translate('not_applicable'),
-          style: TextStyle(fontWeight: FontWeight.w600),
+          style: const TextStyle(fontWeight: FontWeight.w600),
         ),
         subtitle: Text(
           isNA
               ? t.translate('component_not_used')
               : t.translate('mark_if_not_installed'),
-          style: TextStyle(fontSize: 12),
+          style: const TextStyle(fontSize: 12),
         ),
         value: isNA,
         onChanged: _isBlocked
@@ -2137,14 +2136,14 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
           children: [
             Text(
               t.translate('progress'),
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 14,
                 color: AppColors.mediumGray,
               ),
             ),
             Text(
               '${_progresso.toStringAsFixed(0)}%',
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: AppColors.darkGray,
@@ -2152,14 +2151,14 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
             ),
           ],
         ),
-        SizedBox(height: 8),
+        const SizedBox(height: 8),
         Row(
           children: List.generate(20, (index) {
             final isFilled = index < (_progresso / 5).round();
             return Container(
               width: 12,
               height: 12,
-              margin: EdgeInsets.only(right: 4),
+              margin: const EdgeInsets.only(right: 4),
               decoration: BoxDecoration(
                 color: isFilled ? AppColors.primaryBlue : AppColors.borderGray,
                 shape: BoxShape.circle,
@@ -2167,7 +2166,7 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
             );
           }),
         ),
-        SizedBox(height: 8),
+        const SizedBox(height: 8),
         Slider(
           value: _progresso,
           min: 0,
@@ -2207,15 +2206,15 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
       children: [
         Text(
           t.translate('status'),
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
             color: AppColors.darkGray,
           ),
         ),
-        SizedBox(height: 8),
+        const SizedBox(height: 8),
         Container(
-          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           decoration: BoxDecoration(
             border: Border.all(color: AppColors.borderGray),
             borderRadius: BorderRadius.circular(8),
@@ -2226,7 +2225,7 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
                   ? _status
                   : 'Pendente',
               isExpanded: true,
-              icon: Icon(Icons.arrow_drop_down),
+              icon: const Icon(Icons.arrow_drop_down),
               items: statuses.map((status) {
                 return DropdownMenuItem<String>(
                   value: status['value'] as String,
@@ -2240,7 +2239,7 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
                           shape: BoxShape.circle,
                         ),
                       ),
-                      SizedBox(width: 12),
+                      const SizedBox(width: 12),
                       Text(t.translate('component_status_${status['value']}')),
                     ],
                   ),
@@ -2259,9 +2258,9 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
           ),
         ),
         if (_isBlocked) ...[
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           Container(
-            padding: EdgeInsets.all(12),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: Colors.red.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
@@ -2269,21 +2268,21 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
             ),
             child: Row(
               children: [
-                Icon(Icons.lock, color: Colors.red, size: 20),
-                SizedBox(width: 8),
+                const Icon(Icons.lock, color: Colors.red, size: 20),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         '${t.translate('blocked_by')}: $_blockedBy',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                           color: Colors.red,
                         ),
                       ),
-                      SizedBox(height: 4),
+                      const SizedBox(height: 4),
                       Text(
                         _blockReason ?? '',
                         style: TextStyle(
@@ -2311,14 +2310,14 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
           icon: Icons.qr_code,
           t: t,
         ),
-        SizedBox(height: 12),
+        const SizedBox(height: 12),
         _buildReadOnlyField(
           label: t.translate('item_number'),
           controller: _itemNumberController,
           icon: Icons.numbers,
           t: t,
         ),
-        SizedBox(height: 12),
+        const SizedBox(height: 12),
         _buildReadOnlyField(
           label: t.translate('serial_number'),
           controller: _serialNumberController,
@@ -2340,23 +2339,24 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
       children: [
         Text(
           label,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
             color: AppColors.darkGray,
           ),
         ),
-        SizedBox(height: 6),
+        const SizedBox(height: 6),
         TextField(
           controller: controller,
           readOnly: true,
           decoration: InputDecoration(
             prefixIcon: Icon(icon),
-            suffixIcon: Icon(Icons.sync, color: AppColors.successGreen),
+            suffixIcon: const Icon(Icons.sync, color: AppColors.successGreen),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
             filled: true,
             fillColor: AppColors.successGreen.withOpacity(0.05),
-            contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
           ),
         ),
       ],
@@ -2369,16 +2369,16 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
       children: [
         Text(
           t.translate('notes'),
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
             color: AppColors.darkGray,
           ),
         ),
-        SizedBox(height: 12),
+        const SizedBox(height: 12),
         if (_aggregatedNotes.isEmpty)
           Container(
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: AppColors.borderGray.withOpacity(0.3),
               borderRadius: BorderRadius.circular(8),
@@ -2386,15 +2386,15 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
             child: Center(
               child: Text(
                 t.translate('no_notes'),
-                style: TextStyle(color: AppColors.mediumGray),
+                style: const TextStyle(color: AppColors.mediumGray),
               ),
             ),
           )
         else
           ..._aggregatedNotes.map((note) {
             return Container(
-              margin: EdgeInsets.only(bottom: 12),
-              padding: EdgeInsets.all(12),
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 border: Border.all(color: AppColors.borderGray),
                 borderRadius: BorderRadius.circular(8),
@@ -2406,31 +2406,31 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
                     children: [
                       Text(
                         note['phaseIcon'],
-                        style: TextStyle(fontSize: 20),
+                        style: const TextStyle(fontSize: 20),
                       ),
-                      SizedBox(width: 8),
+                      const SizedBox(width: 8),
                       Text(
                         t.translate(note['phase']),
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
                           color: AppColors.primaryBlue,
                         ),
                       ),
-                      Spacer(),
+                      const Spacer(),
                       Text(
                         _formatDate(note['date']),
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 11,
                           color: AppColors.mediumGray,
                         ),
                       ),
                     ],
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Text(
                     note['text'],
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 13,
                       color: AppColors.darkGray,
                     ),
@@ -2452,7 +2452,7 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
           children: [
             Text(
               '📸 ${t.translate('photos')} (${_photos.length})',
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: AppColors.darkGray,
@@ -2460,15 +2460,15 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
             ),
             TextButton.icon(
               onPressed: _addPhoto,
-              icon: Icon(Icons.add_photo_alternate),
+              icon: const Icon(Icons.add_photo_alternate),
               label: Text(t.translate('add')),
             ),
           ],
         ),
-        SizedBox(height: 12),
+        const SizedBox(height: 12),
         if (_photos.isEmpty)
           Container(
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: AppColors.borderGray.withOpacity(0.3),
               borderRadius: BorderRadius.circular(8),
@@ -2476,15 +2476,15 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
             child: Center(
               child: Text(
                 t.translate('no_photos'),
-                style: TextStyle(color: AppColors.mediumGray),
+                style: const TextStyle(color: AppColors.mediumGray),
               ),
             ),
           )
         else
           GridView.builder(
             shrinkWrap: true,
-            physics: NeverScrollableScrollPhysics(),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 4,
               crossAxisSpacing: 8,
               mainAxisSpacing: 8,
@@ -2502,17 +2502,18 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
-                      Icon(Icons.image, size: 40, color: AppColors.mediumGray),
+                      const Icon(Icons.image,
+                          size: 40, color: AppColors.mediumGray),
                       Positioned(
                         bottom: 4,
                         right: 4,
                         child: Container(
-                          padding: EdgeInsets.all(4),
+                          padding: const EdgeInsets.all(4),
                           decoration: BoxDecoration(
                             color: Colors.black.withOpacity(0.7),
                             borderRadius: BorderRadius.circular(4),
                           ),
-                          child: Text(
+                          child: const Text(
                             '📦',
                             style: TextStyle(fontSize: 10),
                           ),
@@ -2533,8 +2534,8 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
       controller: _observacoesController,
       decoration: InputDecoration(
         labelText: t.translate('observations'),
-        border: OutlineInputBorder(),
-        prefixIcon: Icon(Icons.notes),
+        border: const OutlineInputBorder(),
+        prefixIcon: const Icon(Icons.notes),
         hintText: t.translate('add_notes_optional'),
       ),
       maxLines: 3,
@@ -2544,8 +2545,8 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
 
   Widget _buildFooter(TranslationHelper t, bool isNA) {
     return Container(
-      padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(
+      padding: const EdgeInsets.all(16),
+      decoration: const BoxDecoration(
         color: AppColors.backgroundGray,
         border: Border(top: BorderSide(color: AppColors.borderGray)),
       ),
@@ -2556,22 +2557,23 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
               onPressed: _isLoading || _isBlocked
                   ? null
                   : () => _showReplaceDialog(context, t),
-              icon: Icon(Icons.swap_horiz, color: AppColors.warningOrange),
+              icon:
+                  const Icon(Icons.swap_horiz, color: AppColors.warningOrange),
               label: Text(
                 t.translate('replace'),
-                style: TextStyle(color: AppColors.warningOrange),
+                style: const TextStyle(color: AppColors.warningOrange),
               ),
             ),
-          Spacer(),
+          const Spacer(),
           TextButton(
             onPressed: _isLoading ? null : () => Navigator.pop(context),
             child: Text(t.translate('cancel')),
           ),
-          SizedBox(width: 8),
+          const SizedBox(width: 8),
           ElevatedButton(
             onPressed: _isLoading || _isBlocked ? null : _handleSave,
             child: _isLoading
-                ? SizedBox(
+                ? const SizedBox(
                     width: 16,
                     height: 16,
                     child: CircularProgressIndicator(
@@ -2653,11 +2655,12 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.image, size: 100, color: Colors.white),
-                      SizedBox(height: 16),
+                      const Icon(Icons.image, size: 100, color: Colors.white),
+                      const SizedBox(height: 16),
                       Text(
                         'Photo ${index + 1}',
-                        style: TextStyle(color: Colors.white, fontSize: 16),
+                        style:
+                            const TextStyle(color: Colors.white, fontSize: 16),
                       ),
                     ],
                   ),
@@ -2668,7 +2671,7 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
               top: 40,
               right: 20,
               child: IconButton(
-                icon: Icon(Icons.close, color: Colors.white, size: 30),
+                icon: const Icon(Icons.close, color: Colors.white, size: 30),
                 onPressed: () => Navigator.pop(context),
               ),
             ),
@@ -2692,13 +2695,13 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
           children: [
             if (!_isBlocked) ...[
               Text(t.translate('block_reason_required')),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               TextField(
                 controller: reasonController,
                 maxLines: 3,
                 decoration: InputDecoration(
                   hintText: t.translate('enter_block_reason'),
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
                 ),
               ),
             ] else ...[
@@ -2724,12 +2727,10 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
                 _isBlocked = !_isBlocked;
                 if (_isBlocked) {
                   _blockReason = reasonController.text;
-                  _blockDate = DateTime.now();
                   _blockedBy = 'João Silva';
                   _status = 'Bloqueado';
                 } else {
                   _blockReason = null;
-                  _blockDate = null;
                   _blockedBy = null;
                   _status = 'Pendente';
                 }

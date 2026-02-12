@@ -33,10 +33,11 @@ class _PhaseDetailsScreenState extends ConsumerState<PhaseDetailsScreen> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(widget.turbineName, style: TextStyle(fontSize: 18)),
+            Text(widget.turbineName, style: const TextStyle(fontSize: 18)),
             Text(
               t.translate('phase_${widget.phase}'),
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.normal),
+              style:
+                  const TextStyle(fontSize: 14, fontWeight: FontWeight.normal),
             ),
           ],
         ),
@@ -59,7 +60,7 @@ class _PhaseDetailsScreenState extends ConsumerState<PhaseDetailsScreen> {
       case 'commissioning':
         return _buildCommissioningContent();
       default:
-        return Center(child: Text('Fase desconhecida'));
+        return const Center(child: Text('Fase desconhecida'));
     }
   }
 
@@ -98,10 +99,10 @@ class _PhaseDetailsScreenState extends ConsumerState<PhaseDetailsScreen> {
     ];
 
     return ListView(
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       children: [
         _buildSectionHeader(t.translate('reception_checklist')),
-        SizedBox(height: 16),
+        const SizedBox(height: 16),
         ...receptionTasks.map((task) => _buildReceptionCard(task)),
       ],
     );
@@ -112,10 +113,10 @@ class _PhaseDetailsScreenState extends ConsumerState<PhaseDetailsScreen> {
     final received = task['received'] as bool;
 
     return Card(
-      margin: EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 12),
       child: ListTile(
         leading: Container(
-          padding: EdgeInsets.all(8),
+          padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             color: (received ? AppColors.successGreen : AppColors.mediumGray)
                 .withOpacity(0.1),
@@ -134,8 +135,8 @@ class _PhaseDetailsScreenState extends ConsumerState<PhaseDetailsScreen> {
             ? Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.photo_camera, size: 16),
-                  SizedBox(width: 4),
+                  const Icon(Icons.photo_camera, size: 16),
+                  const SizedBox(width: 4),
                   Text('${task['photos']}'),
                 ],
               )
@@ -173,10 +174,10 @@ class _PhaseDetailsScreenState extends ConsumerState<PhaseDetailsScreen> {
     ];
 
     return ListView(
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       children: [
         _buildSectionHeader(t.translate('pre_installation_tasks')),
-        SizedBox(height: 16),
+        const SizedBox(height: 16),
         ...preInstallTasks.map((task) => _buildTaskCard(task)),
       ],
     );
@@ -210,10 +211,10 @@ class _PhaseDetailsScreenState extends ConsumerState<PhaseDetailsScreen> {
     ];
 
     return ListView(
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       children: [
         _buildSectionHeader(t.translate('installation_tasks')),
-        SizedBox(height: 16),
+        const SizedBox(height: 16),
         ...installTasks.map((task) => _buildTaskCard(task)),
       ],
     );
@@ -247,10 +248,10 @@ class _PhaseDetailsScreenState extends ConsumerState<PhaseDetailsScreen> {
     ];
 
     return ListView(
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       children: [
         _buildSectionHeader(t.translate('electrical_tasks')),
-        SizedBox(height: 16),
+        const SizedBox(height: 16),
         ...electricalTasks.map((task) => _buildTaskCard(task)),
       ],
     );
@@ -284,10 +285,10 @@ class _PhaseDetailsScreenState extends ConsumerState<PhaseDetailsScreen> {
     ];
 
     return ListView(
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       children: [
         _buildSectionHeader(t.translate('commissioning_tasks')),
-        SizedBox(height: 16),
+        const SizedBox(height: 16),
         ...commissioningTasks.map((task) => _buildTaskCard(task)),
       ],
     );
@@ -299,7 +300,7 @@ class _PhaseDetailsScreenState extends ConsumerState<PhaseDetailsScreen> {
   Widget _buildSectionHeader(String title) {
     return Text(
       title,
-      style: TextStyle(
+      style: const TextStyle(
         fontSize: 20,
         fontWeight: FontWeight.bold,
       ),
@@ -313,9 +314,9 @@ class _PhaseDetailsScreenState extends ConsumerState<PhaseDetailsScreen> {
     final color = _getStatusColor(status);
 
     return Card(
-      margin: EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -324,7 +325,7 @@ class _PhaseDetailsScreenState extends ConsumerState<PhaseDetailsScreen> {
                 Expanded(
                   child: Text(
                     t.translate(task['nameKey']),
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
@@ -333,20 +334,20 @@ class _PhaseDetailsScreenState extends ConsumerState<PhaseDetailsScreen> {
                 Chip(
                   label: Text(
                     t.translate('status_$status'),
-                    style: TextStyle(fontSize: 11),
+                    style: const TextStyle(fontSize: 11),
                   ),
                   backgroundColor: color.withOpacity(0.2),
                   labelStyle: TextStyle(color: color),
                 ),
               ],
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             LinearProgressIndicator(
               value: progress,
               backgroundColor: AppColors.borderGray,
               valueColor: AlwaysStoppedAnimation(color),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
               '${(progress * 100).toInt()}% ${t.translate('complete')}',
               style: TextStyle(
@@ -382,7 +383,7 @@ class _PhaseDetailsScreenState extends ConsumerState<PhaseDetailsScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text(t.translate(task['nameKey'])),
-        content: Column(
+        content: const Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text('Formulário de receção completo'),

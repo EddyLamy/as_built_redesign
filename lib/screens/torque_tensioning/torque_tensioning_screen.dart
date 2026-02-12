@@ -6,8 +6,7 @@ import '../../providers/torque_tensioning_providers.dart';
 import '../../widgets/torque_tensioning_edit_dialog.dart';
 import '../../widgets/add_conexao_extra_dialog.dart';
 
-/// Ecrã SIMPLIFICADO de Torque & Tensioning
-/// Mostra APENAS as conexões da Torre (sem categorias)
+/// Ecrã de Torque & Tensioning com cards tipo componentes
 class TorqueTensioningScreen extends ConsumerWidget {
   final String turbinaId;
   final String projectId;
@@ -28,16 +27,19 @@ class TorqueTensioningScreen extends ConsumerWidget {
     final stats = ref.watch(estatisticasConexoesProvider(turbinaId));
 
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('🔩 Torque & Tensioning', style: TextStyle(fontSize: 18)),
+            const Text('🔩 Torque & Tensioning',
+                style: TextStyle(fontSize: 18)),
             Text(turbinaNome,
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.normal)),
+                style: const TextStyle(
+                    fontSize: 14, fontWeight: FontWeight.normal)),
           ],
         ),
-        backgroundColor: Color(0xFFFF5722),
+        backgroundColor: const Color(0xFFFF5722),
       ),
       body: conexoesAsync.when(
         data: (conexoes) {
@@ -45,66 +47,103 @@ class TorqueTensioningScreen extends ConsumerWidget {
             return _buildEmptyState(context, ref);
           }
 
+          final conexoesOrdenadas = _ordenarConexoes(conexoes);
+
           return Column(
             children: [
-              // Header com progresso geral
+              // Header com progresso
               _buildProgressHeader(context, stats),
 
-              // Lista de conexões
+              // Grid de cards tipo componentes
               Expanded(
-                child: ListView(
-                  padding: EdgeInsets.all(16),
-                  children: [
-                    // Título da secção
-                    Padding(
-                      padding: EdgeInsets.only(bottom: 12),
-                      child: Row(
-                        children: [
-                          Icon(Icons.view_column,
-                              color: Color(0xFFFF5722), size: 24),
-                          SizedBox(width: 8),
-                          Text(
-                            '🏗️ Torre',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    // Conexões
-                    ...conexoes.map(
-                        (conexao) => _buildConexaoCard(context, ref, conexao)),
-
-                    SizedBox(height: 16),
-
-                    // Botão adicionar extra
-                    _buildAddExtraButton(context, ref),
-                  ],
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Wrap(
+                    spacing: 12,
+                    runSpacing: 12,
+                    children: conexoesOrdenadas
+                        .map((conexao) => _buildComponentCard(
+                              context,
+                              ref,
+                              conexao,
+                            ))
+                        .toList(),
+                  ),
                 ),
+              ),
+
+              // Botão adicionar
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: _buildAddButton(context, ref),
               ),
             ],
           );
         },
-        loading: () => Center(child: CircularProgressIndicator()),
+        loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.error_outline, size: 64, color: Colors.red),
-              SizedBox(height: 16),
-              Text('Erro: $error', style: TextStyle(color: Colors.red)),
-            ],
-          ),
+          child:
+              Text('Erro: $error', style: const TextStyle(color: Colors.red)),
         ),
       ),
     );
   }
 
   // ══════════════════════════════════════════════════════════════════════════
-  // 🎨 HEADER COM PROGRESSO GERAL
+  // 📊 ORDENAR CONEXÕES
+  // ══════════════════════════════════════════════════════════════════════════
+
+  List<TorqueTensioning> _ordenarConexoes(List<TorqueTensioning> conexoes) {
+    final ordem = [
+      'Fundação → Bottom',
+      'Bottom → Middle 1',
+      'Middle 1 → Middle 2',
+      'Middle 2 → Middle 3',
+      'Middle 3 → Middle 4',
+      'Middle 4 → Middle 5',
+      'Middle 5 → Top',
+      'Middle 4 → Top',
+      'Middle 3 → Top',
+      'Middle 2 → Top',
+      'Middle 1 → Top',
+      'Top → Nacelle',
+      'Drive Train',
+      'Nacelle → Hub',
+      'Hub → Blade A',
+      'Hub → Blade B',
+      'Hub → Blade C',
+    ];
+
+    final ordenadas = <TorqueTensioning>[];
+    final extras = <TorqueTensioning>[];
+
+    for (final conexao in conexoes) {
+      if (conexao.isExtra) {
+        extras.add(conexao);
+      } else {
+        ordenadas.add(conexao);
+      }
+    }
+
+    ordenadas.sort((a, b) {
+      final keyA = '${a.componenteOrigem} → ${a.componenteDestino}';
+      final keyB = '${b.componenteOrigem} → ${b.componenteDestino}';
+
+      final indexA = ordem.indexWhere((o) => keyA.contains(o));
+      final indexB = ordem.indexWhere((o) => keyB.contains(o));
+
+      if (indexA == -1) return 1;
+      if (indexB == -1) return -1;
+
+      return indexA.compareTo(indexB);
+    });
+
+    ordenadas.addAll(extras);
+    return ordenadas;
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // 🎨 HEADER COM PROGRESSO
   // ══════════════════════════════════════════════════════════════════════════
 
   Widget _buildProgressHeader(BuildContext context, AsyncValue stats) {
@@ -113,92 +152,74 @@ class TorqueTensioningScreen extends ConsumerWidget {
         final progressoMedio = s['progressoMedio'] ?? 0.0;
         final total = s['total'] ?? 0;
         final concluidas = s['concluidas'] ?? 0;
-        final emProgresso = s['emProgresso'] ?? 0;
-        final pendentes = s['pendentes'] ?? 0;
 
-        Color progressoColor = Colors.grey;
-        if (progressoMedio > 0 && progressoMedio < 100) {
-          progressoColor = Colors.orange;
-        } else if (progressoMedio >= 100) {
-          progressoColor = Colors.green;
-        }
+        Color cor = progressoMedio >= 100
+            ? Colors.green
+            : (progressoMedio > 0 ? Colors.orange : Colors.grey);
 
         return Container(
-          padding: EdgeInsets.all(16),
+          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: progressoColor.withOpacity(0.1),
-            border: Border(bottom: BorderSide(color: Colors.grey[300]!)),
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 4,
+              ),
+            ],
           ),
-          child: Column(
+          child: Row(
             children: [
-              // Barra de progresso
-              Row(
+              Stack(
+                alignment: Alignment.center,
                 children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Progresso Geral',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[700],
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: LinearProgressIndicator(
-                            value: progressoMedio / 100,
-                            backgroundColor: Colors.grey[300],
-                            valueColor:
-                                AlwaysStoppedAnimation<Color>(progressoColor),
-                            minHeight: 12,
-                          ),
-                        ),
-                      ],
+                  SizedBox(
+                    width: 50,
+                    height: 50,
+                    child: CircularProgressIndicator(
+                      value: progressoMedio / 100,
+                      strokeWidth: 5,
+                      backgroundColor: Colors.grey[200],
+                      valueColor: AlwaysStoppedAnimation(cor),
                     ),
                   ),
-                  SizedBox(width: 16),
                   Text(
-                    '${progressoMedio.toStringAsFixed(0)}%',
+                    '${progressoMedio.toInt()}%',
                     style: TextStyle(
-                      fontSize: 32,
+                      fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      color: progressoColor,
+                      color: cor,
                     ),
                   ),
                 ],
               ),
-
-              SizedBox(height: 16),
-
-              // Estatísticas
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildStatChip('Total', total, Colors.blue),
-                  _buildStatChip('Concluídas', concluidas, Colors.green),
-                  _buildStatChip('Em Progresso', emProgresso, Colors.orange),
-                  _buildStatChip('Pendentes', pendentes, Colors.grey),
-                ],
+              const SizedBox(width: 20),
+              Expanded(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildStatItem('Total', total, Icons.apps, Colors.blue),
+                    _buildStatItem('Concluídas', concluidas, Icons.check_circle,
+                        Colors.green),
+                    _buildStatItem('Pendentes', total - concluidas,
+                        Icons.pending, Colors.grey),
+                  ],
+                ),
               ),
             ],
           ),
         );
       },
-      loading: () => Container(
-        padding: EdgeInsets.all(16),
-        child: Center(child: CircularProgressIndicator()),
-      ),
-      error: (_, __) => SizedBox.shrink(),
+      loading: () => const LinearProgressIndicator(),
+      error: (_, __) => const SizedBox.shrink(),
     );
   }
 
-  Widget _buildStatChip(String label, int value, Color color) {
+  Widget _buildStatItem(String label, int value, IconData icon, Color color) {
     return Column(
       children: [
+        Icon(icon, color: color, size: 20),
+        const SizedBox(height: 4),
         Text(
           value.toString(),
           style: TextStyle(
@@ -207,131 +228,128 @@ class TorqueTensioningScreen extends ConsumerWidget {
             color: color,
           ),
         ),
-        SizedBox(height: 4),
         Text(
           label,
-          style: TextStyle(
-            fontSize: 11,
-            color: Colors.grey[600],
-          ),
+          style: TextStyle(fontSize: 10, color: Colors.grey[600]),
         ),
       ],
     );
   }
 
   // ══════════════════════════════════════════════════════════════════════════
-  // 🎨 CARD DE CONEXÃO
+  // 🎨 CARD TIPO COMPONENTE (como no print da direita)
   // ══════════════════════════════════════════════════════════════════════════
 
-  Widget _buildConexaoCard(
+  Widget _buildComponentCard(
     BuildContext context,
     WidgetRef ref,
     TorqueTensioning conexao,
   ) {
-    Color statusColor = Colors.grey;
-    IconData statusIcon = Icons.circle_outlined;
+    // Ícone baseado no componente
+    IconData icone = _getIconeConexao(conexao);
 
-    if (conexao.status == 'Pendente') {
-      statusColor = Colors.grey;
-      statusIcon = Icons.circle_outlined;
-    } else if (conexao.status == 'Em Progresso') {
+    // Cor por status
+    Color statusColor = Colors.grey[400]!;
+    if (conexao.status == 'Em Progresso') {
       statusColor = Colors.orange;
-      statusIcon = Icons.access_time;
     } else if (conexao.status == 'Concluído') {
       statusColor = Colors.green;
-      statusIcon = Icons.check_circle;
     }
 
-    return Card(
-      margin: EdgeInsets.only(bottom: 12),
-      elevation: 2,
-      child: InkWell(
-        onTap: () => _openEditDialog(context, ref, conexao),
-        borderRadius: BorderRadius.circular(8),
-        child: Padding(
-          padding: EdgeInsets.all(16),
-          child: Row(
-            children: [
-              // Ícone de status
-              Container(
-                padding: EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: statusColor.withOpacity(0.2),
-                  shape: BoxShape.circle,
+    // Nome do componente (sem abreviar)
+    String nome = _getNomeConexao(conexao);
+
+    return SizedBox(
+      width: 140, // 🎯 LARGURA AJUSTÁVEL AQUI
+      child: Card(
+        elevation: 2,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: InkWell(
+          onTap: () => _openEditDialog(context, ref, conexao),
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Ícone
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: statusColor.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    icone,
+                    color: statusColor,
+                    size: 32,
+                  ),
                 ),
-                child: Icon(statusIcon, size: 24, color: statusColor),
-              ),
 
-              SizedBox(width: 16),
+                const SizedBox(height: 12),
 
-              // Info da conexão
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            '${conexao.componenteOrigem} → ${conexao.componenteDestino}',
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                        if (conexao.isExtra)
-                          Container(
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: Colors.purple[100],
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              'Extra',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: Colors.purple[700],
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                    SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(4),
-                            child: LinearProgressIndicator(
-                              value: conexao.progresso / 100,
-                              backgroundColor: Colors.grey[300],
-                              valueColor:
-                                  AlwaysStoppedAnimation<Color>(statusColor),
-                              minHeight: 6,
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 12),
-                        Text(
-                          '${conexao.progresso.toStringAsFixed(0)}%',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: statusColor,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                // Nome
+                Text(
+                  nome,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
 
-              SizedBox(width: 12),
-              Icon(Icons.chevron_right, color: Colors.grey[400]),
-            ],
+                const SizedBox(height: 8),
+
+                // Percentagem
+                Text(
+                  '${conexao.progresso.toInt()}%',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: statusColor,
+                  ),
+                ),
+
+                const SizedBox(height: 6),
+
+                // Barra de progresso
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: LinearProgressIndicator(
+                    value: conexao.progresso / 100,
+                    backgroundColor: Colors.grey[200],
+                    valueColor: AlwaysStoppedAnimation(statusColor),
+                    minHeight: 6,
+                  ),
+                ),
+
+                // Badge Extra
+                if (conexao.isExtra) ...[
+                  const SizedBox(height: 8),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.purple[100],
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      'EXTRA',
+                      style: TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.purple[700],
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
           ),
         ),
       ),
@@ -339,17 +357,94 @@ class TorqueTensioningScreen extends ConsumerWidget {
   }
 
   // ══════════════════════════════════════════════════════════════════════════
-  // 🎨 BOTÃO ADICIONAR CONEXÃO EXTRA
+  // 🎨 ÍCONES POR TIPO DE CONEXÃO
   // ══════════════════════════════════════════════════════════════════════════
 
-  Widget _buildAddExtraButton(BuildContext context, WidgetRef ref) {
-    return OutlinedButton.icon(
-      onPressed: () => _showAddExtraDialog(context, ref),
-      icon: Icon(Icons.add_circle_outline),
-      label: Text('Adicionar Conexão Extra'),
-      style: OutlinedButton.styleFrom(
-        padding: EdgeInsets.symmetric(vertical: 16),
-        side: BorderSide(color: Colors.blue, width: 2),
+  IconData _getIconeConexao(TorqueTensioning conexao) {
+    final origem = conexao.componenteOrigem.toLowerCase();
+    final destino = conexao.componenteDestino.toLowerCase();
+
+    // Bottom, Middle, Top
+    if (origem.contains('bottom') ||
+        destino.contains('bottom') ||
+        origem.contains('middle') ||
+        destino.contains('middle')) {
+      return Icons.view_column; // Coluna para secções de torre
+    }
+
+    // Fundação
+    if (origem.contains('fundação') || origem.contains('foundation')) {
+      return Icons.foundation;
+    }
+
+    // Top
+    if (origem.contains('top') || destino.contains('top')) {
+      return Icons.vertical_align_top;
+    }
+
+    // Nacelle
+    if (origem.contains('nacelle') || destino.contains('nacelle')) {
+      return Icons.home_work;
+    }
+
+    // Drive Train
+    if (origem.contains('drive') || destino.contains('drive')) {
+      return Icons.settings;
+    }
+
+    // Hub
+    if (origem.contains('hub') || destino.contains('hub')) {
+      return Icons.album;
+    }
+
+    // Blades
+    if (origem.contains('blade') || destino.contains('blade')) {
+      return Icons.airplanemode_active;
+    }
+
+    return Icons.bolt; // Default
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // 📝 NOME DA CONEXÃO (SEM ABREVIAR)
+  // ══════════════════════════════════════════════════════════════════════════
+
+  String _getNomeConexao(TorqueTensioning conexao) {
+    // Se for conexão simples de um componente
+    if (conexao.componenteOrigem == conexao.componenteDestino ||
+        conexao.componenteDestino.isEmpty) {
+      return conexao.componenteOrigem;
+    }
+
+    // Simplificar nomes longos mas não abreviar demais
+    String origem = conexao.componenteOrigem;
+    String destino = conexao.componenteDestino;
+
+    // Remover "Section" se existir
+    origem = origem.replaceAll(' Section', '');
+    destino = destino.replaceAll(' Section', '');
+
+    return '$origem → $destino';
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // 🎨 BOTÃO ADICIONAR
+  // ══════════════════════════════════════════════════════════════════════════
+
+  Widget _buildAddButton(BuildContext context, WidgetRef ref) {
+    return SizedBox(
+      width: double.infinity,
+      height: 48,
+      child: OutlinedButton.icon(
+        onPressed: () => _showAddExtraDialog(context, ref),
+        icon: const Icon(Icons.add_circle_outline),
+        label: const Text('Adicionar Conexão Extra'),
+        style: OutlinedButton.styleFrom(
+          side: BorderSide(color: Colors.blue[700]!, width: 2),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
       ),
     );
   }
@@ -364,19 +459,17 @@ class TorqueTensioningScreen extends ConsumerWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.construction, size: 80, color: Colors.grey[400]),
-          SizedBox(height: 16),
-          Text(
-            'Nenhuma conexão',
-            style: TextStyle(fontSize: 18, color: Colors.grey[600]),
-          ),
-          SizedBox(height: 24),
+          const SizedBox(height: 16),
+          Text('Nenhuma conexão',
+              style: TextStyle(fontSize: 18, color: Colors.grey[600])),
+          const SizedBox(height: 24),
           ElevatedButton.icon(
             onPressed: () => _initializeConexoes(context, ref),
-            icon: Icon(Icons.refresh, size: 20),
-            label: Text('Gerar Conexões Standard'),
+            icon: const Icon(Icons.refresh, size: 20),
+            label: const Text('Gerar Conexões Standard'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFFFF5722),
-              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              backgroundColor: const Color(0xFFFF5722),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             ),
           ),
         ],
@@ -385,7 +478,7 @@ class TorqueTensioningScreen extends ConsumerWidget {
   }
 
   // ══════════════════════════════════════════════════════════════════════════
-  // 🔧 MÉTODOS DE AÇÃO
+  // 🔧 MÉTODOS
   // ══════════════════════════════════════════════════════════════════════════
 
   void _openEditDialog(
@@ -416,11 +509,8 @@ class TorqueTensioningScreen extends ConsumerWidget {
   Future<void> _initializeConexoes(BuildContext context, WidgetRef ref) async {
     try {
       final service = ref.read(torqueTensioningServiceProvider);
-
-      // Buscar userId
       final user =
           await FirebaseFirestore.instance.collection('users').limit(1).get();
-
       final userId = user.docs.isNotEmpty ? user.docs.first.id : 'system';
 
       await service.gerarConexoesStandard(
@@ -432,7 +522,7 @@ class TorqueTensioningScreen extends ConsumerWidget {
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text('✅ Conexões geradas com sucesso!'),
             backgroundColor: Colors.green,
           ),

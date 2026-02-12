@@ -69,7 +69,7 @@ class _AddComponenteDialogState extends ConsumerState<AddComponenteDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Row(
+      title: const Row(
         children: [
           Icon(Icons.add_circle_outline, color: AppColors.primaryBlue),
           SizedBox(width: 12),
@@ -84,7 +84,7 @@ class _AddComponenteDialogState extends ConsumerState<AddComponenteDialog> {
             children: [
               // Info da categoria
               Container(
-                padding: EdgeInsets.all(12),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: AppColors.accentTeal.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
@@ -94,16 +94,16 @@ class _AddComponenteDialogState extends ConsumerState<AddComponenteDialog> {
                 ),
                 child: Row(
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.info_outline,
                       color: AppColors.accentTeal,
                       size: 20,
                     ),
-                    SizedBox(width: 12),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         'Category: ${widget.categoria}',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
                           color: AppColors.accentTeal,
@@ -113,58 +113,58 @@ class _AddComponenteDialogState extends ConsumerState<AddComponenteDialog> {
                   ],
                 ),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
 
               // Nome do componente *
               TextField(
                 controller: _nomeController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Component Name *',
                   hintText: 'e.g., Custom Flange Type X',
                   prefixIcon: Icon(Icons.widgets),
                 ),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
 
               // Tipo
               TextField(
                 controller: _tipoController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Type',
                   hintText: 'e.g., Foundation, Tower, etc',
                   prefixIcon: Icon(Icons.category),
                 ),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
 
               // VUI
               TextField(
                 controller: _vuiController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'VUI / Unit ID',
                   hintText: 'e.g., VES-CUSTOM-001',
                   prefixIcon: Icon(Icons.qr_code),
                 ),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
 
               Row(
                 children: [
                   Expanded(
                     child: TextField(
                       controller: _itemNumberController,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'Item Number',
                         hintText: 'e.g., ITEM-001',
                         prefixIcon: Icon(Icons.label),
                       ),
                     ),
                   ),
-                  SizedBox(width: 16),
+                  const SizedBox(width: 16),
                   Expanded(
                     child: TextField(
                       controller: _serialNumberController,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'Serial Number',
                         hintText: 'e.g., SN-001',
                         prefixIcon: Icon(Icons.tag),
@@ -173,12 +173,12 @@ class _AddComponenteDialogState extends ConsumerState<AddComponenteDialog> {
                   ),
                 ],
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
 
               // Ordem de instalação
               TextField(
                 controller: _ordemController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Installation Order *',
                   hintText: 'e.g., 22',
                   prefixIcon: Icon(Icons.format_list_numbered),
@@ -193,12 +193,12 @@ class _AddComponenteDialogState extends ConsumerState<AddComponenteDialog> {
       actions: [
         TextButton(
           onPressed: _isLoading ? null : () => Navigator.pop(context),
-          child: Text('Cancel'),
+          child: const Text('Cancel'),
         ),
         ElevatedButton(
           onPressed: _isLoading ? null : _handleAdd,
           child: _isLoading
-              ? SizedBox(
+              ? const SizedBox(
                   width: 16,
                   height: 16,
                   child: CircularProgressIndicator(
@@ -206,7 +206,7 @@ class _AddComponenteDialogState extends ConsumerState<AddComponenteDialog> {
                     color: Colors.white,
                   ),
                 )
-              : Text('Add Component'),
+              : const Text('Add Component'),
         ),
       ],
     );
@@ -216,7 +216,7 @@ class _AddComponenteDialogState extends ConsumerState<AddComponenteDialog> {
     // Validação
     if (_nomeController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('Component name is required'),
           backgroundColor: AppColors.errorRed,
         ),
@@ -226,7 +226,7 @@ class _AddComponenteDialogState extends ConsumerState<AddComponenteDialog> {
 
     if (_ordemController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('Installation order is required'),
           backgroundColor: AppColors.errorRed,
         ),

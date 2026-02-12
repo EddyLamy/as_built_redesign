@@ -77,7 +77,7 @@ class _AddConexaoExtraDialogState extends ConsumerState<AddConexaoExtraDialog> {
                           color: AppColors.accentTeal.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: Icon(
+                        child: const Icon(
                           Icons.add_circle_outline,
                           color: AppColors.accentTeal,
                           size: 28,
@@ -125,7 +125,7 @@ class _AddConexaoExtraDialogState extends ConsumerState<AddConexaoExtraDialog> {
                     decoration: InputDecoration(
                       labelText: 'Componente Origem *',
                       hintText: 'Ex: Platform, Transformer',
-                      prefixIcon: Icon(
+                      prefixIcon: const Icon(
                         Icons.arrow_forward,
                         color: AppColors.primaryBlue,
                       ),
@@ -149,7 +149,7 @@ class _AddConexaoExtraDialogState extends ConsumerState<AddConexaoExtraDialog> {
                     decoration: InputDecoration(
                       labelText: 'Componente Destino *',
                       hintText: 'Ex: Tower Bottom, Nacelle Base',
-                      prefixIcon: Icon(
+                      prefixIcon: const Icon(
                         Icons.flag,
                         color: AppColors.successGreen,
                       ),
@@ -214,7 +214,7 @@ class _AddConexaoExtraDialogState extends ConsumerState<AddConexaoExtraDialog> {
                     decoration: InputDecoration(
                       labelText: 'Descrição (opcional)',
                       hintText: 'Ex: Plataforma de acesso ao bottom',
-                      prefixIcon: Icon(
+                      prefixIcon: const Icon(
                         Icons.description,
                         color: AppColors.mediumGray,
                       ),
@@ -241,15 +241,15 @@ class _AddConexaoExtraDialogState extends ConsumerState<AddConexaoExtraDialog> {
                         color: AppColors.accentTeal.withOpacity(0.3),
                       ),
                     ),
-                    child: Row(
+                    child: const Row(
                       children: [
                         Icon(
                           Icons.info_outline,
                           color: AppColors.accentTeal,
                           size: 20,
                         ),
-                        const SizedBox(width: 12),
-                        const Expanded(
+                        SizedBox(width: 12),
+                        Expanded(
                           child: Text(
                             'Conexões extras podem ser deletadas a qualquer momento',
                             style: TextStyle(

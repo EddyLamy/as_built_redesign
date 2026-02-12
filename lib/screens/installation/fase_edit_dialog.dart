@@ -8,7 +8,6 @@ import '../../services/installation/fase_componente_service.dart';
 import '../../providers/locale_provider.dart';
 import '../../core/theme/app_colors.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../services/installation/photo_service.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:io' show Platform;
 // ════════════════════════════════════════════════════════════════════════════
@@ -34,7 +33,6 @@ class FaseEditDialog extends ConsumerStatefulWidget {
 class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
   final _formKey = GlobalKey<FormState>();
   final _service = FaseComponenteService();
-  final _photoService = PhotoService();
 
   // ════════════════════════════════════════════════════════════════════════════
   // 🆕 OCR SERVICE
@@ -116,7 +114,7 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
   Widget build(BuildContext context) {
     // ✅ OBTER LOCALE COM FALLBACK COMPLETO
     final localeValue = ref.watch(localeProvider);
-    final String safeLocale = localeValue ?? 'pt';
+    final String safeLocale = localeValue;
 
     // ✅ OBTER TRADUÇÕES CORRETAS (estrutura aninhada convertida para plana)
     final Map<String, String> t = <String, String>{};
@@ -210,8 +208,8 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
                       // ════════════════════════════════════════════════════════
                       if (_isProcessingOCR)
                         Container(
-                          margin: EdgeInsets.only(bottom: 16),
-                          padding: EdgeInsets.all(16),
+                          margin: const EdgeInsets.only(bottom: 16),
+                          padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
                             color: Colors.orange.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(8),
@@ -221,7 +219,7 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
                           ),
                           child: Row(
                             children: [
-                              SizedBox(
+                              const SizedBox(
                                 width: 24,
                                 height: 24,
                                 child: CircularProgressIndicator(
@@ -231,7 +229,7 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
                                   ),
                                 ),
                               ),
-                              SizedBox(width: 16),
+                              const SizedBox(width: 16),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -244,7 +242,7 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),
-                                    SizedBox(height: 4),
+                                    const SizedBox(height: 4),
                                     Text(
                                       'Identificando VUI, Serial e Item',
                                       style: TextStyle(
@@ -305,9 +303,9 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
                       // Botão Limpar Campos
                       TextButton.icon(
                         onPressed: _limparCampos,
-                        icon: Icon(Icons.clear_all,
+                        icon: const Icon(Icons.clear_all,
                             color: AppColors.warningOrange),
-                        label: Text(
+                        label: const Text(
                           'Limpar',
                           style: TextStyle(color: AppColors.warningOrange),
                         ),
@@ -376,10 +374,10 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         ListTile(
-          leading: Icon(Icons.calendar_today, color: Colors.orange),
+          leading: const Icon(Icons.calendar_today, color: Colors.orange),
           title: Text(_t(t, 'dataInicio', 'Data Início')),
           subtitle: Text(_formatDate(_dataInicio)),
-          trailing: Icon(Icons.edit, size: 20),
+          trailing: const Icon(Icons.edit, size: 20),
           onTap: () async {
             final data = await showDatePicker(
               context: context,
@@ -398,10 +396,10 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
           },
         ),
         ListTile(
-          leading: Icon(Icons.event, color: Colors.orange),
+          leading: const Icon(Icons.event, color: Colors.orange),
           title: Text(_t(t, 'dataFim', 'Data Fim')),
           subtitle: Text(_formatDate(_dataFim)),
-          trailing: Icon(Icons.edit, size: 20),
+          trailing: const Icon(Icons.edit, size: 20),
           onTap: () async {
             final data = await showDatePicker(
               context: context,
@@ -418,12 +416,12 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
         ),
         if (widget.fase.tipo == TipoFase.recepcao)
           ListTile(
-            leading: Icon(Icons.access_time, color: Colors.orange),
+            leading: const Icon(Icons.access_time, color: Colors.orange),
             title: Text(_t(t, 'hora', 'Hora')),
             subtitle: Text(_horaRecepcao != null
                 ? _horaRecepcao!.format(context)
                 : '--:--'),
-            trailing: Icon(Icons.edit, size: 20),
+            trailing: const Icon(Icons.edit, size: 20),
             onTap: () async {
               final hora = await showTimePicker(
                 context: context,
@@ -438,11 +436,11 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
           ),
         if (widget.fase.tipo == TipoFase.instalacao) ...[
           ListTile(
-            leading: Icon(Icons.access_time, color: Colors.orange),
+            leading: const Icon(Icons.access_time, color: Colors.orange),
             title: Text(_t(t, 'horaInicio', 'Hora Início')),
             subtitle: Text(
                 _horaInicio != null ? _horaInicio!.format(context) : '--:--'),
-            trailing: Icon(Icons.edit, size: 20),
+            trailing: const Icon(Icons.edit, size: 20),
             onTap: () async {
               final hora = await showTimePicker(
                 context: context,
@@ -456,11 +454,11 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
             },
           ),
           ListTile(
-            leading: Icon(Icons.schedule, color: Colors.orange),
+            leading: const Icon(Icons.schedule, color: Colors.orange),
             title: Text(_t(t, 'horaFim', 'Hora Fim')),
             subtitle:
                 Text(_horaFim != null ? _horaFim!.format(context) : '--:--'),
-            trailing: Icon(Icons.edit, size: 20),
+            trailing: const Icon(Icons.edit, size: 20),
             onTap: () async {
               final hora = await showTimePicker(
                 context: context,
@@ -484,7 +482,7 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
         return [
           TextFormField(
             controller: _vuiController,
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               labelText: 'VUI',
               border: OutlineInputBorder(),
               prefixIcon: Icon(Icons.qr_code),
@@ -495,8 +493,8 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
             controller: _serialNumberController,
             decoration: InputDecoration(
               labelText: _t(t, 'serial', 'Serial'),
-              border: OutlineInputBorder(),
-              prefixIcon: Icon(Icons.tag),
+              border: const OutlineInputBorder(),
+              prefixIcon: const Icon(Icons.tag),
             ),
           ),
           const SizedBox(height: 12),
@@ -504,8 +502,8 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
             controller: _itemNumberController,
             decoration: InputDecoration(
               labelText: _t(t, 'item', 'Item'),
-              border: OutlineInputBorder(),
-              prefixIcon: Icon(Icons.inventory),
+              border: const OutlineInputBorder(),
+              prefixIcon: const Icon(Icons.inventory),
             ),
           ),
         ];
@@ -518,8 +516,8 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
               initialValue: _posicao,
               decoration: InputDecoration(
                 labelText: _t(t, 'posicaoBlade', 'Posição Blade'),
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.location_on),
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.location_on),
               ),
               items: ['A', 'B', 'C'].map((pos) {
                 return DropdownMenuItem(
@@ -538,8 +536,8 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
               controller: _vuiController,
               decoration: InputDecoration(
                 labelText: 'VUI (${_t(t, 'readonly', 'readonly')})',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.qr_code),
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.qr_code),
                 enabled: false,
               ),
             ),
@@ -568,7 +566,7 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
             ),
             TextButton.icon(
               onPressed: _adicionarFoto,
-              icon: Icon(Icons.add_photo_alternate),
+              icon: const Icon(Icons.add_photo_alternate),
               label: Text(_t(t, 'adicionar', 'Adicionar')),
             ),
           ],
@@ -601,11 +599,12 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
                       child: Container(
                         width: 18,
                         height: 18,
-                        decoration: BoxDecoration(
+                        decoration: const BoxDecoration(
                           color: Colors.red,
                           shape: BoxShape.circle,
                         ),
-                        child: Icon(Icons.close, color: Colors.white, size: 10),
+                        child: const Icon(Icons.close,
+                            color: Colors.white, size: 10),
                       ),
                     ),
                   ),
@@ -627,8 +626,8 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
       controller: _observacoesController,
       decoration: InputDecoration(
         labelText: _t(t, 'observacoes', 'Observações'),
-        border: OutlineInputBorder(),
-        prefixIcon: Icon(Icons.notes),
+        border: const OutlineInputBorder(),
+        prefixIcon: const Icon(Icons.notes),
         hintText: _t(t, 'observacoesOpcionais', 'Observações opcionais...'),
       ),
       maxLines: 3,
@@ -640,8 +639,8 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
       initialValue: _motivoNA ?? '',
       decoration: InputDecoration(
         labelText: _t(t, 'motivoNA', 'Motivo N/A'),
-        border: OutlineInputBorder(),
-        prefixIcon: Icon(Icons.info_outline),
+        border: const OutlineInputBorder(),
+        prefixIcon: const Icon(Icons.info_outline),
         hintText: _t(t, 'indiqueMotivoNA', 'Indique o motivo...'),
       ),
       maxLines: 3,
@@ -680,18 +679,19 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
         source = await showDialog<ImageSource>(
           context: context,
           builder: (context) => AlertDialog(
-            title: Text('Adicionar Foto'),
+            title: const Text('Adicionar Foto'),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 ListTile(
-                  leading: Icon(Icons.camera_alt, color: Colors.orange),
-                  title: Text('Tirar Foto'),
+                  leading: const Icon(Icons.camera_alt, color: Colors.orange),
+                  title: const Text('Tirar Foto'),
                   onTap: () => Navigator.pop(context, ImageSource.camera),
                 ),
                 ListTile(
-                  leading: Icon(Icons.photo_library, color: Colors.orange),
-                  title: Text('Escolher da Galeria'),
+                  leading:
+                      const Icon(Icons.photo_library, color: Colors.orange),
+                  title: const Text('Escolher da Galeria'),
                   onTap: () => Navigator.pop(context, ImageSource.gallery),
                 ),
               ],
@@ -763,10 +763,10 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('✅ Foto adicionada com sucesso'),
+        const SnackBar(
+          content: Text('✅ Foto adicionada com sucesso'),
           backgroundColor: AppColors.successGreen,
-          duration: const Duration(seconds: 2),
+          duration: Duration(seconds: 2),
         ),
       );
     } catch (e, stackTrace) {
@@ -792,7 +792,7 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
     return showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Row(
+        title: const Row(
           children: [
             Icon(Icons.auto_awesome, color: Colors.orange, size: 28),
             SizedBox(width: 12),
@@ -803,13 +803,13 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               'Quer extrair automaticamente o VUI, Serial e Item desta foto?',
               style: TextStyle(fontSize: 14),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Container(
-              padding: EdgeInsets.all(12),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: Colors.orange.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
@@ -819,8 +819,9 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
               ),
               child: Row(
                 children: [
-                  Icon(Icons.info_outline, color: Colors.orange, size: 20),
-                  SizedBox(width: 8),
+                  const Icon(Icons.info_outline,
+                      color: Colors.orange, size: 20),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       'Os campos serão preenchidos automaticamente',
@@ -838,12 +839,12 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text('Não, obrigado'),
+            child: const Text('Não, obrigado'),
           ),
           ElevatedButton.icon(
             onPressed: () => Navigator.pop(context, true),
-            icon: Icon(Icons.auto_awesome),
-            label: Text('Sim, extrair!'),
+            icon: const Icon(Icons.auto_awesome),
+            label: const Text('Sim, extrair!'),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.orange,
             ),
@@ -910,12 +911,12 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
                 '✅ Campos preenchidos: ${camposPreenchidos.join(', ')}',
               ),
               backgroundColor: AppColors.successGreen,
-              duration: Duration(seconds: 3),
+              duration: const Duration(seconds: 3),
             ),
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
+            const SnackBar(
               content: Text('⚠️ Nenhum campo identificado na foto'),
               backgroundColor: AppColors.warningOrange,
               duration: Duration(seconds: 3),
@@ -932,7 +933,7 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
           SnackBar(
             content: Text('❌ Erro ao extrair texto: $e'),
             backgroundColor: Colors.red,
-            duration: Duration(seconds: 3),
+            duration: const Duration(seconds: 3),
           ),
         );
       }
@@ -981,21 +982,21 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Row(
+        title: const Row(
           children: [
             Icon(Icons.warning_amber, color: AppColors.warningOrange),
             SizedBox(width: 12),
             Text('Limpar Campos'),
           ],
         ),
-        content: Text(
+        content: const Text(
           'Tem certeza que deseja limpar todos os campos?\n\n'
           'Os dados preenchidos serão apagados permanentemente.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cancelar'),
+            child: const Text('Cancelar'),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -1077,7 +1078,7 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
                 }
 
                 scaffoldMessenger.showSnackBar(
-                  SnackBar(
+                  const SnackBar(
                     content: Text('Campos limpos com sucesso'),
                     backgroundColor: AppColors.successGreen,
                     duration: Duration(seconds: 2),
@@ -1092,7 +1093,7 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
                   SnackBar(
                     content: Text('Erro ao limpar campos: $e'),
                     backgroundColor: Colors.red,
-                    duration: Duration(seconds: 3),
+                    duration: const Duration(seconds: 3),
                   ),
                 );
               } finally {
@@ -1106,7 +1107,7 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.warningOrange,
             ),
-            child: Text('Limpar e Guardar'),
+            child: const Text('Limpar e Guardar'),
           ),
         ],
       ),
@@ -1121,7 +1122,7 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
       print('❌❌❌ ERRO CRÍTICO: Fase ID está VAZIO!');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text('ERRO: ID da fase está vazio!'),
             backgroundColor: Colors.red,
             duration: Duration(seconds: 5),
@@ -1174,7 +1175,7 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
       if (mounted) {
         Navigator.pop(context, true);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text('Fase atualizada com sucesso!'),
             backgroundColor: Colors.green,
           ),
@@ -1188,7 +1189,7 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
           SnackBar(
             content: Text('Erro ao guardar: $e'),
             backgroundColor: Colors.red,
-            duration: Duration(seconds: 5),
+            duration: const Duration(seconds: 5),
           ),
         );
       }

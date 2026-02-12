@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/theme/app_colors.dart';
 import '../providers/app_providers.dart';
+import '../providers/auth_providers.dart';
 import '../../core/localization/translation_helper.dart';
 
 class AddTurbinaDialog extends ConsumerStatefulWidget {
@@ -108,8 +109,8 @@ class _AddTurbinaDialogState extends ConsumerState<AddTurbinaDialog> {
     return AlertDialog(
       title: Row(
         children: [
-          Icon(Icons.wind_power, color: AppColors.accentTeal),
-          SizedBox(width: 12),
+          const Icon(Icons.wind_power, color: AppColors.accentTeal),
+          const SizedBox(width: 12),
           Text(t.translate('add_turbina_title')),
         ],
       ),
@@ -120,7 +121,7 @@ class _AddTurbinaDialogState extends ConsumerState<AddTurbinaDialog> {
             mainAxisSize: MainAxisSize.min,
             children: [
               if (_sequenceNumber == null)
-                CircularProgressIndicator()
+                const CircularProgressIndicator()
               else ...[
                 // ════════════════════════════════════════════════════════════
                 // Campo: Nome da Turbina
@@ -130,13 +131,13 @@ class _AddTurbinaDialogState extends ConsumerState<AddTurbinaDialog> {
                   decoration: InputDecoration(
                     labelText: '${t.translate('turbine_name')} *',
                     hintText: t.translate('turbine_name_hint'),
-                    prefixIcon: Icon(Icons.wind_power),
+                    prefixIcon: const Icon(Icons.wind_power),
                   ),
                   validator: (v) => v == null || v.isEmpty
                       ? t.translate('required_field')
                       : null,
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
 
                 // ════════════════════════════════════════════════════════════
                 // Campo: Sequência (disabled - auto)
@@ -146,10 +147,10 @@ class _AddTurbinaDialogState extends ConsumerState<AddTurbinaDialog> {
                   initialValue: '${t.translate('sequence')}: $_sequenceNumber',
                   decoration: InputDecoration(
                     labelText: t.translate('installation_sequence'),
-                    prefixIcon: Icon(Icons.numbers),
+                    prefixIcon: const Icon(Icons.numbers),
                   ),
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
 
                 // ════════════════════════════════════════════════════════════
                 // 🆕 NOVO: NUMBER OF MIDDLE SECTIONS
@@ -159,25 +160,25 @@ class _AddTurbinaDialogState extends ConsumerState<AddTurbinaDialog> {
                   children: [
                     Text(
                       '${t.translate('number_of_middle_sections')} *',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                         color: AppColors.darkGray,
                       ),
                     ),
-                    SizedBox(height: 8),
+                    const SizedBox(height: 8),
                     Container(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 4),
                       decoration: BoxDecoration(
                         border: Border.all(color: AppColors.borderGray),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
                         children: [
-                          Icon(Icons.layers,
+                          const Icon(Icons.layers,
                               color: AppColors.primaryBlue, size: 20),
-                          SizedBox(width: 12),
+                          const SizedBox(width: 12),
                           Expanded(
                             child: DropdownButtonHideUnderline(
                               child: DropdownButton<int>(
@@ -188,7 +189,7 @@ class _AddTurbinaDialogState extends ConsumerState<AddTurbinaDialog> {
                                     value: value,
                                     child: Text(
                                       '$value ${t.translate('middle_section')}${value > 1 ? 's' : ''}',
-                                      style: TextStyle(fontSize: 14),
+                                      style: const TextStyle(fontSize: 14),
                                     ),
                                   );
                                 }).toList(),
@@ -205,10 +206,10 @@ class _AddTurbinaDialogState extends ConsumerState<AddTurbinaDialog> {
                         ],
                       ),
                     ),
-                    SizedBox(height: 8),
+                    const SizedBox(height: 8),
                     Text(
                       t.translate('middle_sections_info'),
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 11,
                         color: AppColors.mediumGray,
                         fontStyle: FontStyle.italic,
@@ -216,7 +217,7 @@ class _AddTurbinaDialogState extends ConsumerState<AddTurbinaDialog> {
                     ),
                   ],
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
 
                 // ════════════════════════════════════════════════════════════
                 // Campo: Localização (opcional)
@@ -226,16 +227,16 @@ class _AddTurbinaDialogState extends ConsumerState<AddTurbinaDialog> {
                   decoration: InputDecoration(
                     labelText: t.translate('location_optional'),
                     hintText: t.translate('location_hint_turbine'),
-                    prefixIcon: Icon(Icons.location_on),
+                    prefixIcon: const Icon(Icons.location_on),
                   ),
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
 
                 // ════════════════════════════════════════════════════════════
                 // Info: Componentes criados automaticamente
                 // ════════════════════════════════════════════════════════════
                 Container(
-                  padding: EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: AppColors.accentTeal.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
@@ -245,16 +246,16 @@ class _AddTurbinaDialogState extends ConsumerState<AddTurbinaDialog> {
                   ),
                   child: Row(
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.info_outline,
                         color: AppColors.accentTeal,
                         size: 20,
                       ),
-                      SizedBox(width: 8),
+                      const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           t.translate('components_auto_created'),
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 12,
                             color: AppColors.accentTeal,
                           ),
@@ -277,7 +278,7 @@ class _AddTurbinaDialogState extends ConsumerState<AddTurbinaDialog> {
           onPressed:
               _isLoading || _sequenceNumber == null ? null : _handleCreate,
           icon: _isLoading
-              ? SizedBox(
+              ? const SizedBox(
                   width: 16,
                   height: 16,
                   child: CircularProgressIndicator(
@@ -285,7 +286,7 @@ class _AddTurbinaDialogState extends ConsumerState<AddTurbinaDialog> {
                     valueColor: AlwaysStoppedAnimation(Colors.white),
                   ),
                 )
-              : Icon(Icons.add),
+              : const Icon(Icons.add),
           label: Text(_isLoading
               ? t.translate('creating')
               : t.translate('create_turbine')),

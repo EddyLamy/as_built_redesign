@@ -174,33 +174,30 @@ final Map<String, String> translationsPT = {
   'dashboard': 'Painel de Controlo',
   'as_built_dashboard': 'Painel As-Built',
 
-// Dashboard - Empty State
+  // Dashboard - Empty State
   'no_projects_yet': 'Ainda Sem Projetos',
   'create_first_project': 'Crie o seu primeiro projeto para começar',
 
-// Dashboard - Sections
+  // Dashboard - Sections
   'turbines': 'Turbinas',
 
-// Dashboard - KPIs
-  // (keys defined earlier)
-
-// Dashboard - Actions
+  // Dashboard - Actions
   'create_project': 'Criar Projeto',
 
-// Dashboard - No Results
+  // Dashboard - No Results
   'no_turbines_yet': 'Ainda sem turbinas',
   'click_button_add_turbine':
       'Clique no botão abaixo para adicionar a primeira turbina',
   'try_adjusting_search': 'Tente ajustar a pesquisa ou filtros',
 
-// Dashboard - Delete Dialog
+  // Dashboard - Delete Dialog
   'delete_turbine': 'Eliminar Turbina?',
   'delete_turbine_confirm': 'Tem a certeza que quer eliminar a turbina',
   'delete_all_components_warning':
       'Isto também eliminará todos os 34 componentes',
   'turbine_deleted': 'Turbina eliminada',
 
-// Menu Drawer
+  // Menu Drawer
   'wind_turbine_management': 'Gestão de Turbinas Eólicas',
   'new_project': 'Novo Projeto',
 
@@ -215,7 +212,7 @@ final Map<String, String> translationsPT = {
   'creating': 'A criar...',
   'create_turbine': 'Criar Turbina',
 
-// Turbine Details Screen
+  // Turbine Details Screen
   'turbine_not_found': 'Turbina não encontrada',
   'refresh_progress': 'Atualizar Progresso',
   'total': 'Total',
@@ -291,7 +288,7 @@ final Map<String, String> translationsPT = {
   "phase_handover": "Handover",
   "phase_final_observations": "Observações Finais",
 
-// ============================================================================
+  // ============================================================================
   // 🔔 SISTEMA DE NOTIFICAÇÕES - NOVO
   // ============================================================================
 
@@ -374,7 +371,7 @@ final Map<String, String> translationsPT = {
   "phase_not_started_title": "Fase obrigatória não iniciada",
   "phase_no_end_date_title": "Fase sem data de conclusão",
 
-// Notification messages - DESCRIÇÕES
+  // Notification messages - DESCRIÇÕES
   "phase_overdue_desc": "A fase \"{phase}\" deveria ter terminado em {date}",
   "phase_approaching_desc": "A fase \"{phase}\" termina em {date}",
   "phase_not_started_desc":
@@ -495,20 +492,20 @@ final Map<String, String> translationsPT = {
   'phase_installation': 'Instalação',
   'phase_electrical': 'Elétrico',
 
-// Status
+  // Status
   'status_completed': 'Concluído',
   'status_in_progress': 'Em Progresso',
   'status_pending': 'Pendente',
   'na': 'N/A',
 
-// Tarefas de cada fase
+  // Tarefas de cada fase
   'reception_checklist': 'Checklist de Receção',
   'pre_installation_tasks': 'Tarefas de Pré-Instalação',
   'installation_tasks': 'Tarefas de Instalação',
   'electrical_tasks': 'Tarefas Elétricas',
   'commissioning_tasks': 'Tarefas de Comissionamento',
 
-// Componentes
+  // Componentes
   'site_preparation': 'Preparação do Local',
   'foundation_check': 'Verificação da Fundação',
   'crane_setup': 'Montagem da Grua',
@@ -522,7 +519,7 @@ final Map<String, String> translationsPT = {
   'safety_checks': 'Verificações de Segurança',
   'final_inspection': 'Inspeção Final',
 
-// Receção
+  // Receção
   'received': 'Recebido',
   'pending_reception': 'Aguardando Receção',
   'pre_assembly': 'Pré-Montagem',
@@ -692,18 +689,18 @@ final Map<String, String> translationsPT = {
   'anchor_bolts': 'Anchor Bolts',
 
   // ══════════════════════════════════════════════════════════════════════════
-// 📝 TRADUÇÕES PARA WIZARD DE CRIAÇÃO DE PROJETO
-// ══════════════════════════════════════════════════════════════════════════
+  // 📝 TRADUÇÕES PARA WIZARD DE CRIAÇÃO DE PROJETO
+  // ══════════════════════════════════════════════════════════════════════════
 
-// Tab 1 - Campos novos
+  // Tab 1 - Campos novos
   'address': 'Morada',
   'gps_coordinates': 'Coordenadas GPS',
 
-// Tab 2 - Fases
+  // Tab 2 - Fases
   'project_execution_phases': 'Fases de Execução do Projeto',
   'grid_availability_info': 'Data estimada de disponibilidade da rede elétrica',
 
-// Nomes das fases (traduzidos)
+  // Nomes das fases (traduzidos)
   'phase_mobilizacao': 'Início do Projeto',
   'phase_fundacoes': 'Trabalhos Civis',
   'phase_instalacoes': 'Instalações',
@@ -733,4 +730,263 @@ final Map<String, String> translationsPT = {
   'generate_and_send': 'Gerar e Enviar',
   'generating': 'A gerar...',
   'report_sent_success': 'Relatório gerado e enviado com sucesso!',
+
+  // Grua
+  "register_activity": "Registar Atividade",
+  "activity_type": "Tipo de Atividade",
+  "mobilizacao": "Mobilização",
+  "trabalho": "Trabalho Efetivo",
+  "paragem": "Tempo de Paragem",
+  "transferencia": "Transferência entre Pads",
+  "desmobilizacao": "Desmobilização",
+  "wind": "Vento Excessivo",
+  "mechanical": "Avaria Mecânica",
+  "waiting_components": "Espera por Componentes",
+  "safety": "Segurança/HSE",
+  "origin_pad": "Pad de Origem",
+  "destination_pad": "Pad de Destino",
+  "logistics_crane": "Logística & Gruas",
+
+  // Botões Mobile - Instalação
+  'logout_confirmation': 'Tens a certeza que queres terminar sessão?',
+  'no_projects_available': 'Nenhum projeto disponível',
+
+  // ════════════════════════════════════════════════════════════════════════
+  // 🏗️ SISTEMA DE GRUAS (NOVO)
+  // ════════════════════════════════════════════════════════════════════════
+
+  // Geral
+  'cranes': 'Gruas',
+  'crane': 'Grua',
+  'crane_management': 'Gestão de Gruas',
+  'crane_management_subtitle': 'Gerir gruas e registar atividades',
+  'crane_activities': 'Atividades da Grua',
+
+  // Lista de Gruas
+  'no_cranes_yet': 'Ainda não há gruas',
+  'add_first_crane': 'Adiciona a primeira grua deste projeto',
+  'add_crane': 'Adicionar Grua',
+  'crane_model': 'Modelo da Grua',
+  'crane_model_required': 'O modelo da grua é obrigatório',
+  'multiple_cranes_info':
+      'Podes adicionar várias gruas. Cada uma terá o seu próprio registo de atividades.',
+  'crane_added_success': 'Grua adicionada com sucesso',
+
+  // Eliminar Grua
+  'delete_crane': 'Eliminar Grua',
+  'delete_crane_confirm': 'Tens a certeza que queres eliminar a grua',
+  'delete_crane_warning':
+      'Esta ação irá eliminar a grua e TODAS as suas atividades. Esta operação não pode ser desfeita.',
+  'crane_deleted_success': 'Grua eliminada com sucesso',
+
+  // Atividades
+  'activities': 'atividades',
+  'no_activities_yet': 'Ainda não há atividades',
+  'add_first_activity': 'Adiciona a primeira atividade desta grua',
+
+  // Ações
+  'delete_activity': 'Eliminar Atividade',
+  'delete_activity_confirm':
+      'Tens a certeza que queres eliminar esta atividade?',
+  'activity_deleted_success': 'Atividade eliminada com sucesso',
+
+  // ════════════════════════════════════════════════════════════════════════
+  // 🌐 GRUAS GERAIS DO PROJETO (não atribuídas a pads)
+  // ════════════════════════════════════════════════════════════════════════
+
+  // Geral
+  'general_cranes': 'Gruas Gerais',
+  'general_crane': 'Grua Geral',
+  'general_cranes_management': 'Gestão de Gruas Gerais',
+  'general_cranes_subtitle': 'Gruas não atribuídas a nenhuma turbina',
+  'general_crane_activities': 'Atividades da Grua Geral',
+
+  // Lista
+  'no_general_cranes_yet': 'Ainda não há gruas gerais',
+  'add_first_general_crane':
+      'Adiciona a primeira grua geral do projeto. Estas gruas são usadas para operações que não estão atribuídas a nenhuma turbina específica.',
+  'add_general_crane': 'Adicionar Grua Geral',
+  'general_cranes_info':
+      'Gruas gerais são usadas para operações do projeto que não estão ligadas a uma turbina específica (ex: transporte, montagem de subestação, etc.)',
+  'description_optional': 'Descrição (opcional)',
+  'crane_usage_example': 'Ex: Transporte de componentes grandes',
+
+  // Sucesso/Erro
+  'general_crane_added_success': 'Grua geral adicionada com sucesso',
+  'delete_general_crane': 'Eliminar Grua Geral',
+  'general_crane_deleted_success': 'Grua geral eliminada com sucesso',
+
+  // ════════════════════════════════════════════════════════════════════════
+  // 📊 RELATÓRIOS - GRUAS
+  // ════════════════════════════════════════════════════════════════════════
+
+  'cranes_pads_report': 'Gruas (Pads)',
+  'cranes_general_report': 'Gruas Gerais',
+
+  // ══════════════════════════════════════════════════════════════
+// SETTINGS SCREEN
+// ══════════════════════════════════════════════════════════════
+  'email_phase_complete': 'Email quando fase completa',
+  'email_phase_complete_desc':
+      'Receber notificação por email ao completar uma fase',
+  'deadline_alerts': 'Alertas de prazos',
+  'deadline_alerts_desc': 'Notificações sobre prazos próximos',
+  'turbine_changes': 'Mudanças em turbinas',
+  'turbine_changes_desc': 'Notificar quando houver alterações em turbinas',
+  'weekly_reports': 'Relatórios semanais',
+  'weekly_reports_desc': 'Receber resumo semanal por email',
+  'date_format': 'Formato de Data',
+  'theme': 'Tema',
+  'light_theme': 'Claro',
+  'dark_theme': 'Escuro',
+  'data': 'Dados',
+  'export_all_data': 'Exportar todos os dados',
+  'export_all_data_desc': 'Download completo em JSON',
+  'clear_cache': 'Limpar cache',
+  'clear_cache_desc': 'Libertar espaço de armazenamento',
+  'clear_cache_confirm': 'Tem certeza que deseja limpar o cache?',
+  'cache_cleared': 'Cache limpo com sucesso',
+  'account': 'Conta',
+  'change_password': 'Alterar password',
+  'change_password_desc': 'Altere a sua password de acesso',
+  'clear': 'Limpar',
+
+// ══════════════════════════════════════════════════════════════
+// TEAM MANAGEMENT SCREEN
+// ══════════════════════════════════════════════════════════════
+  'team_management': 'Gestão de Equipas',
+  'team_management_desc': 'Gerir empresas e contractors envolvidos no projeto',
+  'civil_construction': 'Construção Civil',
+  'electrical': 'Eletricidade',
+  'turbine_assembly': 'Montagem de Turbinas',
+  'transport': 'Transporte',
+  'add_category': 'Adicionar Categoria',
+  'no_companies_yet': 'Nenhuma empresa adicionada',
+  'add_company': 'Adicionar Empresa',
+  'company_name': 'Nome da Empresa',
+  'contact': 'Contacto',
+  'name_required': 'Nome é obrigatório',
+  'company_added': 'Empresa adicionada com sucesso',
+  'edit_company': 'Editar Empresa',
+  'company_updated': 'Empresa atualizada',
+  'delete_company': 'Eliminar Empresa',
+  'delete_company_confirm': 'Tem certeza que deseja eliminar',
+  'company_deleted': 'Empresa eliminada',
+
+  // ══════════════════════════════════════════════════════════════
+  // HELP SCREEN
+  // ══════════════════════════════════════════════════════════════
+  'quick_start_guide': 'Guia de Início Rápido',
+  'quick_start_guide_desc': 'Primeiros passos com a aplicação',
+  'how_to_add_turbines': 'Como adicionar turbinas',
+  'how_to_add_turbines_desc': 'Guia passo a passo',
+  'phase_management': 'Gestão de Fases',
+  'phase_management_desc': 'Gerir fases de instalação',
+  'reports_help': 'Relatórios',
+  'reports_help_desc': 'Como gerar e exportar relatórios',
+  'cranes_logistics': 'Gruas e Logística',
+  'cranes_logistics_desc': 'Gestão de gruas e transporte',
+  'video_tutorials': 'Tutoriais em Vídeo',
+  'overview_video_desc': 'Visão geral da aplicação',
+  'components_video_desc': 'Adicionar e gerir componentes',
+  'reports_video_desc': 'Gerar relatórios Excel e PDF',
+  'support': 'Suporte',
+  'contact_support': 'Contactar Suporte',
+  'live_chat': 'Chat ao Vivo',
+  'online': 'Online',
+  'avg_response_2min': 'Resposta média em 2 minutos',
+  'report_bug': 'Reportar Problema',
+  'report_bug_desc': 'Ajude-nos a melhorar',
+  'about': 'Sobre',
+  'wind_turbine_installation': 'Instalação de Turbinas Eólicas',
+  'version': 'Versão',
+  'updated': 'Atualizado',
+  'terms_of_service': 'Termos de Serviço',
+  'privacy_policy': 'Política de Privacidade',
+  'licenses': 'Licenças',
+  'updates': 'Atualizações',
+  'app_up_to_date': 'A aplicação está atualizada',
+  'check_updates': 'Verificar atualizações',
+  'keyboard_shortcuts': 'Atalhos de Teclado',
+  'search': 'Pesquisar',
+  'print': 'Imprimir',
+  'undo': 'Desfazer',
+  'redo': 'Refazer',
+  'view_all_shortcuts': 'Ver todos os atalhos',
+  'opening_video': 'A abrir vídeo',
+  'opening': 'A abrir',
+  'bug_title': 'Título do Problema',
+  'bug_description': 'Descrição',
+  'bug_reported': 'Problema reportado com sucesso',
+  'submit': 'Submeter',
+  'full_docs_available': 'Documentação completa disponível online',
+  'checking_updates': 'A verificar atualizações...',
+
+  // Conteúdos de documentação (exemplos básicos)
+  'quick_start_content':
+      'Bem-vindo ao As-Built! Esta aplicação permite gerir a instalação de turbinas eólicas de forma eficiente.\n\n1. Crie um novo projeto\n2. Adicione turbinas\n3. Registe fases de instalação\n4. Gere relatórios',
+  'add_turbines_content':
+      'Para adicionar uma turbina:\n\n1. Clique no botão + no canto inferior direito\n2. Preencha o nome (ex: WTG-01)\n3. Selecione o tipo de turbina\n4. Clique em Criar',
+  'phases_content':
+      'As fases de instalação são:\n\n• Receção\n• Preparação\n• Pré-Assemblagem\n• Assemblagem\n• Torque & Tensionamento\n• Fases Finais',
+  'reports_content':
+      'Para gerar relatórios:\n\n1. Clique no botão de relatórios\n2. Selecione as fases desejadas\n3. Escolha Excel ou PDF\n4. Clique em Gerar',
+  'cranes_content':
+      'Gerir gruas:\n\n1. Aceda ao menu Gruas\n2. Registe mobilizações/desmobilizações\n3. Acompanhe atividades\n4. Gere relatórios específicos',
+
+  // ══════════════════════════════════════════════════════════════
+  // 🆕 TRADUÇÕES ADICIONAIS
+  // ══════════════════════════════════════════════════════════════
+  'turbine_overview': 'Visão Geral da Turbina',
+  'component_status': 'Status do Componente',
+  'no_components_yet': 'Nenhum componente adicionado',
+  'add_first_component': 'Adicione o primeiro componente desta turbina',
+  'view_photos': 'Ver Fotos',
+  'edit_observations': 'Editar Observações',
+  'installation_complete': 'Instalação Completa',
+  'mark_installation_complete': 'Marcar Instalação como Completa',
+  'installation_complete_confirm':
+      'Tem certeza que deseja marcar a instalação como completa?',
+  'installation_marked_complete': 'Instalação marcada como completa',
+  'resume_installation': 'Retomar Instalação',
+  'resume_installation_confirm': 'Tem certeza que deseja retomar a instalação?',
+  'installation_resumed': 'Instalação retomada',
+  'add_first_turbine': 'Adicione a primeira turbina do projeto',
+  'switch_to_light': 'Mudar para Tema Claro',
+  'switch_to_dark': 'Mudar para Tema Escuro',
+  'theme_changed': 'Tema alterado com sucesso',
+  'select_time': 'Selecionar Hora',
+  'no_data_available': 'Nenhum dado disponível',
+  'saved': 'Salvo',
+  'saving': 'Salvando...',
+  'edit_phase': 'Editar Fase',
+  'add_phase': 'Adicionar Fase',
+  'phase_added_success': 'Fase adicionada com sucesso',
+  'delete_phase': 'Eliminar Fase',
+  'delete_phase_confirm': 'Tem certeza que deseja eliminar esta fase?',
+  'phase_deleted_success': 'Fase eliminada com sucesso',
+  'no_phases_yet': 'Nenhuma fase adicionada',
+  'add_first_phase': 'Adicione a primeira fase deste projeto',
+  'phase_name': 'Nome da Fase',
+  'phase_name_required': 'O nome da fase é obrigatório',
+  'phase_start_date': 'Data de Início da Fase',
+  'phase_end_date': 'Data de Fim da Fase',
+  'phase_progress': 'Progresso da Fase',
+  'phase_progress_required': 'O progresso da fase é obrigatório',
+  'phase_not_applicable': 'Fase Não Aplicável',
+  'mark_phase_not_applicable': 'Marcar esta fase como não aplicável (N/A)',
+  'phase_na_reason_required': 'O motivo para N/A é obrigatório',
+  'phase_details': 'Detalhes da Fase',
+  'phase_details_for': 'Detalhes da Fase para {phaseName}',
+  'no_phases_defined': 'Nenhuma fase definida',
+  'productivity_shortcuts': 'Atalhos de Produtividade',
+  'navigation_shortcuts': 'Atalhos de Navegação',
+  'appearance_shortcuts': 'Atalhos de Aparência',
+  'toggle_language': 'Alternar Idioma',
+  'toggle_theme': 'Alternar Tema',
+  'shortcuts_tip':
+      'Dica: Use estes atalhos para navegar mais rapidamente pela aplicação!',
+  'select_project_first': 'Selecione um projeto primeiro',
+  'dark_theme_activated': 'Tema escuro ativado',
+  'light_theme_activated': 'Tema claro ativado',
 };

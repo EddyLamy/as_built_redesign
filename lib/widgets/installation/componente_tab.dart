@@ -153,7 +153,7 @@ class _TrabalhosMecanicosSection extends ConsumerWidget {
           padding: const EdgeInsets.only(bottom: 12),
           child: Row(
             children: [
-              Icon(Icons.build, color: Colors.orange),
+              const Icon(Icons.build, color: Colors.orange),
               const SizedBox(width: 8),
               Text(
                 t['trabalhosMecanicos'] ?? 'Trabalhos Mecânicos',
@@ -238,7 +238,7 @@ class _CheckpointsSection extends ConsumerWidget {
           padding: const EdgeInsets.only(bottom: 12),
           child: Row(
             children: [
-              Icon(Icons.check_circle, color: Colors.green),
+              const Icon(Icons.check_circle, color: Colors.green),
               const SizedBox(width: 8),
               Text(
                 t['checkpointsGerais'] ?? 'Checkpoints Gerais',

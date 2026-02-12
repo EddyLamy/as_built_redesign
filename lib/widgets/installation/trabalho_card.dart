@@ -180,13 +180,6 @@ class TrabalhoCard extends ConsumerWidget {
     // Calcular progresso
     double progressoMedio = trabalho.progresso;
 
-    Color progressoColor = Colors.grey;
-    if (progressoMedio > 0 && progressoMedio < 100) {
-      progressoColor = Colors.orange;
-    } else if (progressoMedio == 100) {
-      progressoColor = Colors.green;
-    }
-
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       elevation: 2,
@@ -212,7 +205,7 @@ class TrabalhoCard extends ConsumerWidget {
                   color: Colors.purple.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.settings,
                   color: Colors.purple,
                   size: 24,
@@ -226,9 +219,9 @@ class TrabalhoCard extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       'Drive Train',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 15,
                       ),

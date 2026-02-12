@@ -28,6 +28,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   String _progressFilter = 'All';
 
   @override
+  void initState() {
+    super.initState();
+    // Inicialização do dashboard
+  }
+
+  @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
@@ -38,19 +44,18 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final t = TranslationHelper.of(context);
     final user = FirebaseAuth.instance.currentUser;
 
-    // ============================================================================
-    // 🎯 VERIFICAR MÓDULO ATUAL
-    // ============================================================================
+    // ══════════════════════════════════════════════════════════════
+    // OBTER PROVIDERS (UMA VEZ APENAS)
+    // ══════════════════════════════════════════════════════════════
     final currentModule = ref.watch(currentModuleProvider);
+    final projectsAsync = ref.watch(userProjectsProvider);
+    final selectedProjectId = ref.watch(selectedProjectIdProvider);
 
     print('═══════════════════════════════════');
     print('🔵 DASHBOARD BUILD');
     print('🔵 USER EMAIL: ${user?.email ?? "NULL"}');
     print('🔵 CURRENT MODULE: $currentModule');
     print('═══════════════════════════════════');
-
-    final projectsAsync = ref.watch(userProjectsProvider);
-    final selectedProjectId = ref.watch(selectedProjectIdProvider);
 
     // Debug notifications
     final notificationsAsync = ref.watch(notificationsProvider);
@@ -63,47 +68,16 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         title: Row(
           children: [
             Text(t.translate('as_built_dashboard')),
-            SizedBox(width: 16),
-
-            // ============================================================================
-            // 🎯 INDICADOR DE MÓDULO
-            // ============================================================================
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    currentModule == AppModule.asBuilt
-                        ? Icons.assignment_turned_in
-                        : Icons.construction,
-                    size: 16,
-                    color: Colors.white,
-                  ),
-                  SizedBox(width: 6),
-                  Text(
-                    currentModule == AppModule.asBuilt
-                        ? 'As-Built'
-                        : 'Instalação',
-                    style: TextStyle(fontSize: 12, color: Colors.white),
-                  ),
-                ],
-              ),
-            ),
-
-            SizedBox(width: 16),
+            const SizedBox(width: 16),
 
             // Dropdown de projetos
             projectsAsync.when(
               data: (projects) {
-                if (projects.isEmpty) return SizedBox.shrink();
+                if (projects.isEmpty) return const SizedBox.shrink();
 
                 return Container(
-                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(8),
@@ -114,18 +88,19 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         : null,
                     hint: Text(
                       t.translate('select_project'),
-                      style: TextStyle(color: Colors.white70),
+                      style: const TextStyle(color: Colors.white70),
                     ),
                     dropdownColor: AppColors.primaryBlue,
-                    underline: SizedBox.shrink(),
-                    icon: Icon(Icons.arrow_drop_down, color: Colors.white),
-                    style: TextStyle(color: Colors.white, fontSize: 14),
+                    underline: const SizedBox.shrink(),
+                    icon:
+                        const Icon(Icons.arrow_drop_down, color: Colors.white),
+                    style: const TextStyle(color: Colors.white, fontSize: 14),
                     items: projects.map((project) {
                       return DropdownMenuItem(
                         value: project.id,
                         child: Text(
                           project.nome,
-                          style: TextStyle(color: Colors.white),
+                          style: const TextStyle(color: Colors.white),
                         ),
                       );
                     }).toList(),
@@ -138,8 +113,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   ),
                 );
               },
-              loading: () => SizedBox.shrink(),
-              error: (_, __) => SizedBox.shrink(),
+              loading: () => const SizedBox.shrink(),
+              error: (_, __) => const SizedBox.shrink(),
             ),
           ],
         ),
@@ -150,7 +125,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               showDialog(
                 context: context,
                 barrierColor: Colors.black54,
-                builder: (context) => Align(
+                builder: (context) => const Align(
                   alignment: Alignment.centerRight,
                   child: Material(
                     type: MaterialType.transparency,
@@ -160,22 +135,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               );
             },
           ),
-          SizedBox(width: 8),
-          Padding(
-            padding: EdgeInsets.only(right: 16),
-            child: CircleAvatar(
-              backgroundColor: AppColors.accentTeal,
-              child: Icon(Icons.person, color: Colors.white),
-            ),
-          ),
+          const SizedBox(width: 16),
         ],
       ),
-
-      // ============================================================================
-      // 🎯 USA O NOVO ENHANCED DRAWER
-      // ============================================================================
-      drawer: EnhancedDrawer(),
-
+      drawer: const EnhancedDrawer(),
       body: projectsAsync.when(
         data: (projects) {
           if (projects.isEmpty) {
@@ -187,24 +150,62 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               ref.read(selectedProjectIdProvider.notifier).state =
                   projects.first.id;
             });
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           }
 
           return _buildDashboardContent(context);
         },
-        loading: () => Center(child: CircularProgressIndicator()),
+        loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(child: Text('Error: $error')),
       ),
       floatingActionButton: selectedProjectId != null
-          ? FloatingActionButton(
-              onPressed: () =>
-                  _showAddTurbinaDialog(context, selectedProjectId),
-              tooltip: t.translate('add_turbine'),
-              child: Icon(Icons.wind_power),
+          ? Tooltip(
+              message: t.translate('add_turbine'),
+              waitDuration: const Duration(milliseconds: 500),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () =>
+                      _showAddTurbinaDialog(context, selectedProjectId),
+                  borderRadius: BorderRadius.circular(16),
+                  child: Container(
+                    width: 64,
+                    height: 64,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [
+                          AppColors.primaryBlue,
+                          Color(
+                              0xFF00BCD4), // ✅ Cor turquesa para um visual mais moderno
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primaryBlue.withOpacity(0.4),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.wind_power,
+                      color: Colors.white,
+                      size: 32,
+                    ),
+                  ),
+                ),
+              ),
             )
           : null,
     );
   }
+
+  // ══════════════════════════════════════════════════════════════
+  // ADICIONAR MÉTODO (logo após o método build)
+  // ══════════════════════════════════════════════════════════════
 
   Widget _buildEmptyState(BuildContext context) {
     final t = TranslationHelper.of(context);
@@ -212,21 +213,22 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.business_outlined, size: 100, color: AppColors.mediumGray),
-          SizedBox(height: 24),
+          const Icon(Icons.business_outlined,
+              size: 100, color: AppColors.mediumGray),
+          const SizedBox(height: 24),
           Text(
             t.translate('no_projects_yet'),
             style: Theme.of(context).textTheme.displaySmall,
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           Text(
             t.translate('create_first_project'),
             style: Theme.of(context).textTheme.bodyLarge,
           ),
-          SizedBox(height: 32),
+          const SizedBox(height: 32),
           ElevatedButton.icon(
             onPressed: () => _showCreateProjectDialog(context),
-            icon: Icon(Icons.add),
+            icon: const Icon(Icons.add),
             label: Text(t.translate('create_project')),
           ),
         ],
@@ -241,31 +243,31 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final t = TranslationHelper.of(context);
 
     return SingleChildScrollView(
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           projectAsync.when(
             data: (project) => project != null
                 ? _buildProjectHeader(context, project)
-                : SizedBox.shrink(),
-            loading: () => SizedBox.shrink(),
-            error: (_, __) => SizedBox.shrink(),
+                : const SizedBox.shrink(),
+            loading: () => const SizedBox.shrink(),
+            error: (_, __) => const SizedBox.shrink(),
           ),
-          SizedBox(height: 24),
+          const SizedBox(height: 24),
 
           statsAsync.when(
             data: (stats) => _buildKPICards(stats),
-            loading: () => Center(child: CircularProgressIndicator()),
-            error: (_, __) => SizedBox.shrink(),
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (_, __) => const SizedBox.shrink(),
           ),
-          SizedBox(height: 24),
+          const SizedBox(height: 24),
 
           // Timeline das fases
           Consumer(
             builder: (context, ref, _) {
               final selectedProjectId = ref.watch(selectedProjectIdProvider);
-              if (selectedProjectId == null) return SizedBox.shrink();
+              if (selectedProjectId == null) return const SizedBox.shrink();
 
               return ProjectPhasesTimeline(projectId: selectedProjectId);
             },
@@ -278,17 +280,17 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 t.translate('turbines'),
                 style: Theme.of(context).textTheme.headlineMedium,
               ),
-              Spacer(),
+              const Spacer(),
               SizedBox(
                 width: 400,
                 child: TextField(
                   controller: _searchController,
                   decoration: InputDecoration(
                     hintText: 'Search turbines...',
-                    prefixIcon: Icon(Icons.search),
+                    prefixIcon: const Icon(Icons.search),
                     suffixIcon: _searchQuery.isNotEmpty
                         ? IconButton(
-                            icon: Icon(Icons.clear),
+                            icon: const Icon(Icons.clear),
                             onPressed: () {
                               setState(() {
                                 _searchController.clear();
@@ -300,7 +302,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    contentPadding: EdgeInsets.symmetric(
+                    contentPadding: const EdgeInsets.symmetric(
                       horizontal: 16,
                       vertical: 8,
                     ),
@@ -312,7 +314,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   },
                 ),
               ),
-              SizedBox(width: 8),
+              const SizedBox(width: 8),
               IconButton(
                 icon: Icon(
                   _showFilters ? Icons.filter_alt : Icons.filter_alt_outlined,
@@ -330,21 +332,21 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
           // Painel de filtros (expansível)
           if (_showFilters) ...[
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Card(
               child: Padding(
-                padding: EdgeInsets.all(16),
+                padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       'Filters',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
                     Row(
                       children: [
                         Expanded(
@@ -363,8 +365,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                                     : 'All',
                                 decoration: InputDecoration(
                                   labelText: t.translate('status'),
-                                  border: OutlineInputBorder(),
-                                  contentPadding: EdgeInsets.symmetric(
+                                  border: const OutlineInputBorder(),
+                                  contentPadding: const EdgeInsets.symmetric(
                                     horizontal: 12,
                                     vertical: 8,
                                   ),
@@ -402,7 +404,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                             },
                           ),
                         ),
-                        SizedBox(width: 16),
+                        const SizedBox(width: 16),
                         Expanded(
                           child: DropdownButtonFormField<String>(
                             initialValue: [
@@ -413,7 +415,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                             ].contains(_progressFilter)
                                 ? _progressFilter
                                 : 'All',
-                            decoration: InputDecoration(
+                            decoration: const InputDecoration(
                               labelText: 'Progress',
                               border: OutlineInputBorder(),
                               contentPadding: EdgeInsets.symmetric(
@@ -439,7 +441,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                             },
                           ),
                         ),
-                        SizedBox(width: 8),
+                        const SizedBox(width: 8),
                         TextButton.icon(
                           onPressed: () {
                             setState(() {
@@ -447,8 +449,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                               _progressFilter = 'All';
                             });
                           },
-                          icon: Icon(Icons.clear_all),
-                          label: Text('Clear'),
+                          icon: const Icon(Icons.clear_all),
+                          label: const Text('Clear'),
                         ),
                       ],
                     ),
@@ -458,7 +460,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             ),
           ],
 
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
 
           // Lista de turbinas
           turbinasAsync.when(
@@ -498,31 +500,31 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     .toList(),
               );
             },
-            loading: () => Center(child: CircularProgressIndicator()),
-            error: (_, __) => Center(child: Text('Error loading turbines')),
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (_, __) =>
+                const Center(child: Text('Error loading turbines')),
           ),
         ],
       ),
     );
   }
 
-  // ... (resto dos métodos _build permanecem iguais)
-
   Widget _buildNoResultsCard(BuildContext context) {
     final t = TranslationHelper.of(context);
     return Card(
       child: Padding(
-        padding: EdgeInsets.all(48),
+        padding: const EdgeInsets.all(48),
         child: Center(
           child: Column(
             children: [
-              Icon(Icons.search_off, size: 64, color: AppColors.mediumGray),
-              SizedBox(height: 16),
+              const Icon(Icons.search_off,
+                  size: 64, color: AppColors.mediumGray),
+              const SizedBox(height: 16),
               Text(
                 t.translate('no_turbines_found'),
                 style: Theme.of(context).textTheme.titleLarge,
               ),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               Text(
                 t.translate('try_adjusting_search'),
                 style: Theme.of(context).textTheme.bodyMedium,
@@ -538,22 +540,22 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final t = TranslationHelper.of(context);
     return Card(
       child: Padding(
-        padding: EdgeInsets.all(20),
+        padding: const EdgeInsets.all(20),
         child: Row(
           children: [
             Container(
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: AppColors.primaryBlue.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.business,
                 size: 32,
                 color: AppColors.primaryBlue,
               ),
             ),
-            SizedBox(width: 16),
+            const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -562,12 +564,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     project.nome,
                     style: Theme.of(context).textTheme.headlineSmall,
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Text(
                     'ID: ${project.projectId} • ${project.turbineType}',
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Consumer(
                     builder: (context, ref, _) {
                       final selectedProjectId =
@@ -577,12 +579,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       return progressAsync.when(
                         data: (progress) => Row(
                           children: [
-                            Icon(Icons.timeline,
+                            const Icon(Icons.timeline,
                                 size: 16, color: AppColors.primaryBlue),
-                            SizedBox(width: 4),
+                            const SizedBox(width: 4),
                             Text(
                               'Fases: ${progress.toStringAsFixed(0)}%',
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 12,
                                 color: AppColors.primaryBlue,
                                 fontWeight: FontWeight.w600,
@@ -590,34 +592,61 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                             ),
                           ],
                         ),
-                        loading: () => SizedBox.shrink(),
-                        error: (_, __) => SizedBox.shrink(),
+                        loading: () => const SizedBox.shrink(),
+                        error: (_, __) => const SizedBox.shrink(),
                       );
                     },
                   ),
                 ],
               ),
             ),
-            IconButton(
-              icon: Icon(Icons.timeline, color: AppColors.primaryBlue),
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => ProjectPhasesScreen(
-                      projectId: project.id,
-                      projectName: project.nome,
+            Tooltip(
+              message: t.translate('view_phases'),
+              waitDuration: const Duration(milliseconds: 500),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => ProjectPhasesScreen(
+                          projectId: project.id,
+                          projectName: project.nome,
+                        ),
+                      ),
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(16),
+                  child: Container(
+                    width: 64,
+                    height: 64,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [
+                          AppColors.primaryBlue,
+                          Color(
+                              0xFF00BCD4), // ✅ Cor turquesa para um visual mais moderno
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primaryBlue.withOpacity(0.3),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.view_list, // ✅ ÍCONE CORRETO
+                      color: Colors.white,
+                      size: 32,
                     ),
                   ),
-                );
-              },
-              tooltip: t.translate('view_phases'),
-            ),
-            SizedBox(width: 8),
-            Chip(
-              label: Text(project.status),
-              backgroundColor: AppColors.getStatusColor(
-                project.status,
-              ).withOpacity(0.2),
+                ),
+              ),
             ),
           ],
         ),
@@ -642,7 +671,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             AppColors.primaryBlue,
           ),
         ),
-        SizedBox(width: 16),
+        const SizedBox(width: 16),
         Expanded(
           child: _buildKPICard(
             t.translate('average_progress'),
@@ -651,7 +680,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             AppColors.accentTeal,
           ),
         ),
-        SizedBox(width: 16),
+        const SizedBox(width: 16),
         Expanded(
           child: _buildKPICard(
             t.translate('in_installation'),
@@ -660,7 +689,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             AppColors.warningOrange,
           ),
         ),
-        SizedBox(width: 16),
+        const SizedBox(width: 16),
         Expanded(
           child: _buildKPICard(
             t.translate('installed'),
@@ -676,7 +705,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   Widget _buildKPICard(String title, String value, IconData icon, Color color) {
     return Card(
       child: Padding(
-        padding: EdgeInsets.all(20),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -694,10 +723,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 ),
               ],
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
               title,
-              style: TextStyle(fontSize: 14, color: AppColors.mediumGray),
+              style: const TextStyle(fontSize: 14, color: AppColors.mediumGray),
             ),
           ],
         ),
@@ -723,7 +752,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         },
         borderRadius: BorderRadius.circular(8),
         child: Padding(
-          padding: EdgeInsets.all(6),
+          padding: const EdgeInsets.all(6),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.center,
@@ -733,7 +762,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Container(
-                    padding: EdgeInsets.all(4),
+                    padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
                       color: color.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(4),
@@ -741,19 +770,20 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     child: Icon(Icons.wind_power, color: color, size: 14),
                   ),
                   IconButton(
-                    icon: Icon(Icons.delete_outline, color: AppColors.errorRed),
+                    icon: const Icon(Icons.delete_outline,
+                        color: AppColors.errorRed),
                     iconSize: 14,
                     padding: EdgeInsets.zero,
-                    constraints: BoxConstraints(),
+                    constraints: const BoxConstraints(),
                     onPressed: () => _showDeleteTurbinaDialog(context, turbina),
                     tooltip: 'Delete',
                   ),
                 ],
               ),
-              SizedBox(height: 6),
+              const SizedBox(height: 6),
               Text(
                 turbina.nome,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
                 ),
@@ -761,10 +791,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
-              SizedBox(height: 3),
+              const SizedBox(height: 3),
               Text(
                 t.translateStatus(turbina.status),
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 9,
                   color: AppColors.mediumGray,
                 ),
@@ -772,14 +802,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
-              SizedBox(height: 6),
+              const SizedBox(height: 6),
               LinearProgressIndicator(
                 value: turbina.progresso / 100,
                 backgroundColor: AppColors.borderGray,
                 valueColor: AlwaysStoppedAnimation(color),
                 minHeight: 3,
               ),
-              SizedBox(height: 3),
+              const SizedBox(height: 3),
               Text(
                 '${turbina.progresso.toStringAsFixed(0)}%',
                 style: TextStyle(
@@ -799,7 +829,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => CreateProjectWizard(),
+      builder: (context) => const CreateProjectWizard(),
     );
   }
 
@@ -817,8 +847,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       builder: (context) => AlertDialog(
         title: Row(
           children: [
-            Icon(Icons.warning_amber_rounded, color: AppColors.errorRed),
-            SizedBox(width: 12),
+            const Icon(Icons.warning_amber_rounded, color: AppColors.errorRed),
+            const SizedBox(width: 12),
             Text(t.translate('delete_turbine')),
           ],
         ),
@@ -827,9 +857,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('${t.translate('delete_turbine_confirm')} "${turbina.nome}"?'),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             Container(
-              padding: EdgeInsets.all(12),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: AppColors.errorRed.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
@@ -839,12 +869,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               ),
               child: Row(
                 children: [
-                  Icon(Icons.info_outline, color: AppColors.errorRed, size: 20),
-                  SizedBox(width: 8),
+                  const Icon(Icons.info_outline,
+                      color: AppColors.errorRed, size: 20),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       t.translate('delete_all_components_warning'),
-                      style: TextStyle(fontSize: 12, color: AppColors.errorRed),
+                      style: const TextStyle(
+                          fontSize: 12, color: AppColors.errorRed),
                     ),
                   ),
                 ],
@@ -891,7 +923,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.errorRed,
             ),
-            child: Text('Delete'),
+            child: const Text('Delete'),
           ),
         ],
       ),

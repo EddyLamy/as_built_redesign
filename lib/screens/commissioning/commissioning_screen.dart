@@ -46,19 +46,19 @@ class _CommissioningScreenState extends ConsumerState<CommissioningScreen> {
       'id': 'preCommissioning',
       'icon': Icons.science,
       'nameKey': 'pre_commissioning_tests',
-      'color': Color(0xFF2196F3),
+      'color': const Color(0xFF2196F3),
     },
     {
       'id': 'commissioning',
       'icon': Icons.power_settings_new,
       'nameKey': 'commissioning',
-      'color': Color(0xFF4CAF50),
+      'color': const Color(0xFF4CAF50),
     },
     {
       'id': 'finalAcceptance',
       'icon': Icons.check_circle,
       'nameKey': 'final_acceptance',
-      'color': Color(0xFF9C27B0),
+      'color': const Color(0xFF9C27B0),
     },
   ];
 
@@ -136,13 +136,13 @@ class _CommissioningScreenState extends ConsumerState<CommissioningScreen> {
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
             blurRadius: 4,
-            offset: Offset(0, 2),
+            offset: const Offset(0, 2),
           ),
         ],
       ),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         itemCount: _mainPhases.length,
         itemBuilder: (context, index) {
           final phase = _mainPhases[index];
@@ -155,7 +155,7 @@ class _CommissioningScreenState extends ConsumerState<CommissioningScreen> {
             },
             child: Container(
               width: 120,
-              margin: EdgeInsets.only(right: 12),
+              margin: const EdgeInsets.only(right: 12),
               decoration: BoxDecoration(
                 color: isSelected ? phase['color'] as Color : Colors.white,
                 borderRadius: BorderRadius.circular(12),
@@ -170,7 +170,7 @@ class _CommissioningScreenState extends ConsumerState<CommissioningScreen> {
                         BoxShadow(
                           color: (phase['color'] as Color).withOpacity(0.3),
                           blurRadius: 8,
-                          offset: Offset(0, 4),
+                          offset: const Offset(0, 4),
                         ),
                       ]
                     : [],
@@ -183,9 +183,9 @@ class _CommissioningScreenState extends ConsumerState<CommissioningScreen> {
                     size: 32,
                     color: isSelected ? Colors.white : phase['color'] as Color,
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
                     child: Text(
                       t.translate(phase['nameKey'] as String),
                       style: TextStyle(
@@ -215,7 +215,7 @@ class _CommissioningScreenState extends ConsumerState<CommissioningScreen> {
     final subPhases = _getSubPhases()[selectedPhase] ?? [];
 
     return ListView.builder(
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       itemCount: subPhases.length,
       itemBuilder: (context, index) {
         final subPhase = subPhases[index];
@@ -229,30 +229,31 @@ class _CommissioningScreenState extends ConsumerState<CommissioningScreen> {
   // ══════════════════════════════════════════════════════════════════════════
   Widget _buildSubPhaseCard(Map<String, String> subPhase, TranslationHelper t) {
     // TODO: Buscar status real do Firebase
-    final isCompleted = false; // Mock
+    const isCompleted = false; // Mock
 
     return Card(
-      margin: EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 16),
       elevation: 2,
       child: ExpansionTile(
         leading: Text(
           subPhase['icon']!,
-          style: TextStyle(fontSize: 28),
+          style: const TextStyle(fontSize: 28),
         ),
         title: Text(
           t.translate(subPhase['nameKey']!),
-          style: TextStyle(
+          style: const TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 16,
           ),
         ),
-        trailing: isCompleted
-            ? Icon(Icons.check_circle, color: AppColors.successGreen, size: 28)
-            : Icon(Icons.radio_button_unchecked,
-                color: AppColors.mediumGray, size: 28),
+        trailing: Icon(
+          isCompleted ? Icons.check_circle : Icons.radio_button_unchecked,
+          color: isCompleted ? AppColors.successGreen : AppColors.mediumGray,
+          size: 24,
+        ),
         children: [
           Padding(
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -265,7 +266,7 @@ class _CommissioningScreenState extends ConsumerState<CommissioningScreen> {
                         hint: 'DD/MM/AAAA',
                       ),
                     ),
-                    SizedBox(width: 12),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: _buildDateField(
                         label: t.translate('endDate'),
@@ -274,7 +275,7 @@ class _CommissioningScreenState extends ConsumerState<CommissioningScreen> {
                     ),
                   ],
                 ),
-                SizedBox(height: 12),
+                const SizedBox(height: 12),
 
                 // Responsável
                 _buildTextField(
@@ -282,7 +283,7 @@ class _CommissioningScreenState extends ConsumerState<CommissioningScreen> {
                   hint: t.translate('enter_responsible_name'),
                   icon: Icons.person,
                 ),
-                SizedBox(height: 12),
+                const SizedBox(height: 12),
 
                 // Observações
                 _buildTextField(
@@ -291,11 +292,11 @@ class _CommissioningScreenState extends ConsumerState<CommissioningScreen> {
                   icon: Icons.notes,
                   maxLines: 4,
                 ),
-                SizedBox(height: 12),
+                const SizedBox(height: 12),
 
                 // Fotos
                 _buildPhotoField(t),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
 
                 // Botões
                 Row(
@@ -305,11 +306,11 @@ class _CommissioningScreenState extends ConsumerState<CommissioningScreen> {
                         onPressed: () {
                           // TODO: Marcar como N/A
                         },
-                        icon: Icon(Icons.not_interested),
-                        label: Text('N/A'),
+                        icon: const Icon(Icons.not_interested),
+                        label: const Text('N/A'),
                       ),
                     ),
-                    SizedBox(width: 12),
+                    const SizedBox(width: 12),
                     Expanded(
                       flex: 2,
                       child: ElevatedButton.icon(
@@ -323,7 +324,7 @@ class _CommissioningScreenState extends ConsumerState<CommissioningScreen> {
                             ),
                           );
                         },
-                        icon: Icon(Icons.save),
+                        icon: const Icon(Icons.save),
                         label: Text(t.translate('save')),
                       ),
                     ),
@@ -352,20 +353,21 @@ class _CommissioningScreenState extends ConsumerState<CommissioningScreen> {
       children: [
         Text(
           label,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
             color: AppColors.darkGray,
           ),
         ),
-        SizedBox(height: 6),
+        const SizedBox(height: 6),
         TextField(
           maxLines: maxLines,
           decoration: InputDecoration(
             hintText: hint,
             prefixIcon: Icon(icon),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-            contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
           ),
         ),
       ],
@@ -381,19 +383,20 @@ class _CommissioningScreenState extends ConsumerState<CommissioningScreen> {
       children: [
         Text(
           label,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
             color: AppColors.darkGray,
           ),
         ),
-        SizedBox(height: 6),
+        const SizedBox(height: 6),
         TextField(
           decoration: InputDecoration(
             hintText: hint,
-            prefixIcon: Icon(Icons.calendar_today),
+            prefixIcon: const Icon(Icons.calendar_today),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-            contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
           ),
           onTap: () async {
             await showDatePicker(
@@ -414,13 +417,13 @@ class _CommissioningScreenState extends ConsumerState<CommissioningScreen> {
       children: [
         Text(
           '${t.translate('photos')} (${t.translate('optional')})',
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
             color: AppColors.darkGray,
           ),
         ),
-        SizedBox(height: 6),
+        const SizedBox(height: 6),
         InkWell(
           onTap: () async {
             await _imagePicker.pickImage(source: ImageSource.camera);
@@ -436,11 +439,12 @@ class _CommissioningScreenState extends ConsumerState<CommissioningScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.camera_alt, size: 40, color: AppColors.mediumGray),
-                  SizedBox(height: 8),
+                  const Icon(Icons.camera_alt,
+                      size: 40, color: AppColors.mediumGray),
+                  const SizedBox(height: 8),
                   Text(
                     t.translate('add_photo'),
-                    style: TextStyle(color: AppColors.mediumGray),
+                    style: const TextStyle(color: AppColors.mediumGray),
                   ),
                 ],
               ),

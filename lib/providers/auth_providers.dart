@@ -15,10 +15,14 @@ final currentUserProvider = Provider<User?>((ref) {
   return FirebaseAuth.instance.currentUser;
 });
 
+/// Guarda apenas o userId vindo do REST (String) – porque não existe class UserSession no projeto
+final userSessionProvider = StateProvider<String?>((ref) => null);
+
 /// User ID atual
 final currentUserIdProvider = Provider<String?>((ref) {
-  final user = ref.watch(currentUserProvider);
-  return user?.uid;
+  final restUserId = ref.watch(userSessionProvider);
+  final firebaseUser = FirebaseAuth.instance.currentUser;
+  return restUserId ?? firebaseUser?.uid;
 });
 
 /// User está autenticado?

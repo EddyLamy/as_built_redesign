@@ -235,7 +235,7 @@ class _TorqueTensioningEditDialogState
       color: AppColors.primaryBlue,
       child: Row(
         children: [
-          Icon(Icons.handyman, color: Colors.white, size: 28),
+          const Icon(Icons.handyman, color: Colors.white, size: 28),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -742,7 +742,7 @@ class _TorqueTensioningEditDialogState
                         onTap: () => _handleDeletePhoto(url),
                         child: Container(
                           padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
+                          decoration: const BoxDecoration(
                             color: AppColors.errorRed,
                             shape: BoxShape.circle,
                           ),

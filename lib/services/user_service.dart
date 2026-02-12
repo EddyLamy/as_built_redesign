@@ -1,6 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import '../providers/app_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/auth_providers.dart';
 
 class UserService {
   static String? getCurrentUserId(WidgetRef ref) {

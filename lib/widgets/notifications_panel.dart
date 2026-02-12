@@ -121,7 +121,7 @@ class _NotificationsPanelState extends ConsumerState<NotificationsPanel> {
           const SizedBox(height: 8),
           Text(
             '$totalCount ${t.translate('active_alerts')}',
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 14,
               color: AppColors.mediumGray,
             ),
@@ -300,7 +300,7 @@ class _NotificationsPanelState extends ConsumerState<NotificationsPanel> {
             const SizedBox(height: 16),
             Text(
               t.translate('no_notifications'),
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 16,
                 color: AppColors.mediumGray,
               ),
@@ -479,7 +479,7 @@ class _NotificationsPanelState extends ConsumerState<NotificationsPanel> {
                 const SizedBox(height: 4),
                 Text(
                   notification.projectName,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 12,
                     color: AppColors.mediumGray,
                     fontWeight: FontWeight.w500,
@@ -497,7 +497,7 @@ class _NotificationsPanelState extends ConsumerState<NotificationsPanel> {
                 const SizedBox(height: 8),
                 Text(
                   _formatTimeAgo(notification.createdAt, t),
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 11,
                     color: AppColors.mediumGray,
                   ),

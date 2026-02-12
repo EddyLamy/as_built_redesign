@@ -112,12 +112,12 @@ class _DriveTrainEditDialogState extends ConsumerState<DriveTrainEditDialog>
       color: Colors.purple,
       child: Row(
         children: [
-          Icon(Icons.settings, color: Colors.white),
+          const Icon(Icons.settings, color: Colors.white),
           const SizedBox(width: 12),
-          Expanded(
+          const Expanded(
             child: Text(
               'Drive Train',
-              style: const TextStyle(
+              style: TextStyle(
                 color: Colors.white,
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -142,9 +142,9 @@ class _DriveTrainEditDialogState extends ConsumerState<DriveTrainEditDialog>
         labelColor: Colors.white,
         unselectedLabelColor: Colors.white70,
         tabs: [
-          Tab(icon: Icon(Icons.build), text: t['torque'] ?? 'Torque'),
+          Tab(icon: const Icon(Icons.build), text: t['torque'] ?? 'Torque'),
           Tab(
-            icon: Icon(Icons.compress),
+            icon: const Icon(Icons.compress),
             text: t['tensionamento'] ?? 'Tensionamento',
           ),
         ],
@@ -190,7 +190,7 @@ class _DriveTrainEditDialogState extends ConsumerState<DriveTrainEditDialog>
                 controller: _observacoesTorqueController,
                 decoration: InputDecoration(
                   labelText: t['observacoes'],
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
                 ),
                 maxLines: 3,
               ),
@@ -199,7 +199,7 @@ class _DriveTrainEditDialogState extends ConsumerState<DriveTrainEditDialog>
                 initialValue: _motivoNATorque ?? '',
                 decoration: InputDecoration(
                   labelText: t['motivoNA'],
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
                 ),
                 onChanged: (v) => _motivoNATorque = v,
                 validator: (v) => _torqueNA && (v == null || v.isEmpty)
@@ -248,7 +248,7 @@ class _DriveTrainEditDialogState extends ConsumerState<DriveTrainEditDialog>
               controller: _observacoesTensionamentoController,
               decoration: InputDecoration(
                 labelText: t['observacoes'],
-                border: OutlineInputBorder(),
+                border: const OutlineInputBorder(),
               ),
               maxLines: 3,
             ),
@@ -257,7 +257,7 @@ class _DriveTrainEditDialogState extends ConsumerState<DriveTrainEditDialog>
               initialValue: _motivoNATensionamento ?? '',
               decoration: InputDecoration(
                 labelText: t['motivoNA'],
-                border: OutlineInputBorder(),
+                border: const OutlineInputBorder(),
               ),
               onChanged: (v) => _motivoNATensionamento = v,
               validator: (v) => _tensionamentoNA && (v == null || v.isEmpty)
@@ -276,12 +276,12 @@ class _DriveTrainEditDialogState extends ConsumerState<DriveTrainEditDialog>
     bool isInicio,
   ) {
     return ListTile(
-      leading: Icon(Icons.calendar_today, color: Colors.purple),
+      leading: const Icon(Icons.calendar_today, color: Colors.purple),
       title: Text(isInicio
           ? (t['dataInicio'] ?? 'Data Início')
           : (t['dataFim'] ?? 'Data Fim')),
       subtitle: Text(_formatDate(data)),
-      trailing: Icon(Icons.edit, size: 20),
+      trailing: const Icon(Icons.edit, size: 20),
       onTap: () async {
         final d = await showDatePicker(
           context: context,
@@ -362,7 +362,7 @@ class _DriveTrainEditDialogState extends ConsumerState<DriveTrainEditDialog>
       if (mounted) {
         Navigator.pop(context, true);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text('Atualizado!'),
             backgroundColor: Colors.green,
           ),

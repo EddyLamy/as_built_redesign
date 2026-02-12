@@ -67,7 +67,7 @@ class ConexaoCard extends StatelessWidget {
                                 const SizedBox(height: 2),
                                 Text(
                                   conexao.descricao!,
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     fontSize: 12,
                                     color: AppColors.mediumGray,
                                   ),
@@ -169,14 +169,14 @@ class ConexaoCard extends StatelessWidget {
               // ════════════════════════════════════════════════════════
               if (conexao.isExtra) ...[
                 const SizedBox(height: 8),
-                Row(
+                const Row(
                   children: [
                     Icon(
                       Icons.add_circle_outline,
                       size: 14,
                       color: AppColors.accentTeal,
                     ),
-                    const SizedBox(width: 4),
+                    SizedBox(width: 4),
                     Text(
                       'Conexão Extra',
                       style: TextStyle(
@@ -307,7 +307,7 @@ class ConexaoCard extends StatelessWidget {
           const SizedBox(width: 4),
           Text(
             label,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 11,
               color: AppColors.darkGray,
             ),

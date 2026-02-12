@@ -29,16 +29,29 @@ dependencies:
   percent_indicator: ^4.2.3
   
   # Utils
+  package_info_plus: ^8.0.0  # Para versão da app no Help Screen
   path_provider: ^2.1.5
   shared_preferences: ^2.5.4
   uuid: ^4.5.1
   intl: ^0.20.2
   image_picker: ^1.2.0
+  permission_handler: ^11.1.0
+  connectivity_plus: ^4.0.2
+  flutter_email_sender: ^8.0.0
+  open_filex: ^4.7.0
+  pdf: ^3.11.0
+  printing: ^5.11.0
   image: ^4.1.7
   google_mlkit_text_recognition: ^0.13.0
   flutter_tesseract_ocr: ^0.4.16
   flutter_localizations:
     sdk: flutter
+  
+    # 🆕 MOBILE - UI Responsive
+  flutter_screenutil: ^5.9.0
+  
+    # 🆕 Images Cache
+  cached_network_image: ^3.3.0
 
 dev_dependencies:
   flutter_test:

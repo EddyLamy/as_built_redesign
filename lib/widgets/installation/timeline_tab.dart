@@ -34,7 +34,7 @@ class TimelineTab extends ConsumerWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.timeline, size: 64, color: Colors.grey),
+                const Icon(Icons.timeline, size: 64, color: Colors.grey),
                 const SizedBox(height: 16),
                 Text(t['nenhumEventoEncontrado'] ?? 'Nenhum evento encontrado',
                     style: TextStyle(color: Colors.grey[600])),

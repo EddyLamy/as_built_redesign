@@ -50,29 +50,29 @@ class _EditPhaseDialogState extends ConsumerState<EditPhaseDialog> {
       title: Row(
         children: [
           Container(
-            padding: EdgeInsets.all(8),
+            padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: AppColors.primaryBlue.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(
+            child: const Icon(
               Icons.calendar_today,
               color: AppColors.primaryBlue,
               size: 20,
             ),
           ),
-          SizedBox(width: 12),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   t.translate(widget.phase.nomeKey ?? widget.phase.nome),
-                  style: TextStyle(fontSize: 18),
+                  style: const TextStyle(fontSize: 18),
                 ),
                 Text(
                   '${t.translate('phase')} ${widget.phase.ordem}',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.normal,
                     color: AppColors.mediumGray,
@@ -99,13 +99,13 @@ class _EditPhaseDialogState extends ConsumerState<EditPhaseDialog> {
                   child: SwitchListTile(
                     title: Text(
                       t.translate('not_applicable'),
-                      style: TextStyle(fontWeight: FontWeight.w600),
+                      style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
                     subtitle: Text(
                       isNA
                           ? t.translate('phase_marked_na')
                           : t.translate('mark_phase_na_if_not_needed'),
-                      style: TextStyle(fontSize: 12),
+                      style: const TextStyle(fontSize: 12),
                     ),
                     value: isNA,
                     onChanged: (value) {
@@ -121,7 +121,7 @@ class _EditPhaseDialogState extends ConsumerState<EditPhaseDialog> {
                     activeThumbColor: AppColors.mediumGray,
                   ),
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
               ],
 
               // Campos de data (disabled se N/A)
@@ -133,16 +133,16 @@ class _EditPhaseDialogState extends ConsumerState<EditPhaseDialog> {
                     // Data Início
                     Text(
                       '${t.translate('start_date')} *',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    SizedBox(height: 8),
+                    const SizedBox(height: 8),
                     InkWell(
                       onTap: isNA ? null : () => _selectDate(context, true),
                       child: Container(
-                        padding: EdgeInsets.symmetric(
+                        padding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 12,
                         ),
@@ -163,7 +163,7 @@ class _EditPhaseDialogState extends ConsumerState<EditPhaseDialog> {
                                   ? AppColors.mediumGray
                                   : AppColors.primaryBlue,
                             ),
-                            SizedBox(width: 12),
+                            const SizedBox(width: 12),
                             Text(
                               _dataInicio != null
                                   ? _formatDate(_dataInicio!)
@@ -178,21 +178,21 @@ class _EditPhaseDialogState extends ConsumerState<EditPhaseDialog> {
                         ),
                       ),
                     ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
 
                     // Data Fim
                     Text(
                       '${t.translate('end_date')} *',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    SizedBox(height: 8),
+                    const SizedBox(height: 8),
                     InkWell(
                       onTap: isNA ? null : () => _selectDate(context, false),
                       child: Container(
-                        padding: EdgeInsets.symmetric(
+                        padding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 12,
                         ),
@@ -213,7 +213,7 @@ class _EditPhaseDialogState extends ConsumerState<EditPhaseDialog> {
                                   ? AppColors.mediumGray
                                   : AppColors.primaryBlue,
                             ),
-                            SizedBox(width: 12),
+                            const SizedBox(width: 12),
                             Text(
                               _dataFim != null
                                   ? _formatDate(_dataFim!)
@@ -232,22 +232,22 @@ class _EditPhaseDialogState extends ConsumerState<EditPhaseDialog> {
                 ),
               ),
 
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
 
               // Observações
               Text(
                 t.translate('notes'),
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               TextField(
                 controller: _observacoesController,
                 decoration: InputDecoration(
                   hintText: t.translate('add_notes_optional'),
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
                 ),
                 maxLines: 3,
               ),
@@ -263,7 +263,7 @@ class _EditPhaseDialogState extends ConsumerState<EditPhaseDialog> {
         ElevatedButton(
           onPressed: _isLoading ? null : _handleSave,
           child: _isLoading
-              ? SizedBox(
+              ? const SizedBox(
                   width: 16,
                   height: 16,
                   child: CircularProgressIndicator(

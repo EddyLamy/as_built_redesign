@@ -124,7 +124,7 @@ class FaseCard extends ConsumerWidget {
                         ],
                         if (_hasData(fase)) ...[
                           const SizedBox(width: 8),
-                          Icon(Icons.check_circle,
+                          const Icon(Icons.check_circle,
                               size: 14, color: Colors.green),
                         ],
                       ],

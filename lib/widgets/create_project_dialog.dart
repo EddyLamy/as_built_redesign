@@ -85,7 +85,7 @@ class _CreateProjectWizardState extends ConsumerState<CreateProjectWizard> {
             _buildHeader(t),
             Expanded(
               child: SingleChildScrollView(
-                padding: EdgeInsets.all(24),
+                padding: const EdgeInsets.all(24),
                 child: _buildStepContent(t),
               ),
             ),
@@ -104,10 +104,10 @@ class _CreateProjectWizardState extends ConsumerState<CreateProjectWizard> {
     ];
 
     return Container(
-      padding: EdgeInsets.all(20),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppColors.primaryBlue.withOpacity(0.05),
-        border: Border(
+        border: const Border(
           bottom: BorderSide(color: AppColors.borderGray),
         ),
       ),
@@ -115,26 +115,26 @@ class _CreateProjectWizardState extends ConsumerState<CreateProjectWizard> {
         children: [
           Row(
             children: [
-              Icon(Icons.article, color: AppColors.primaryBlue, size: 28),
-              SizedBox(width: 12),
+              const Icon(Icons.article, color: AppColors.primaryBlue, size: 28),
+              const SizedBox(width: 12),
               Text(
                 t.translate('create_project_wizard'),
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              Spacer(),
+              const Spacer(),
               Text(
                 '${t.translate('step')} ${_currentStep + 1} / 3',
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 14,
                   color: AppColors.mediumGray,
                 ),
               ),
             ],
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
 
           // Progress bar
           Row(
@@ -155,13 +155,13 @@ class _CreateProjectWizardState extends ConsumerState<CreateProjectWizard> {
                         ),
                       ),
                     ),
-                    if (index < 2) SizedBox(width: 8),
+                    if (index < 2) const SizedBox(width: 8),
                   ],
                 ),
               );
             }),
           ),
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
 
           // Step labels
           Row(
@@ -200,7 +200,7 @@ class _CreateProjectWizardState extends ConsumerState<CreateProjectWizard> {
       case 2:
         return _buildStep3Review(t);
       default:
-        return SizedBox.shrink();
+        return const SizedBox.shrink();
     }
   }
 
@@ -216,9 +216,9 @@ class _CreateProjectWizardState extends ConsumerState<CreateProjectWizard> {
         children: [
           Text(
             t.translate('basic_project_information'),
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
-          SizedBox(height: 24),
+          const SizedBox(height: 24),
 
           // Nome do projeto
           TextFormField(
@@ -226,13 +226,13 @@ class _CreateProjectWizardState extends ConsumerState<CreateProjectWizard> {
             decoration: InputDecoration(
               labelText: '${t.translate('project_name')} *',
               hintText: t.translate('project_name_hint'),
-              border: OutlineInputBorder(),
+              border: const OutlineInputBorder(),
             ),
             validator: (v) => v == null || v.trim().isEmpty
                 ? t.translate('required_field')
                 : null,
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
 
           // Project ID
           TextFormField(
@@ -240,13 +240,13 @@ class _CreateProjectWizardState extends ConsumerState<CreateProjectWizard> {
             decoration: InputDecoration(
               labelText: '${t.translate('project_id')} *',
               hintText: t.translate('project_id_hint'),
-              border: OutlineInputBorder(),
+              border: const OutlineInputBorder(),
             ),
             validator: (v) => v == null || v.trim().isEmpty
                 ? t.translate('required_field')
                 : null,
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
 
           // Localização
           TextFormField(
@@ -254,10 +254,10 @@ class _CreateProjectWizardState extends ConsumerState<CreateProjectWizard> {
             decoration: InputDecoration(
               labelText: t.translate('location'),
               hintText: t.translate('location_hint'),
-              border: OutlineInputBorder(),
+              border: const OutlineInputBorder(),
             ),
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
 
           // ════════════════════════════════════════════════════════════════
           // 🆕 NOVO: MORADA (opcional)
@@ -267,12 +267,12 @@ class _CreateProjectWizardState extends ConsumerState<CreateProjectWizard> {
             decoration: InputDecoration(
               labelText: t.translate('address'),
               hintText: 'Ex: Rua Principal 123, Lisboa',
-              border: OutlineInputBorder(),
+              border: const OutlineInputBorder(),
               helperText: t.translate('optional'),
             ),
             maxLines: 2,
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
 
           // ════════════════════════════════════════════════════════════════
           // 🆕 NOVO: COORDENADAS GPS (opcional)
@@ -282,11 +282,11 @@ class _CreateProjectWizardState extends ConsumerState<CreateProjectWizard> {
             decoration: InputDecoration(
               labelText: t.translate('gps_coordinates'),
               hintText: 'Ex: 38.7223°N, 9.1393°W',
-              border: OutlineInputBorder(),
+              border: const OutlineInputBorder(),
               helperText: t.translate('optional'),
             ),
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
 
           // Gestor do Projeto e Gestor do Local
           Row(
@@ -296,20 +296,20 @@ class _CreateProjectWizardState extends ConsumerState<CreateProjectWizard> {
                   controller: _projectManagerController,
                   decoration: InputDecoration(
                     labelText: '${t.translate('project_manager')} *',
-                    border: OutlineInputBorder(),
+                    border: const OutlineInputBorder(),
                   ),
                   validator: (v) => v == null || v.trim().isEmpty
                       ? t.translate('required_field')
                       : null,
                 ),
               ),
-              SizedBox(width: 16),
+              const SizedBox(width: 16),
               Expanded(
                 child: TextFormField(
                   controller: _siteManagerController,
                   decoration: InputDecoration(
                     labelText: '${t.translate('site_manager')} *',
-                    border: OutlineInputBorder(),
+                    border: const OutlineInputBorder(),
                   ),
                   validator: (v) => v == null || v.trim().isEmpty
                       ? t.translate('required_field')
@@ -318,7 +318,7 @@ class _CreateProjectWizardState extends ConsumerState<CreateProjectWizard> {
               ),
             ],
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
 
           // Tipo de Turbina e Tipo de Fundação
           Row(
@@ -329,21 +329,21 @@ class _CreateProjectWizardState extends ConsumerState<CreateProjectWizard> {
                   decoration: InputDecoration(
                     labelText: '${t.translate('turbine_type')} *',
                     hintText: t.translate('turbine_type_hint'),
-                    border: OutlineInputBorder(),
+                    border: const OutlineInputBorder(),
                   ),
                   validator: (v) => v == null || v.trim().isEmpty
                       ? t.translate('required_field')
                       : null,
                 ),
               ),
-              SizedBox(width: 16),
+              const SizedBox(width: 16),
               Expanded(
                 child: TextFormField(
                   controller: _foundationTypeController,
                   decoration: InputDecoration(
                     labelText: '${t.translate('foundation_type')} *',
                     hintText: t.translate('foundation_type_hint'),
-                    border: OutlineInputBorder(),
+                    border: const OutlineInputBorder(),
                   ),
                   validator: (v) => v == null || v.trim().isEmpty
                       ? t.translate('required_field')
@@ -369,21 +369,21 @@ class _CreateProjectWizardState extends ConsumerState<CreateProjectWizard> {
   // ══════════════════════════════════════════════════════════════════════════
 
   Widget _buildStep2Phases(TranslationHelper t) {
-    final phases = ProjectPhaseService.defaultPhases;
+    const phases = ProjectPhaseService.defaultPhases;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           t.translate('define_project_phases'),
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
-        SizedBox(height: 8),
+        const SizedBox(height: 8),
         Text(
           t.translate('phases_optional_explanation'),
-          style: TextStyle(fontSize: 14, color: AppColors.mediumGray),
+          style: const TextStyle(fontSize: 14, color: AppColors.mediumGray),
         ),
-        SizedBox(height: 24),
+        const SizedBox(height: 24),
 
         // ════════════════════════════════════════════════════════════════════
         // 🆕 ADICIONADO: Disponibilidade Estimada da Rede (TOPO DO TAB 2)
@@ -391,24 +391,24 @@ class _CreateProjectWizardState extends ConsumerState<CreateProjectWizard> {
         Card(
           color: AppColors.accentTeal.withOpacity(0.1),
           child: Padding(
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
-                    Icon(Icons.flash_on, color: AppColors.accentTeal),
-                    SizedBox(width: 12),
+                    const Icon(Icons.flash_on, color: AppColors.accentTeal),
+                    const SizedBox(width: 12),
                     Text(
                       t.translate('estimated_grid_availability'),
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                   ],
                 ),
-                SizedBox(height: 12),
+                const SizedBox(height: 12),
                 InkWell(
                   onTap: () async {
                     final picked = await showDatePicker(
@@ -422,7 +422,7 @@ class _CreateProjectWizardState extends ConsumerState<CreateProjectWizard> {
                     }
                   },
                   child: Container(
-                    padding: EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       border: Border.all(color: AppColors.borderGray),
@@ -430,8 +430,8 @@ class _CreateProjectWizardState extends ConsumerState<CreateProjectWizard> {
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.calendar_today, size: 16),
-                        SizedBox(width: 8),
+                        const Icon(Icons.calendar_today, size: 16),
+                        const SizedBox(width: 8),
                         Text(
                           _estimatedGridAvailability != null
                               ? _formatDate(_estimatedGridAvailability!)
@@ -446,10 +446,10 @@ class _CreateProjectWizardState extends ConsumerState<CreateProjectWizard> {
                     ),
                   ),
                 ),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 Text(
                   t.translate('grid_availability_info'),
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 12,
                     color: AppColors.mediumGray,
                     fontStyle: FontStyle.italic,
@@ -459,21 +459,21 @@ class _CreateProjectWizardState extends ConsumerState<CreateProjectWizard> {
             ),
           ),
         ),
-        SizedBox(height: 24),
+        const SizedBox(height: 24),
 
         // Divider
-        Divider(),
-        SizedBox(height: 16),
+        const Divider(),
+        const SizedBox(height: 16),
 
         Text(
           t.translate('project_execution_phases'),
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
             color: AppColors.mediumGray,
           ),
         ),
-        SizedBox(height: 16),
+        const SizedBox(height: 16),
 
         // Fases do projeto
         ...phases.map((phaseTemplate) {
@@ -507,9 +507,9 @@ class _CreateProjectWizardState extends ConsumerState<CreateProjectWizard> {
 
     return Card(
       key: ValueKey('phase_card_$ordem'),
-      margin: EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 16),
       child: Padding(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -517,7 +517,7 @@ class _CreateProjectWizardState extends ConsumerState<CreateProjectWizard> {
               children: [
                 Text(
                   '$ordem. ',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     color: AppColors.mediumGray,
                   ),
@@ -525,7 +525,7 @@ class _CreateProjectWizardState extends ConsumerState<CreateProjectWizard> {
                 Expanded(
                   child: Text(
                     nome,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
@@ -535,7 +535,7 @@ class _CreateProjectWizardState extends ConsumerState<CreateProjectWizard> {
                   Chip(
                     label: Text(
                       t.translate('optional'),
-                      style: TextStyle(fontSize: 10),
+                      style: const TextStyle(fontSize: 10),
                     ),
                     backgroundColor: AppColors.mediumGray.withOpacity(0.2),
                     padding: EdgeInsets.zero,
@@ -543,12 +543,12 @@ class _CreateProjectWizardState extends ConsumerState<CreateProjectWizard> {
               ],
             ),
             if (!obrigatorio) ...[
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
               SwitchListTile(
                 key: ValueKey('switch_na_$ordem'),
                 title: Text(
                   t.translate('not_applicable'),
-                  style: TextStyle(fontSize: 14),
+                  style: const TextStyle(fontSize: 14),
                 ),
                 value: isNA,
                 onChanged: (value) {
@@ -564,7 +564,7 @@ class _CreateProjectWizardState extends ConsumerState<CreateProjectWizard> {
               ),
             ],
             if (!isNA) ...[
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
               Row(
                 children: [
                   Expanded(
@@ -572,15 +572,15 @@ class _CreateProjectWizardState extends ConsumerState<CreateProjectWizard> {
                       key: ValueKey('start_date_$ordem'),
                       onTap: () => _selectPhaseDate(context, ordem, true),
                       child: Container(
-                        padding: EdgeInsets.all(12),
+                        padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
                           border: Border.all(color: AppColors.borderGray),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.calendar_today, size: 16),
-                            SizedBox(width: 8),
+                            const Icon(Icons.calendar_today, size: 16),
+                            const SizedBox(width: 8),
                             Text(
                               startDate != null
                                   ? _formatDate(startDate)
@@ -596,21 +596,21 @@ class _CreateProjectWizardState extends ConsumerState<CreateProjectWizard> {
                       ),
                     ),
                   ),
-                  SizedBox(width: 12),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: InkWell(
                       key: ValueKey('end_date_$ordem'),
                       onTap: () => _selectPhaseDate(context, ordem, false),
                       child: Container(
-                        padding: EdgeInsets.all(12),
+                        padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
                           border: Border.all(color: AppColors.borderGray),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.calendar_today, size: 16),
-                            SizedBox(width: 8),
+                            const Icon(Icons.calendar_today, size: 16),
+                            const SizedBox(width: 8),
                             Text(
                               endDate != null
                                   ? _formatDate(endDate)
@@ -640,7 +640,7 @@ class _CreateProjectWizardState extends ConsumerState<CreateProjectWizard> {
   // ══════════════════════════════════════════════════════════════════════════
 
   Widget _buildStep3Review(TranslationHelper t) {
-    final phases = ProjectPhaseService.defaultPhases;
+    const phases = ProjectPhaseService.defaultPhases;
     final phasesCompletas = phases.where((p) {
       final ordem = p['ordem'] as int;
       final isNA = _phasesNA[ordem] ?? false;
@@ -655,9 +655,9 @@ class _CreateProjectWizardState extends ConsumerState<CreateProjectWizard> {
       children: [
         Text(
           t.translate('review_and_confirm'),
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
-        SizedBox(height: 24),
+        const SizedBox(height: 24),
 
         // Resumo do projeto
         _buildReviewSection(
@@ -679,7 +679,7 @@ class _CreateProjectWizardState extends ConsumerState<CreateProjectWizard> {
             // ❌ REMOVIDO: Tower Sections
           ],
         ),
-        SizedBox(height: 16),
+        const SizedBox(height: 16),
 
         // Resumo das fases
         _buildReviewSection(
@@ -692,11 +692,11 @@ class _CreateProjectWizardState extends ConsumerState<CreateProjectWizard> {
             '${t.translate('phases_na')}: ${_phasesNA.values.where((v) => v).length}',
           ],
         ),
-        SizedBox(height: 24),
+        const SizedBox(height: 24),
 
         // Aviso
         Container(
-          padding: EdgeInsets.all(16),
+          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: AppColors.accentTeal.withOpacity(0.1),
             borderRadius: BorderRadius.circular(8),
@@ -706,12 +706,12 @@ class _CreateProjectWizardState extends ConsumerState<CreateProjectWizard> {
           ),
           child: Row(
             children: [
-              Icon(Icons.info_outline, color: AppColors.accentTeal),
-              SizedBox(width: 12),
+              const Icon(Icons.info_outline, color: AppColors.accentTeal),
+              const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   t.translate('project_creation_info'),
-                  style: TextStyle(fontSize: 12),
+                  style: const TextStyle(fontSize: 12),
                 ),
               ),
             ],
@@ -724,23 +724,23 @@ class _CreateProjectWizardState extends ConsumerState<CreateProjectWizard> {
   Widget _buildReviewSection(String title, List<String> items) {
     return Card(
       child: Padding(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               title,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             ...items.map((item) => Padding(
-                  padding: EdgeInsets.only(bottom: 4),
+                  padding: const EdgeInsets.only(bottom: 4),
                   child: Text(
                     '• $item',
-                    style: TextStyle(fontSize: 14),
+                    style: const TextStyle(fontSize: 14),
                   ),
                 )),
           ],
@@ -751,8 +751,8 @@ class _CreateProjectWizardState extends ConsumerState<CreateProjectWizard> {
 
   Widget _buildNavigationButtons(TranslationHelper t) {
     return Container(
-      padding: EdgeInsets.all(20),
-      decoration: BoxDecoration(
+      padding: const EdgeInsets.all(20),
+      decoration: const BoxDecoration(
         border: Border(
           top: BorderSide(color: AppColors.borderGray),
         ),
@@ -764,7 +764,7 @@ class _CreateProjectWizardState extends ConsumerState<CreateProjectWizard> {
             TextButton.icon(
               onPressed:
                   _isLoading ? null : () => setState(() => _currentStep--),
-              icon: Icon(Icons.arrow_back),
+              icon: const Icon(Icons.arrow_back),
               label: Text(t.translate('back')),
             )
           else
@@ -775,14 +775,14 @@ class _CreateProjectWizardState extends ConsumerState<CreateProjectWizard> {
           if (_currentStep < 2)
             ElevatedButton.icon(
               onPressed: _isLoading ? null : _handleNext,
-              icon: Icon(Icons.arrow_forward),
+              icon: const Icon(Icons.arrow_forward),
               label: Text(t.translate('next')),
             )
           else
             ElevatedButton.icon(
               onPressed: _isLoading ? null : _handleCreateProject,
               icon: _isLoading
-                  ? SizedBox(
+                  ? const SizedBox(
                       width: 16,
                       height: 16,
                       child: CircularProgressIndicator(
@@ -790,7 +790,7 @@ class _CreateProjectWizardState extends ConsumerState<CreateProjectWizard> {
                         color: Colors.white,
                       ),
                     )
-                  : Icon(Icons.check),
+                  : const Icon(Icons.check),
               label: Text(
                 _isLoading
                     ? t.translate('creating')
@@ -868,22 +868,21 @@ class _CreateProjectWizardState extends ConsumerState<CreateProjectWizard> {
         localizacao: _localizacaoController.text.trim().isEmpty
             ? null
             : _localizacaoController.text.trim(),
-        morada: _moradaController.text.trim().isEmpty // 🆕 NOVO
+        morada: _moradaController.text.trim().isEmpty
             ? null
             : _moradaController.text.trim(),
-        coordenadasGPS: _coordenadasGPSController.text.trim().isEmpty // 🆕 NOVO
+        coordenadasGPS: _coordenadasGPSController.text.trim().isEmpty
             ? null
             : _coordenadasGPSController.text.trim(),
         projectManager: _projectManagerController.text.trim(),
         siteManager: _siteManagerController.text.trim(),
         turbineType: _turbineTypeController.text.trim(),
         foundationType: _foundationTypeController.text.trim(),
-        // ❌ REMOVIDO: towerSections: _towerSections,
-        // ❌ REMOVIDO: siteOpeningDate: _siteOpeningDate,
-        estimatedGridAvailability: _estimatedGridAvailability, // ➡️ MOVIDO
-        // ❌ REMOVIDO: estimatedHandover: _estimatedHandover,
+        estimatedGridAvailability: _estimatedGridAvailability,
         status: 'Planejado',
         totalTurbinas: 0,
+        numeroTurbinas:
+            0, // 👈 ADICIONE ESTA LINHA PARA RESOLVER O ERRO DE COMPILAÇÃO
         createdAt: DateTime.now(),
         createdBy: user.uid,
       );

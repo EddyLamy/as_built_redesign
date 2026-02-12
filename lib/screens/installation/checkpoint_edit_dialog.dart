@@ -71,7 +71,7 @@ class _CheckpointEditDialogState extends ConsumerState<CheckpointEditDialog> {
               color: Colors.green,
               child: Row(
                 children: [
-                  Icon(Icons.check_circle, color: Colors.white),
+                  const Icon(Icons.check_circle, color: Colors.white),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
@@ -130,7 +130,7 @@ class _CheckpointEditDialogState extends ConsumerState<CheckpointEditDialog> {
                           controller: _observacoesController,
                           decoration: InputDecoration(
                             labelText: t['observacoes'],
-                            border: OutlineInputBorder(),
+                            border: const OutlineInputBorder(),
                           ),
                           maxLines: 3,
                         ),
@@ -139,7 +139,7 @@ class _CheckpointEditDialogState extends ConsumerState<CheckpointEditDialog> {
                           initialValue: _motivoNA ?? '',
                           decoration: InputDecoration(
                             labelText: t['motivoNA'],
-                            border: OutlineInputBorder(),
+                            border: const OutlineInputBorder(),
                           ),
                           onChanged: (v) => _motivoNA = v,
                           validator: (v) => _isNA && (v == null || v.isEmpty)
@@ -193,12 +193,12 @@ class _CheckpointEditDialogState extends ConsumerState<CheckpointEditDialog> {
     bool isInicio,
   ) {
     return ListTile(
-      leading: Icon(Icons.calendar_today, color: Colors.green),
+      leading: const Icon(Icons.calendar_today, color: Colors.green),
       title: Text(isInicio
           ? (t['dataInicio'] ?? 'Data Início')
           : (t['dataFim'] ?? 'Data Fim')),
       subtitle: Text(_formatDate(data)),
-      trailing: Icon(Icons.edit, size: 20),
+      trailing: const Icon(Icons.edit, size: 20),
       onTap: () async {
         final d = await showDatePicker(
           context: context,
@@ -259,7 +259,7 @@ class _CheckpointEditDialogState extends ConsumerState<CheckpointEditDialog> {
       if (mounted) {
         Navigator.pop(context, true);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text('Atualizado!'),
             backgroundColor: Colors.green,
           ),

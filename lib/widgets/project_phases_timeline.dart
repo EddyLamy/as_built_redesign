@@ -20,9 +20,9 @@ class ProjectPhasesTimeline extends ConsumerWidget {
     final phasesAsync = ref.watch(projectPhasesProvider(projectId));
 
     return Card(
-      margin: EdgeInsets.all(16),
+      margin: const EdgeInsets.all(16),
       child: Padding(
-        padding: EdgeInsets.all(20),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -30,19 +30,19 @@ class ProjectPhasesTimeline extends ConsumerWidget {
             Row(
               children: [
                 Icon(Icons.timeline, color: AppColors.primaryBlue, size: 24),
-                SizedBox(width: 12),
+                const SizedBox(width: 12),
                 Text(
                   t.translate('phases_timeline'),
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                Spacer(),
+                const Spacer(),
                 _buildLegend(t),
               ],
             ),
-            SizedBox(height: 24),
+            const SizedBox(height: 24),
 
             // Timeline
             phasesAsync.when(
@@ -55,7 +55,7 @@ class ProjectPhasesTimeline extends ConsumerWidget {
 
                 return _buildTimeline(context, t, phases, ref);
               },
-              loading: () => Center(
+              loading: () => const Center(
                 child: Padding(
                   padding: EdgeInsets.all(40),
                   child: CircularProgressIndicator(),
@@ -104,7 +104,7 @@ class ProjectPhasesTimeline extends ConsumerWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Icon(icon, size: 16, color: color),
-        SizedBox(width: 4),
+        const SizedBox(width: 4),
         Text(
           label,
           style: TextStyle(fontSize: 12, color: AppColors.mediumGray),
@@ -127,7 +127,7 @@ class ProjectPhasesTimeline extends ConsumerWidget {
     if (phasesComDatas.isEmpty) {
       return Center(
         child: Padding(
-          padding: EdgeInsets.all(40),
+          padding: const EdgeInsets.all(40),
           child: Column(
             children: [
               Icon(
@@ -135,7 +135,7 @@ class ProjectPhasesTimeline extends ConsumerWidget {
                 size: 64,
                 color: AppColors.mediumGray.withValues(alpha: 0.3),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               Text(
                 t.translate('no_phases_with_dates'),
                 style: TextStyle(
@@ -174,7 +174,7 @@ class ProjectPhasesTimeline extends ConsumerWidget {
     final minDateNonNull = minDate;
     final maxDateNonNull = maxDate;
 
-    final itemWidth = 59.0; // Largura de cada fase
+    const itemWidth = 59.0; // Largura de cada fase
 
     return Column(
       children: [
@@ -260,14 +260,14 @@ class ProjectPhasesTimeline extends ConsumerWidget {
                   ),
                   child: Icon(icon, color: color, size: 20),
                 ),
-                SizedBox(height: 6),
+                const SizedBox(height: 6),
 
                 // Nome
                 SizedBox(
                   width: itemWidth - 16,
                   child: Text(
                     _abbreviatePhaseName(t.translate('phase_${phase.nome}')),
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w600,
                     ),
@@ -276,7 +276,7 @@ class ProjectPhasesTimeline extends ConsumerWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
 
                 // Data
                 if (phase.aplicavel && phase.dataInicio != null)
@@ -286,7 +286,7 @@ class ProjectPhasesTimeline extends ConsumerWidget {
                   ),
 
                 // Progresso
-                SizedBox(height: 2),
+                const SizedBox(height: 2),
                 Text(
                   '${phase.progresso.toStringAsFixed(0)}%',
                   style: TextStyle(

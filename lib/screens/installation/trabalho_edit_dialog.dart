@@ -116,7 +116,7 @@ class _TrabalhoEditDialogState extends ConsumerState<TrabalhoEditDialog> {
       color: Colors.orange,
       child: Row(
         children: [
-          Icon(Icons.link, color: Colors.white),
+          const Icon(Icons.link, color: Colors.white),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
@@ -162,7 +162,7 @@ class _TrabalhoEditDialogState extends ConsumerState<TrabalhoEditDialog> {
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),
-                Icon(Icons.arrow_forward, color: Colors.orange),
+                const Icon(Icons.arrow_forward, color: Colors.orange),
                 Expanded(
                   child: Text(
                     widget.trabalho.componenteB,
@@ -198,10 +198,10 @@ class _TrabalhoEditDialogState extends ConsumerState<TrabalhoEditDialog> {
     return Column(
       children: [
         ListTile(
-          leading: Icon(Icons.calendar_today, color: Colors.orange),
+          leading: const Icon(Icons.calendar_today, color: Colors.orange),
           title: Text(t['dataInicio'] ?? 'Data Início'),
           subtitle: Text(_formatDate(_dataInicio)),
-          trailing: Icon(Icons.edit, size: 20),
+          trailing: const Icon(Icons.edit, size: 20),
           onTap: () async {
             final data = await showDatePicker(
               context: context,
@@ -220,10 +220,10 @@ class _TrabalhoEditDialogState extends ConsumerState<TrabalhoEditDialog> {
           },
         ),
         ListTile(
-          leading: Icon(Icons.event, color: Colors.orange),
+          leading: const Icon(Icons.event, color: Colors.orange),
           title: Text(t['dataFim'] ?? 'Data Fim'),
           subtitle: Text(_formatDate(_dataFim)),
-          trailing: Icon(Icons.edit, size: 20),
+          trailing: const Icon(Icons.edit, size: 20),
           onTap: () async {
             final data = await showDatePicker(
               context: context,
@@ -260,7 +260,7 @@ class _TrabalhoEditDialogState extends ConsumerState<TrabalhoEditDialog> {
             });
           },
           title: Text(t['torque'] ?? 'Torque'),
-          secondary: Icon(Icons.build, color: Colors.blue),
+          secondary: const Icon(Icons.build, color: Colors.blue),
         ),
         RadioListTile<TipoTrabalhoMecanico>(
           value: TipoTrabalhoMecanico.tensionamento,
@@ -271,7 +271,7 @@ class _TrabalhoEditDialogState extends ConsumerState<TrabalhoEditDialog> {
             });
           },
           title: Text(t['tensionamento'] ?? 'Tensionamento'),
-          secondary: Icon(Icons.compress, color: Colors.purple),
+          secondary: const Icon(Icons.compress, color: Colors.purple),
         ),
       ],
     );
@@ -282,8 +282,8 @@ class _TrabalhoEditDialogState extends ConsumerState<TrabalhoEditDialog> {
       controller: _observacoesController,
       decoration: InputDecoration(
         labelText: t['observacoes'] ?? 'Observações',
-        border: OutlineInputBorder(),
-        prefixIcon: Icon(Icons.notes),
+        border: const OutlineInputBorder(),
+        prefixIcon: const Icon(Icons.notes),
       ),
       maxLines: 3,
     );
@@ -294,8 +294,8 @@ class _TrabalhoEditDialogState extends ConsumerState<TrabalhoEditDialog> {
       initialValue: _motivoNA ?? '',
       decoration: InputDecoration(
         labelText: t['motivoNA'] ?? 'Motivo N/A',
-        border: OutlineInputBorder(),
-        prefixIcon: Icon(Icons.info_outline),
+        border: const OutlineInputBorder(),
+        prefixIcon: const Icon(Icons.info_outline),
       ),
       maxLines: 3,
       onChanged: (value) {
@@ -390,7 +390,7 @@ class _TrabalhoEditDialogState extends ConsumerState<TrabalhoEditDialog> {
       if (mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text('Trabalho atualizado!'),
             backgroundColor: Colors.green,
           ),

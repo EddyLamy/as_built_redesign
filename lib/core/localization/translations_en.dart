@@ -190,13 +190,13 @@ final Map<String, String> translationsEN = {
       'Click the button below to add your first turbine',
   'try_adjusting_search': 'Try adjusting your search or filters',
 
-// Dashboard - Delete Dialog
+  // Dashboard - Delete Dialog
   'delete_turbine': 'Delete Turbine?',
   'delete_turbine_confirm': 'Are you sure you want to delete turbine',
   'delete_all_components_warning': 'This will also delete all 34 components',
   'turbine_deleted': 'Turbine deleted',
 
-// Menu Drawer
+  // Menu Drawer
   'wind_turbine_management': 'Wind Turbine Management',
   'new_project': 'New Project',
 
@@ -363,13 +363,13 @@ final Map<String, String> translationsEN = {
   'reset': 'Reset',
   'notification_settings_info': 'Settings are saved locally on the device',
 
-// Notification messages - TITLES
+  // Notification messages - TITLES
   'phase_overdue_title': 'Phase overdue by {days} days',
   'phase_approaching_title': 'Phase deadline in {days} days',
   'phase_not_started_title': 'Mandatory phase not started',
   'phase_no_end_date_title': 'Phase without completion date',
 
-// Notification messages - DESCRIPTIONS
+  // Notification messages - DESCRIPTIONS
   'phase_overdue_desc': "Phase '{phase}' should have ended on {date}",
   'phase_approaching_desc': "Phase '{phase}' ends on {date}",
   'phase_not_started_desc':
@@ -489,21 +489,21 @@ final Map<String, String> translationsEN = {
   'phase_installation': 'Installation',
   'phase_electrical': 'Electrical',
 
-// Status
+  // Status
   'status_completed': 'Completed',
   'status_in_progress': 'In Progress',
   'status_pending': 'Pending',
   'inProgress': 'In Progress',
   'na': 'N/A',
 
-// Phase tasks
+  // Phase tasks
   'reception_checklist': 'Reception Checklist',
   'pre_installation_tasks': 'Pre-Installation Tasks',
   'installation_tasks': 'Installation Tasks',
   'electrical_tasks': 'Electrical Tasks',
   'commissioning_tasks': 'Commissioning Tasks',
 
-// Components
+  // Components
   'site_preparation': 'Site Preparation',
   'foundation_check': 'Foundation Check',
   'crane_setup': 'Crane Setup',
@@ -517,7 +517,7 @@ final Map<String, String> translationsEN = {
   'safety_checks': 'Safety Checks',
   'final_inspection': 'Final Inspection',
 
-// Reception
+  // Reception
   'received': 'Received',
   'pending_reception': 'Pending Reception',
 
@@ -710,18 +710,18 @@ final Map<String, String> translationsEN = {
   'anchor_bolts': 'Anchor Bolts',
 
   // ══════════════════════════════════════════════════════════════════════════
-// 📝 TRANSLATIONS FOR PROJECT CREATION WIZARD
-// ══════════════════════════════════════════════════════════════════════════
+  // 📝 TRANSLATIONS FOR PROJECT CREATION WIZARD
+  // ══════════════════════════════════════════════════════════════════════════
 
-// Tab 1 - New fields
+  // Tab 1 - New fields
   'address': 'Address',
   'gps_coordinates': 'GPS Coordinates',
 
-// Tab 2 - Phases
+  // Tab 2 - Phases
   'project_execution_phases': 'Project Execution Phases',
   'grid_availability_info': 'Estimated grid availability date',
 
-// Phase names (translated)
+  // Phase names (translated)
   'phase_mobilizacao': 'Project Start',
   'phase_fundacoes': 'Civil Works',
   'phase_instalacoes': 'Installations',
@@ -751,4 +751,258 @@ final Map<String, String> translationsEN = {
   'generate_and_send': 'Generate and Send',
   'generating': 'Generating...',
   'report_sent_success': 'Report generated and sent successfully!',
+
+  //Grua
+  "register_activity": "Register Activity",
+  "activity_type": "Activity Type",
+  "mobilizacao": "Mobilization",
+  "trabalho": "Effective Work",
+  "paragem": "Downtime / Standby",
+  "transferencia": "Pad-to-Pad Transfer",
+  "desmobilizacao": "Demobilization",
+  "wind": "High Wind",
+  "mechanical": "Mechanical Breakdown",
+  "waiting_components": "Waiting for Components",
+  "safety": "Safety/HSE",
+  "origin_pad": "Origin Pad",
+  "destination_pad": "Destination Pad",
+  "logistics_crane": "Logistics & Cranes",
+
+  // Mobile Buttons - Installation
+  'logout_confirmation': 'Are you sure you want to logout?',
+  'no_projects_available': 'No projects available',
+
+  // ════════════════════════════════════════════════════════════════════════
+  // 🏗️ CRANE SYSTEM (NEW)
+  // ════════════════════════════════════════════════════════════════════════
+
+  // General
+  'cranes': 'Cranes',
+  'crane': 'Crane',
+  'crane_management': 'Crane Management',
+  'crane_management_subtitle': 'Manage cranes and log activities',
+  'crane_activities': 'Crane Activities',
+
+  // Crane List
+  'no_cranes_yet': 'No cranes yet',
+  'add_first_crane': 'Add the first crane for this project',
+  'add_crane': 'Add Crane',
+  'crane_model': 'Crane Model',
+  'crane_model_required': 'Crane model is required',
+  'multiple_cranes_info':
+      'You can add multiple cranes. Each will have its own activity log.',
+  'crane_added_success': 'Crane added successfully',
+
+  // Delete Crane
+  'delete_crane': 'Delete Crane',
+  'delete_crane_confirm': 'Are you sure you want to delete the crane',
+  'delete_crane_warning':
+      'This action will delete the crane and ALL its activities. This operation cannot be undone.',
+  'crane_deleted_success': 'Crane deleted successfully',
+
+  // Activities
+  'activities': 'activities',
+  'no_activities_yet': 'No activities yet',
+  'add_first_activity': 'Add the first activity for this crane',
+
+  // Actions
+  'delete_activity': 'Delete Activity',
+  'delete_activity_confirm': 'Are you sure you want to delete this activity?',
+  'activity_deleted_success': 'Activity deleted successfully',
+
+  // ════════════════════════════════════════════════════════════════════════
+  // 🌐 GENERAL PROJECT CRANES (not assigned to pads)
+  // ════════════════════════════════════════════════════════════════════════
+
+  // General
+  'general_cranes': 'General Cranes',
+  'general_crane': 'General Crane',
+  'general_cranes_management': 'General Cranes Management',
+  'general_cranes_subtitle': 'Cranes not assigned to any turbine',
+  'general_crane_activities': 'General Crane Activities',
+
+  // List
+  'no_general_cranes_yet': 'No general cranes yet',
+  'add_first_general_crane':
+      'Add the first general crane for the project. These cranes are used for operations not assigned to any specific turbine.',
+  'add_general_crane': 'Add General Crane',
+  'general_cranes_info':
+      'General cranes are used for project operations not linked to a specific turbine (e.g. transport, substation assembly, etc.)',
+  'description_optional': 'Description (optional)',
+  'crane_usage_example': 'E.g. Large component transport',
+
+  // Success/Error
+  'general_crane_added_success': 'General crane added successfully',
+  'delete_general_crane': 'Delete General Crane',
+  'general_crane_deleted_success': 'General crane deleted successfully',
+
+  // ════════════════════════════════════════════════════════════════════════
+  // 📊 REPORTS - CRANES
+  // ════════════════════════════════════════════════════════════════════════
+
+  'cranes_pads_report': 'Cranes (Pads)',
+  'cranes_general_report': 'General Cranes',
+
+  // ══════════════════════════════════════════════════════════════
+// SETTINGS SCREEN
+// ══════════════════════════════════════════════════════════════
+  'email_phase_complete': 'Email when phase complete',
+  'email_phase_complete_desc':
+      'Receive email notification when completing a phase',
+  'deadline_alerts': 'Deadline alerts',
+  'deadline_alerts_desc': 'Notifications about upcoming deadlines',
+  'turbine_changes': 'Turbine changes',
+  'turbine_changes_desc': 'Notify when there are changes in turbines',
+  'weekly_reports': 'Weekly reports',
+  'weekly_reports_desc': 'Receive weekly summary by email',
+  'date_format': 'Date Format',
+  'theme': 'Theme',
+  'light_theme': 'Light',
+  'dark_theme': 'Dark',
+  'data': 'Data',
+  'export_all_data': 'Export all data',
+  'export_all_data_desc': 'Complete download in JSON',
+  'clear_cache': 'Clear cache',
+  'clear_cache_desc': 'Free up storage space',
+  'clear_cache_confirm': 'Are you sure you want to clear the cache?',
+  'cache_cleared': 'Cache cleared successfully',
+  'account': 'Account',
+  'change_password': 'Change password',
+  'change_password_desc': 'Change your login password',
+  'clear': 'Clear',
+
+// ══════════════════════════════════════════════════════════════
+// TEAM MANAGEMENT SCREEN
+// ══════════════════════════════════════════════════════════════
+  'team_management': 'Team Management',
+  'team_management_desc':
+      'Manage companies and contractors involved in the project',
+  'civil_construction': 'Civil Construction',
+  'electrical': 'Electrical',
+  'turbine_assembly': 'Turbine Assembly',
+  'transport': 'Transport',
+  'add_category': 'Add Category',
+  'no_companies_yet': 'No companies added yet',
+  'add_company': 'Add Company',
+  'company_name': 'Company Name',
+  'contact': 'Contact',
+  'name_required': 'Name is required',
+  'company_added': 'Company added successfully',
+  'edit_company': 'Edit Company',
+  'company_updated': 'Company updated',
+  'delete_company': 'Delete Company',
+  'delete_company_confirm': 'Are you sure you want to delete',
+  'company_deleted': 'Company deleted',
+
+  // ══════════════════════════════════════════════════════════════
+  // HELP SCREEN
+  // ══════════════════════════════════════════════════════════════
+  'quick_start_guide': 'Quick Start Guide',
+  'quick_start_guide_desc': 'First steps with the application',
+  'how_to_add_turbines': 'How to add turbines',
+  'how_to_add_turbines_desc': 'Step-by-step guide',
+  'phase_management': 'Phase Management',
+  'phase_management_desc': 'Manage installation phases',
+  'reports_help': 'Reports',
+  'reports_help_desc': 'How to generate and export reports',
+  'cranes_logistics': 'Cranes & Logistics',
+  'cranes_logistics_desc': 'Crane and transport management',
+  'video_tutorials': 'Video Tutorials',
+  'overview_video_desc': 'Application overview',
+  'components_video_desc': 'Add and manage components',
+  'reports_video_desc': 'Generate Excel and PDF reports',
+  'support': 'Support',
+  'contact_support': 'Contact Support',
+  'live_chat': 'Live Chat',
+  'online': 'Online',
+  'avg_response_2min': 'Average response in 2 minutes',
+  'report_bug': 'Report Bug',
+  'report_bug_desc': 'Help us improve',
+  'about': 'About',
+  'wind_turbine_installation': 'Wind Turbine Installation',
+  'version': 'Version',
+  'updated': 'Updated',
+  'terms_of_service': 'Terms of Service',
+  'privacy_policy': 'Privacy Policy',
+  'licenses': 'Licenses',
+  'updates': 'Updates',
+  'app_up_to_date': 'App is up to date',
+  'check_updates': 'Check for updates',
+  'keyboard_shortcuts': 'Keyboard Shortcuts',
+  'search': 'Search',
+  'print': 'Print',
+  'undo': 'Undo',
+  'redo': 'Redo',
+  'view_all_shortcuts': 'View all shortcuts',
+  'opening_video': 'Opening video',
+  'opening': 'Opening',
+  'bug_title': 'Bug Title',
+  'bug_description': 'Description',
+  'bug_reported': 'Bug reported successfully',
+  'submit': 'Submit',
+  'full_docs_available': 'Full documentation available online',
+  'checking_updates': 'Checking for updates...',
+
+  // Documentation contents (basic examples)
+  'quick_start_content':
+      'Welcome to As-Built! This application allows you to manage wind turbine installation efficiently.\n\n1. Create a new project\n2. Add turbines\n3. Register installation phases\n4. Generate reports',
+  'add_turbines_content':
+      'To add a turbine:\n\n1. Click the + button in the bottom right corner\n2. Fill in the name (e.g.: WTG-01)\n3. Select the turbine type\n4. Click Create',
+  'phases_content':
+      'Installation phases are:\n\n• Reception\n• Preparation\n• Pre-Assembly\n• Assembly\n• Torque & Tensioning\n• Final Phases',
+  'reports_content':
+      'To generate reports:\n\n1. Click the reports button\n2. Select desired phases\n3. Choose Excel or PDF\n4. Click Generate',
+  'cranes_content':
+      'Manage cranes:\n\n1. Access the Cranes menu\n2. Register mobilizations/demobilizations\n3. Track activities\n4. Generate specific reports',
+
+  // ══════════════════════════════════════════════════════════════
+  // 🆕 TRADUÇÕES ADICIONAIS
+  // ══════════════════════════════════════════════════════════════
+  'light_theme_enabled': 'Light theme enabled',
+  'dark_theme_enabled': 'Dark theme enabled',
+  'switch_to_light': 'Switch to Light Theme',
+  'switch_to_dark': 'Switch to Dark Theme',
+  'theme_changed': 'Theme changed successfully',
+  'date_format_changed': 'Date format changed successfully',
+  'select_date_format': 'Select Date Format',
+  'date_format_ddmmyyyy': 'DD/MM/YYYY',
+  'date_format_mmddyyyy': 'MM/DD/YYYY',
+  'date_format_yyyymmdd': 'YYYY/MM/DD',
+  'date_format_info':
+      'This will change how dates are displayed throughout the app',
+  'date_format_example': 'Example: {date}',
+  'export_data_success': 'Data exported successfully',
+  'export_data_error': 'Error exporting data',
+  'exporting': 'Exporting...',
+  'data_exported': 'Data exported successfully',
+  'data_export_error': 'Error exporting data',
+  'data_export_info':
+      'The exported data is in JSON format and contains all your projects, turbines, components, and phases.',
+  'export': 'Export',
+  'export_data': 'Export Data',
+  'export_data_desc': 'Export all your data in JSON format',
+  'export_data_confirm':
+      'Are you sure you want to export all data? This may take a few moments.',
+  'exporting_data': 'Exporting data...',
+  'data_export_complete': 'Data export complete',
+  'data_export_failed': 'Data export failed',
+  'view_details': 'View Details',
+  'error_occurred': 'An error occurred',
+  'please_try_again': 'Please try again later',
+  'ok': 'OK',
+  'update': 'Update',
+  'saving': 'Saving',
+  'search_placeholder': 'Search...',
+  'no_results_found': 'No results found',
+  'try_again_later': 'Try again later',
+  'productivity_shortcuts': 'Productivity Shortcuts',
+  'navigation_shortcuts': 'Navigation Shortcuts',
+  'appearance_shortcuts': 'Appearance Shortcuts',
+  'toggle_language': 'Toggle Language',
+  'toggle_theme': 'Toggle Theme',
+  'shortcuts_tip':
+      'Tip: Use these shortcuts to navigate faster through the app!',
+  'select_project_first': 'Select a project first',
+  'dark_theme_activated': 'Dark theme activated',
+  'light_theme_activated': 'Light theme activated',
 };

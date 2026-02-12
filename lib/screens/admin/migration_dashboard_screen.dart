@@ -80,30 +80,30 @@ class _MigrationDashboardScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('📊 Migration Dashboard'),
+        title: const Text('📊 Migration Dashboard'),
         actions: [
           IconButton(
-            icon: Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh),
             onPressed: _loadProjectsStatus,
             tooltip: 'Refresh',
           ),
         ],
       ),
       body: _isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : _buildContent(),
     );
   }
 
   Widget _buildContent() {
     if (_projectsStatus.isEmpty) {
-      return Center(
+      return const Center(
         child: Text('No projects found'),
       );
     }
 
     return ListView.builder(
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       itemCount: _projectsStatus.length,
       itemBuilder: (context, index) {
         final projectId = _projectsStatus.keys.elementAt(index);
@@ -120,9 +120,9 @@ class _MigrationDashboardScreenState
     final isPending = status['pending'] > 0;
 
     return Card(
-      margin: EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 16),
       child: Padding(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -134,15 +134,15 @@ class _MigrationDashboardScreenState
                     children: [
                       Text(
                         status['name'],
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      SizedBox(height: 4),
+                      const SizedBox(height: 4),
                       Text(
                         '${status['migrated']}/${status['total']} componentes migrados',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 14,
                           color: AppColors.mediumGray,
                         ),
@@ -151,13 +151,14 @@ class _MigrationDashboardScreenState
                   ),
                 ),
                 if (isComplete)
-                  Icon(Icons.check_circle,
+                  const Icon(Icons.check_circle,
                       color: AppColors.successGreen, size: 32)
                 else
-                  Icon(Icons.pending, color: AppColors.warningOrange, size: 32),
+                  const Icon(Icons.pending,
+                      color: AppColors.warningOrange, size: 32),
               ],
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             LinearProgressIndicator(
               value: percentage / 100,
               backgroundColor: AppColors.borderGray,
@@ -165,7 +166,7 @@ class _MigrationDashboardScreenState
                 isComplete ? AppColors.successGreen : AppColors.primaryBlue,
               ),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -182,7 +183,7 @@ class _MigrationDashboardScreenState
                 if (isPending)
                   ElevatedButton.icon(
                     onPressed: () => _migrateProject(projectId, status['name']),
-                    icon: Icon(Icons.sync, size: 18),
+                    icon: const Icon(Icons.sync, size: 18),
                     label: Text('Migrate ${status['pending']} components'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primaryBlue,
@@ -200,18 +201,18 @@ class _MigrationDashboardScreenState
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Migrate Project'),
+        title: const Text('Migrate Project'),
         content: Text(
           'This will migrate all components in "$projectName".\n\nContinue?',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text('Cancel'),
+            child: const Text('Cancel'),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text('Migrate'),
+            child: const Text('Migrate'),
           ),
         ],
       ),
@@ -223,7 +224,7 @@ class _MigrationDashboardScreenState
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
+      builder: (context) => const AlertDialog(
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -242,7 +243,7 @@ class _MigrationDashboardScreenState
       Navigator.pop(context); // Fechar progresso
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('✅ Project migrated successfully!'),
           backgroundColor: AppColors.successGreen,
         ),

@@ -28,10 +28,11 @@ class ProjectPhasesScreen extends ConsumerWidget {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(projectName, style: TextStyle(fontSize: 18)),
+            Text(projectName, style: const TextStyle(fontSize: 18)),
             Text(
               t.translate('project_phases'),
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.normal),
+              style:
+                  const TextStyle(fontSize: 14, fontWeight: FontWeight.normal),
             ),
           ],
         ),
@@ -50,7 +51,7 @@ class ProjectPhasesScreen extends ConsumerWidget {
               // Lista de fases
               Expanded(
                 child: ListView.builder(
-                  padding: EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(16),
                   itemCount: phases.length,
                   itemBuilder: (context, index) {
                     return _buildPhaseCard(context, ref, phases[index]);
@@ -60,7 +61,7 @@ class ProjectPhasesScreen extends ConsumerWidget {
             ],
           );
         },
-        loading: () => Center(child: CircularProgressIndicator()),
+        loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => Center(
           child: Text('${t.translate('error')}: $error'),
         ),
@@ -79,7 +80,7 @@ class ProjectPhasesScreen extends ConsumerWidget {
 
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(24),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -107,7 +108,8 @@ class ProjectPhasesScreen extends ConsumerWidget {
                       value: progress / 100,
                       strokeWidth: 10,
                       backgroundColor: AppColors.borderGray,
-                      valueColor: AlwaysStoppedAnimation(AppColors.primaryBlue),
+                      valueColor:
+                          const AlwaysStoppedAnimation(AppColors.primaryBlue),
                     ),
                   ),
                   Column(
@@ -115,7 +117,7 @@ class ProjectPhasesScreen extends ConsumerWidget {
                     children: [
                       Text(
                         '${progress.toStringAsFixed(0)}%',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
                           color: AppColors.primaryBlue,
@@ -123,7 +125,7 @@ class ProjectPhasesScreen extends ConsumerWidget {
                       ),
                       Text(
                         t.translate('complete'),
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 12,
                           color: AppColors.mediumGray,
                         ),
@@ -133,13 +135,13 @@ class ProjectPhasesScreen extends ConsumerWidget {
                 ],
               ),
             ),
-            loading: () => CircularProgressIndicator(),
-            error: (_, __) => Icon(Icons.error),
+            loading: () => const CircularProgressIndicator(),
+            error: (_, __) => const Icon(Icons.error),
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           Text(
             '$completas / $total ${t.translate('phases_completed')}',
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
             ),
@@ -159,24 +161,24 @@ class ProjectPhasesScreen extends ConsumerWidget {
     final icon = _getPhaseIcon(phase);
 
     return Card(
-      margin: EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 12),
       child: InkWell(
         onTap: () => _showEditPhaseDialog(context, ref, phase),
         borderRadius: BorderRadius.circular(12),
         child: Padding(
-          padding: EdgeInsets.all(16),
+          padding: const EdgeInsets.all(16),
           child: Row(
             children: [
               // Ícone
               Container(
-                padding: EdgeInsets.all(12),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: color.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(icon, color: color, size: 24),
               ),
-              SizedBox(width: 16),
+              const SizedBox(width: 16),
 
               // Info
               Expanded(
@@ -187,7 +189,7 @@ class ProjectPhasesScreen extends ConsumerWidget {
                       children: [
                         Text(
                           t.translate('phase_${phase.nome}'), // ✅ MUDANÇA AQUI
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
@@ -196,7 +198,7 @@ class ProjectPhasesScreen extends ConsumerWidget {
                           Chip(
                             label: Text(
                               t.translate('optional'),
-                              style: TextStyle(fontSize: 10),
+                              style: const TextStyle(fontSize: 10),
                             ),
                             backgroundColor:
                                 AppColors.mediumGray.withOpacity(0.2),
@@ -206,13 +208,13 @@ class ProjectPhasesScreen extends ConsumerWidget {
                           ),
                       ],
                     ),
-                    SizedBox(height: 8),
+                    const SizedBox(height: 8),
 
                     // Status e datas
                     if (!phase.aplicavel)
                       Text(
                         t.translate('not_applicable'),
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 12,
                           color: AppColors.mediumGray,
                           fontStyle: FontStyle.italic,
@@ -221,7 +223,7 @@ class ProjectPhasesScreen extends ConsumerWidget {
                     else if (phase.dataInicio == null && phase.dataFim == null)
                       Text(
                         t.translate('not_started'),
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 12,
                           color: AppColors.mediumGray,
                         ),
@@ -233,12 +235,12 @@ class ProjectPhasesScreen extends ConsumerWidget {
                           if (phase.dataInicio != null)
                             Text(
                               '${t.translate('start')}: ${_formatDate(phase.dataInicio!)}',
-                              style: TextStyle(fontSize: 12),
+                              style: const TextStyle(fontSize: 12),
                             ),
                           if (phase.dataFim != null)
                             Text(
                               '${t.translate('end')}: ${_formatDate(phase.dataFim!)}',
-                              style: TextStyle(fontSize: 12),
+                              style: const TextStyle(fontSize: 12),
                             ),
                         ],
                       ),
@@ -259,7 +261,7 @@ class ProjectPhasesScreen extends ConsumerWidget {
                         color: color,
                       ),
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     LinearProgressIndicator(
                       value: phase.progresso / 100,
                       backgroundColor: AppColors.borderGray,
