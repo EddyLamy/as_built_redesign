@@ -1,23 +1,26 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../models/project.dart';
 import '../models/turbina.dart';
 import '../models/componente.dart';
 import '../models/project_phase.dart';
+import '../models/notification_settings.dart';
+import '../models/notification.dart';
 
 import '../services/project_service.dart';
 import '../services/turbina_service.dart';
 import '../services/componente_service.dart';
 import '../services/project_phase_service.dart';
+import '../services/notification_service.dart';
 import 'auth_providers.dart';
+
+part 'app_providers.g.dart';
 
 // ============================================================================
 // 🔔 NOTIFICATION SYSTEM - NOVO
 // ============================================================================
-import '../services/notification_service.dart';
-import '../models/notification.dart';
-import '../models/notification_settings.dart';
 
 // Service provider
 final notificationServiceProvider = Provider<NotificationService>((ref) {
@@ -25,6 +28,9 @@ final notificationServiceProvider = Provider<NotificationService>((ref) {
 });
 
 // Provider das Configurações (StateNotifier)
+// COMENTADO: Classe problemática que usa StateNotifier obsoleto no Riverpod 3.x
+// Substituída por FutureProvider simples abaixo
+/*
 class NotificationSettingsNotifier extends StateNotifier<NotificationSettings> {
   NotificationSettingsNotifier() : super(NotificationSettings()) {
     _loadSettings();
@@ -126,6 +132,8 @@ class NotificationSettingsNotifier extends StateNotifier<NotificationSettings> {
     await NotificationSettings.clear();
     state = NotificationSettings();
   }
+
+  /// Cleanup do Notifier (quando não está mais em uso)
 }
 
 /// Provider do StateNotifier
@@ -133,6 +141,13 @@ final notificationSettingsProvider =
     StateNotifierProvider<NotificationSettingsNotifier, NotificationSettings>(
         (ref) {
   return NotificationSettingsNotifier();
+});
+*/
+
+/// Provider simplificado para NotificationSettings (Riverpod 3.x compatible)
+final notificationSettingsProvider =
+    FutureProvider<NotificationSettings>((ref) async {
+  return await NotificationSettings.load();
 });
 
 /// Provider das Notificações (auto-refresh)
@@ -142,7 +157,13 @@ final notificationsProvider =
   if (user == null) return [];
 
   final service = ref.watch(notificationServiceProvider);
-  final settings = ref.watch(notificationSettingsProvider);
+  final settingsAsync = ref.watch(notificationSettingsProvider);
+
+  // Extrair as settings do AsyncValue
+  final settings = settingsAsync.maybeWhen(
+    data: (settings) => settings,
+    orElse: () => NotificationSettings(),
+  );
 
   // Gerar notificações
   final notifications = await service.generateNotifications(user.uid, settings);
@@ -321,10 +342,17 @@ final userProjectsProvider = StreamProvider<List<Project>>((ref) {
   });
 });
 
-// Projeto selecionado (StateProvider)
-final selectedProjectIdProvider = StateProvider<String?>((ref) => null);
+// TODO: Migrar para local widget state em Riverpod 3.x
+// Projeto selecionado - Riverpod 3.x annotation-based
+@riverpod
+class SelectedProjectId extends _$SelectedProjectId {
+  @override
+  String? build() => null;
 
-// Stream do projeto selecionado
+  void setValue(String? id) => state = id;
+}
+
+/// Stream do projeto selecionado (sem Riverpod state providers)
 final selectedProjectProvider = StreamProvider<Project?>((ref) {
   final projectId = ref.watch(selectedProjectIdProvider);
   if (projectId == null) return Stream.value(null);
@@ -346,8 +374,14 @@ final projectTurbinasProvider = StreamProvider<List<Turbina>>((ref) {
   return turbinaService.getTurbinasPorProjeto(projectId);
 });
 
-// Turbina selecionada (StateProvider)
-final selectedTurbinaIdProvider = StateProvider<String?>((ref) => null);
+// Turbina selecionada (Provider simples) - Riverpod 3.x annotation-based
+@riverpod
+class SelectedTurbinaId extends _$SelectedTurbinaId {
+  @override
+  String? build() => null;
+
+  void setValue(String? id) => state = id;
+}
 
 // Stream da turbina selecionada
 final selectedTurbinaProvider = StreamProvider<Turbina?>((ref) {

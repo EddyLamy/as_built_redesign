@@ -6,6 +6,7 @@ import '../providers/theme_provider.dart';
 import '../screens/settings/settings_screen.dart';
 import '../screens/help/help_screen.dart';
 import '../services/keyboard_shortcuts_service.dart';
+import '../main.dart' show navigatorKey;
 
 /// Widget que captura atalhos de teclado em TODA a aplicação
 class GlobalKeyboardHandler extends ConsumerStatefulWidget {
@@ -22,93 +23,47 @@ class GlobalKeyboardHandler extends ConsumerStatefulWidget {
 }
 
 class _GlobalKeyboardHandlerState extends ConsumerState<GlobalKeyboardHandler> {
-  late FocusNode _focusNode;
-
   @override
   void initState() {
     super.initState();
-    _focusNode = FocusNode();
-
-    // Garantir foco quando a app inicia
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _focusNode.requestFocus();
-    });
+    // Register global keyboard handler - works independently of focus
+    HardwareKeyboard.instance.addHandler(_handleKeyEvent);
   }
 
-  @override
-  void dispose() {
-    _focusNode.dispose();
-    super.dispose();
-  }
+  bool _handleKeyEvent(KeyEvent event) {
+    if (event is! KeyDownEvent) return false;
 
-  @override
-  Widget build(BuildContext context) {
-    return KeyboardListener(
-      focusNode: _focusNode,
-      autofocus: true,
-      onKeyEvent: (KeyEvent event) {
-        // Só processar quando a tecla é pressionada
-        if (event is! KeyDownEvent) return;
+    final isCtrlPressed = HardwareKeyboard.instance.isControlPressed;
+    final key = event.logicalKey;
 
-        final isCtrlPressed = HardwareKeyboard.instance.isControlPressed;
-        final key = event.logicalKey;
+    try {
+      // ══════════════════════════════════════════════════════════
+      // ATALHOS GLOBAIS (funcionam em qualquer ecrã ou dialog)
+      // ══════════════════════════════════════════════════════════
 
-        // Criar serviço de atalhos
-        final shortcutsService = KeyboardShortcutsService(
-          context: context,
-          ref: ref,
+      // F1 - Help
+      if (key == LogicalKeyboardKey.f1) {
+        navigatorKey.currentState?.push(
+          MaterialPageRoute(builder: (_) => const HelpScreen()),
         );
+        return true;
+      }
 
-        // ══════════════════════════════════════════════════════════
-        // ATALHOS GLOBAIS (funcionam em qualquer ecrã)
-        // ══════════════════════════════════════════════════════════
+      // Ctrl + , - Settings
+      if (isCtrlPressed && key == LogicalKeyboardKey.comma) {
+        navigatorKey.currentState?.push(
+          MaterialPageRoute(builder: (_) => const SettingsScreen()),
+        );
+        return true;
+      }
 
-        // Ctrl + N - Novo Projeto (FUNCIONA EM QUALQUER ECRÃ)
-        if (isCtrlPressed && key == LogicalKeyboardKey.keyN) {
-          shortcutsService.createNewProject();
-          return;
-        }
+      // Ctrl + L - Toggle Language
+      if (isCtrlPressed && key == LogicalKeyboardKey.keyL) {
+        final currentLocale = ref.read(localeProvider);
+        final newLocale = currentLocale == 'pt' ? 'en' : 'pt';
+        ref.read(localeProvider.notifier).setLocale(newLocale);
 
-        // Ctrl + T - Adicionar Turbina (FUNCIONA EM QUALQUER ECRÃ)
-        if (isCtrlPressed && key == LogicalKeyboardKey.keyT) {
-          shortcutsService.addNewTurbine();
-          return;
-        }
-
-        // Ctrl + R - Gerar Relatório (FUNCIONA EM QUALQUER ECRÃ)
-        if (isCtrlPressed && key == LogicalKeyboardKey.keyR) {
-          shortcutsService.generateReport();
-          return;
-        }
-
-        // Ctrl + F - Limpar Pesquisa (FUNCIONA EM QUALQUER ECRÃ)
-        if (isCtrlPressed && key == LogicalKeyboardKey.keyF) {
-          shortcutsService.clearSearch();
-          return;
-        }
-
-        // Ctrl + , - Settings (FUNCIONA EM QUALQUER ECRÃ)
-        if (isCtrlPressed && key == LogicalKeyboardKey.comma) {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const SettingsScreen()),
-          );
-          return;
-        }
-
-        // F1 - Help (FUNCIONA EM QUALQUER ECRÃ)
-        if (key == LogicalKeyboardKey.f1) {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const HelpScreen()),
-          );
-          return;
-        }
-
-        // Ctrl + L - Alternar Idioma (FUNCIONA EM QUALQUER ECRÃ)
-        if (isCtrlPressed && key == LogicalKeyboardKey.keyL) {
-          final currentLocale = ref.read(localeProvider);
-          final newLocale = currentLocale == 'pt' ? 'en' : 'pt';
-          ref.read(localeProvider.notifier).setLocale(newLocale);
-
+        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(newLocale == 'pt'
@@ -117,16 +72,18 @@ class _GlobalKeyboardHandlerState extends ConsumerState<GlobalKeyboardHandler> {
               duration: const Duration(seconds: 1),
             ),
           );
-          return;
         }
+        return true;
+      }
 
-        // Ctrl + D - Alternar Tema (FUNCIONA EM QUALQUER ECRÃ)
-        if (isCtrlPressed && key == LogicalKeyboardKey.keyD) {
-          ref.read(themeProvider.notifier).toggleTheme();
+      // Ctrl + D - Toggle Theme
+      if (isCtrlPressed && key == LogicalKeyboardKey.keyD) {
+        ref.read(themeProvider.notifier).toggleTheme();
 
-          final currentTheme = ref.read(themeProvider);
-          final isDark = currentTheme == 'dark';
+        final currentTheme = ref.read(themeProvider);
+        final isDark = currentTheme == 'dark';
 
+        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content:
@@ -134,10 +91,52 @@ class _GlobalKeyboardHandlerState extends ConsumerState<GlobalKeyboardHandler> {
               duration: const Duration(seconds: 1),
             ),
           );
-          return;
         }
-      },
-      child: widget.child,
-    );
+        return true;
+      }
+
+      // ══════════════════════════════════════════════════════════
+      // ATALHOS ESPECÍFICOS DO DASHBOARD
+      // (Tentam executar em qualquer ecrã, serviço valida contexto)
+      // ══════════════════════════════════════════════════════════
+
+      if (mounted) {
+        final service = KeyboardShortcutsService(
+            context: context, ref: ref, useRootNav: true);
+
+        // Ctrl + N - New Project
+        if (isCtrlPressed && key == LogicalKeyboardKey.keyN) {
+          service.createNewProject();
+          return true;
+        }
+
+        // Ctrl + T - Add Turbine
+        if (isCtrlPressed && key == LogicalKeyboardKey.keyT) {
+          service.addNewTurbine();
+          return true;
+        }
+
+        // Ctrl + R - Generate Report
+        if (isCtrlPressed && key == LogicalKeyboardKey.keyR) {
+          service.generateReport();
+          return true;
+        }
+      }
+    } catch (e) {
+      // Silenciosamente ignorar erros de atalhos
+    }
+
+    return false;
+  }
+
+  @override
+  void dispose() {
+    HardwareKeyboard.instance.removeHandler(_handleKeyEvent);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.child;
   }
 }

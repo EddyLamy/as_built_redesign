@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/localization/translation_helper.dart';
+
+part 'commissioning_screen.g.dart';
 
 // ============================================================================
 // 🔬 COMMISSIONING SCREEN
@@ -17,8 +20,14 @@ import '../../core/localization/translation_helper.dart';
 //
 // ============================================================================
 
-final selectedCommissioningPhaseProvider =
-    StateProvider<String>((ref) => 'preCommissioning');
+// Riverpod 3.x annotation-based provider for commissioning phase selection
+@riverpod
+class SelectedCommissioningPhase extends _$SelectedCommissioningPhase {
+  @override
+  String build() => 'preCommissioning';
+
+  void setPhase(String phase) => state = phase;
+}
 
 class CommissioningScreen extends ConsumerStatefulWidget {
   final String turbineId;
@@ -150,8 +159,9 @@ class _CommissioningScreenState extends ConsumerState<CommissioningScreen> {
 
           return GestureDetector(
             onTap: () {
-              ref.read(selectedCommissioningPhaseProvider.notifier).state =
-                  phase['id'] as String;
+              ref
+                  .read(selectedCommissioningPhaseProvider.notifier)
+                  .setPhase(phase['id'] as String);
             },
             child: Container(
               width: 120,
@@ -228,8 +238,7 @@ class _CommissioningScreenState extends ConsumerState<CommissioningScreen> {
   // 🎨 WIDGET: CARD DE SUB-FASE (EXPANSÍVEL)
   // ══════════════════════════════════════════════════════════════════════════
   Widget _buildSubPhaseCard(Map<String, String> subPhase, TranslationHelper t) {
-    // TODO: Buscar status real do Firebase
-    const isCompleted = false; // Mock
+    // TODO: Buscar status real do Firebase (por enquanto sempre mostra como não concluído)
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
@@ -247,8 +256,8 @@ class _CommissioningScreenState extends ConsumerState<CommissioningScreen> {
           ),
         ),
         trailing: Icon(
-          isCompleted ? Icons.check_circle : Icons.radio_button_unchecked,
-          color: isCompleted ? AppColors.successGreen : AppColors.mediumGray,
+          Icons.check_circle_outline,
+          color: AppColors.mediumGray,
           size: 24,
         ),
         children: [

@@ -1,5 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+
+part 'auth_providers.g.dart';
 
 // ══════════════════════════════════════════════════════════════════════════
 // AUTH PROVIDERS - Firebase Authentication
@@ -16,7 +19,13 @@ final currentUserProvider = Provider<User?>((ref) {
 });
 
 /// Guarda apenas o userId vindo do REST (String) – porque não existe class UserSession no projeto
-final userSessionProvider = StateProvider<String?>((ref) => null);
+@riverpod
+class UserSession extends _$UserSession {
+  @override
+  String? build() => null;
+
+  void setUserId(String? id) => state = id;
+}
 
 /// User ID atual
 final currentUserIdProvider = Provider<String?>((ref) {

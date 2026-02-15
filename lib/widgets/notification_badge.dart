@@ -14,12 +14,18 @@ class NotificationBadge extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(notificationSettingsProvider);
+    final settingsAsync = ref.watch(notificationSettingsProvider);
     final notificationCount = ref.watch(notificationCountProvider);
     final hasCritical = ref.watch(hasCriticalAlertsProvider);
 
+    // Extrair settings do AsyncValue
+    final showBadge = settingsAsync.maybeWhen(
+      data: (settings) => settings.showBadge && settings.enabled,
+      orElse: () => false,
+    );
+
     // Se desativado nas configurações, não mostrar badge
-    if (!settings.showBadge || !settings.enabled) {
+    if (!showBadge) {
       return const SizedBox.shrink();
     }
 

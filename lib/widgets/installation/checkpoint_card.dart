@@ -19,7 +19,7 @@ class CheckpointCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final locale = ref.watch(localeProvider);
+    final locale = ref.watch(localeStringProvider);
     final t = InstallationTranslations.translations[locale]!;
     final checkpoint = CheckpointGeral.fromFirestore(checkpointDoc);
 

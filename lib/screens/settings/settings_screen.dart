@@ -22,7 +22,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final t = TranslationHelper.of(context);
-    final currentLocale = ref.watch(localeProvider);
+    final currentLocale = ref.watch(localeStringProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -57,9 +57,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     value: 'pt',
                     groupValue: currentLocale,
                     activeColor: AppColors.primaryBlue,
-                    onChanged: (value) {
+                    onChanged: (value) async {
                       if (value != null) {
-                        ref.read(localeProvider.notifier).setLocale(value);
+                        await ref
+                            .read(localeProvider.notifier)
+                            .setLocale(value);
                       }
                     },
                   ),
@@ -68,9 +70,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     value: 'en',
                     groupValue: currentLocale,
                     activeColor: AppColors.primaryBlue,
-                    onChanged: (value) {
+                    onChanged: (value) async {
                       if (value != null) {
-                        ref.read(localeProvider.notifier).setLocale(value);
+                        await ref
+                            .read(localeProvider.notifier)
+                            .setLocale(value);
                       }
                     },
                   ),
@@ -95,7 +99,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               padding: const EdgeInsets.all(16),
               child: Builder(
                 builder: (context) {
-                  final currentTheme = ref.watch(themeProvider);
+                  final currentTheme = ref.watch(themeStringProvider);
                   final isDarkMode = currentTheme == 'dark';
                   return Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -129,7 +133,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       Switch(
                         value: isDarkMode,
                         onChanged: (_) {
-                          ref.read(themeProvider.notifier).toggleTheme();
+                          // Fire-and-forget async call
+                          final _ = () async {
+                            if (currentTheme == 'light') {
+                              await ref
+                                  .read(themeProvider.notifier)
+                                  .setTheme('dark');
+                            } else {
+                              await ref
+                                  .read(themeProvider.notifier)
+                                  .setTheme('light');
+                            }
+                          }();
                         },
                         activeThumbColor: AppColors.primaryBlue,
                         inactiveThumbColor: Colors.grey,

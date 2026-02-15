@@ -17,7 +17,7 @@ class FaseCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final locale = ref.watch(localeProvider);
+    final locale = ref.watch(localeStringProvider);
 
     Color progressoColor = Colors.grey;
     if (fase.progresso > 0 && fase.progresso < 100) {

@@ -26,7 +26,7 @@ class _ComponenteSectionState extends ConsumerState<ComponenteSection> {
 
   @override
   Widget build(BuildContext context) {
-    final locale = ref.watch(localeProvider);
+    final locale = ref.watch(localeStringProvider);
     final t = InstallationTranslations.translations[locale]!;
 
     // Calcular progresso médio do componente

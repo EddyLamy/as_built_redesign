@@ -1,6 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../models/torque_tensioning.dart';
 import '../services/torque_tensioning_service.dart';
+
+part 'torque_tensioning_providers.g.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // PROVIDERS - TORQUE & TENSIONING
@@ -104,17 +107,35 @@ final estatisticasPorCategoriaProvider =
 });
 
 // ──────────────────────────────────────────────────────────────────────────
-// STATE NOTIFIER PROVIDERS (para UI state)
+// STATE NOTIFIER PROVIDERS (para UI state) - Riverpod 3.x annotation-based
 // ──────────────────────────────────────────────────────────────────────────
 
-/// Selected category filter
-final selectedCategoriaProvider = StateProvider<String?>((ref) => null);
+/// Selected category filter - TODO: Migrate to local widget state
+@riverpod
+class SelectedCategoria extends _$SelectedCategoria {
+  @override
+  String? build() => null;
 
-/// Selected connection for editing
-final selectedConexaoProvider = StateProvider<TorqueTensioning?>((ref) => null);
+  void setValue(String? categoria) => state = categoria;
+}
 
-/// Loading state for operations
-final isLoadingConexaoProvider = StateProvider<bool>((ref) => false);
+/// Selected connection for editing - TODO: Migrate to local widget state
+@riverpod
+class SelectedConexao extends _$SelectedConexao {
+  @override
+  TorqueTensioning? build() => null;
+
+  void setValue(TorqueTensioning? conexao) => state = conexao;
+}
+
+/// Loading state for operations - TODO: Migrate to local widget state
+@riverpod
+class IsLoadingConexao extends _$IsLoadingConexao {
+  @override
+  bool build() => false;
+
+  void setLoading(bool loading) => state = loading;
+}
 
 // ──────────────────────────────────────────────────────────────────────────
 // COMPUTED PROVIDERS

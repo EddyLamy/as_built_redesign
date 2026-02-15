@@ -53,7 +53,7 @@ class _TrabalhoEditDialogState extends ConsumerState<TrabalhoEditDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final locale = ref.watch(localeProvider);
+    final locale = ref.watch(localeStringProvider);
     final t = InstallationTranslations.translations[locale]!;
 
     return Dialog(

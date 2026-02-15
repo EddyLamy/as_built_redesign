@@ -15,7 +15,7 @@ class ComponentesTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final locale = ref.watch(localeProvider);
+    final locale = ref.watch(localeStringProvider);
     final t = InstallationTranslations.translations[locale]!;
 
     return StreamBuilder<QuerySnapshot>(
@@ -143,7 +143,7 @@ class _TrabalhosMecanicosSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final locale = ref.watch(localeProvider);
+    final locale = ref.watch(localeStringProvider);
     final t = InstallationTranslations.translations[locale]!;
 
     return Column(
@@ -228,7 +228,7 @@ class _CheckpointsSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final locale = ref.watch(localeProvider);
+    final locale = ref.watch(localeStringProvider);
     final t = InstallationTranslations.translations[locale]!;
 
     return Column(

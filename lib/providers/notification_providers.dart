@@ -9,115 +9,10 @@ final notificationServiceProvider = Provider<NotificationService>((ref) {
   return NotificationService();
 });
 
-/// Provider das Configurações (StateNotifier)
-class NotificationSettingsNotifier extends StateNotifier<NotificationSettings> {
-  NotificationSettingsNotifier() : super(NotificationSettings()) {
-    _loadSettings();
-  }
-
-  /// Carregar settings do SharedPreferences
-  Future<void> _loadSettings() async {
-    final settings = await NotificationSettings.load();
-    state = settings;
-  }
-
-  /// Atualizar settings
-  Future<void> updateSettings(NotificationSettings newSettings) async {
-    state = newSettings;
-    await newSettings.save();
-  }
-
-  /// Toggle global
-  Future<void> toggleEnabled() async {
-    final newSettings = state.copyWith(enabled: !state.enabled);
-    await updateSettings(newSettings);
-  }
-
-  /// Toggle alertas de fases
-  Future<void> togglePhaseAlerts() async {
-    final newSettings = state.copyWith(phaseAlerts: !state.phaseAlerts);
-    await updateSettings(newSettings);
-  }
-
-  /// Toggle alertas de componentes
-  Future<void> toggleComponentAlerts() async {
-    final newSettings = state.copyWith(componentAlerts: !state.componentAlerts);
-    await updateSettings(newSettings);
-  }
-
-  /// Toggle alertas de turbinas
-  Future<void> toggleTurbineAlerts() async {
-    final newSettings = state.copyWith(turbineAlerts: !state.turbineAlerts);
-    await updateSettings(newSettings);
-  }
-
-  /// Toggle badge
-  Future<void> toggleShowBadge() async {
-    final newSettings = state.copyWith(showBadge: !state.showBadge);
-    await updateSettings(newSettings);
-  }
-
-  /// Toggle dashboard
-  Future<void> toggleShowInDashboard() async {
-    final newSettings = state.copyWith(showInDashboard: !state.showInDashboard);
-    await updateSettings(newSettings);
-  }
-
-  /// Atualizar threshold de fases
-  Future<void> updatePhaseWarningDays(int days) async {
-    final newSettings = state.copyWith(daysBeforePhaseWarning: days);
-    await updateSettings(newSettings);
-  }
-
-  /// Atualizar threshold de componentes
-  Future<void> updateComponentStalledDays(int days) async {
-    final newSettings = state.copyWith(daysComponentStalled: days);
-    await updateSettings(newSettings);
-  }
-
-  /// Atualizar threshold de turbinas
-  Future<void> updateTurbineStalledDays(int days) async {
-    final newSettings = state.copyWith(daysTurbineStalled: days);
-    await updateSettings(newSettings);
-  }
-
-  /// Silenciar projeto
-  Future<void> muteProject(String projectId, int days) async {
-    final newSettings = state.muteProject(projectId, days);
-    await updateSettings(newSettings);
-  }
-
-  /// Reativar projeto
-  Future<void> unmuteProject(String projectId) async {
-    final newSettings = state.unmuteProject(projectId);
-    await updateSettings(newSettings);
-  }
-
-  /// Dispensar alerta
-  Future<void> dismissAlert(String alertId) async {
-    final newSettings = state.dismissAlert(alertId);
-    await updateSettings(newSettings);
-  }
-
-  /// Limpar alertas antigos
-  Future<void> cleanup() async {
-    var newSettings = state.cleanupDismissed();
-    newSettings = newSettings.cleanupMutedProjects();
-    await updateSettings(newSettings);
-  }
-
-  /// Resetar para padrão
-  Future<void> reset() async {
-    await NotificationSettings.clear();
-    state = NotificationSettings();
-  }
-}
-
-/// Provider do StateNotifier
+/// Provider das Configurações (FutureProvider - Riverpod 3.x compatible)
 final notificationSettingsProvider =
-    StateNotifierProvider<NotificationSettingsNotifier, NotificationSettings>(
-        (ref) {
-  return NotificationSettingsNotifier();
+    FutureProvider<NotificationSettings>((ref) async {
+  return await NotificationSettings.load();
 });
 
 /// Provider das Notificações (auto-refresh)
@@ -127,7 +22,13 @@ final notificationsProvider =
   if (user == null) return [];
 
   final service = ref.watch(notificationServiceProvider);
-  final settings = ref.watch(notificationSettingsProvider);
+  final settingsAsync = ref.watch(notificationSettingsProvider);
+
+  // Extrair as settings do AsyncValue
+  final settings = settingsAsync.maybeWhen(
+    data: (settings) => settings,
+    orElse: () => NotificationSettings(),
+  );
 
   // Gerar notificações
   final notifications = await service.generateNotifications(user.uid, settings);

@@ -113,8 +113,7 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
   @override
   Widget build(BuildContext context) {
     // ✅ OBTER LOCALE COM FALLBACK COMPLETO
-    final localeValue = ref.watch(localeProvider);
-    final String safeLocale = localeValue;
+    final String safeLocale = ref.watch(localeStringProvider);
 
     // ✅ OBTER TRADUÇÕES CORRETAS (estrutura aninhada convertida para plana)
     final Map<String, String> t = <String, String>{};

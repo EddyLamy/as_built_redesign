@@ -11,7 +11,7 @@ class AppTheme {
       brightness: Brightness.light,
       primaryColor: AppColors.primaryBlue,
       scaffoldBackgroundColor: AppColors.backgroundGray,
-      colorScheme: ColorScheme.light(
+      colorScheme: const ColorScheme.light(
         primary: AppColors.primaryBlue,
         secondary: AppColors.accentTeal,
         error: AppColors.errorRed,
@@ -72,11 +72,11 @@ class AppTheme {
       brightness: Brightness.dark,
       primaryColor: AppColors.primaryBlue,
       scaffoldBackgroundColor: const Color(0xFF121212), // Quase preto
-      colorScheme: ColorScheme.dark(
+      colorScheme: const ColorScheme.dark(
         primary: AppColors.primaryBlue,
         secondary: AppColors.accentTeal,
         error: AppColors.errorRed,
-        surface: const Color(0xFF1E1E1E), // Cinza escuro
+        surface: Color(0xFF1E1E1E), // Cinza escuro
         onPrimary: Colors.white,
         onSecondary: Colors.white,
         onSurface: Colors.white,

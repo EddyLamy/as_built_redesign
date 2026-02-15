@@ -53,7 +53,7 @@ class _CheckpointEditDialogState extends ConsumerState<CheckpointEditDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final locale = ref.watch(localeProvider); // ✅ String
+    final locale = ref.watch(localeStringProvider); // ✅ String
     final t = InstallationTranslations.translations[locale]!;
     final nomeCheckpoint = _getNomeCheckpoint(widget.checkpoint.tipo, t);
 

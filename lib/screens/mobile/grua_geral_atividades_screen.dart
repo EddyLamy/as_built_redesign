@@ -270,7 +270,7 @@ class GruaGeralAtividadesScreen extends StatelessWidget {
       ),
       floatingActionButton: Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
+          gradient: const LinearGradient(
             colors: [
               AppColors.primaryBlue,
               AppColors

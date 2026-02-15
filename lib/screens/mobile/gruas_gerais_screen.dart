@@ -299,7 +299,7 @@ class GruasGeraisScreen extends ConsumerWidget {
       ),
       floatingActionButton: Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
+          gradient: const LinearGradient(
             colors: [
               AppColors.primaryBlue,
               AppColors

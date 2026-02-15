@@ -11,7 +11,7 @@ class TimelineTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final locale = ref.watch(localeProvider);
+    final locale = ref.watch(localeStringProvider);
     final t = locale == 'pt'
         ? InstallationTranslations.ptTranslations
         : InstallationTranslations.enTranslations;

@@ -16,6 +16,9 @@ import 'screens/mobile/mobile_app.dart';
 import '../../providers/theme_provider.dart';
 import '../utils/global_keyboard_handler.dart';
 
+// Global navigator key para aceder ao Navigator de qualquer lugar
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -176,10 +179,10 @@ class AsBuiltApp extends ConsumerWidget {
       // ────────────────────────────────────────────────────────────────────────
       debugPrint('🚀 Iniciando DESKTOP APP (Completa)');
 
-      return GlobalKeyboardHandler(
-          child: MaterialApp(
+      return MaterialApp(
         title: 'As-Built - Wind Turbine Installation',
         debugShowCheckedModeBanner: false,
+        navigatorKey: navigatorKey,
         theme: AppTheme.lightTheme,
         darkTheme: AppTheme.darkTheme,
         themeMode: currentTheme == 'light' ? ThemeMode.light : ThemeMode.dark,
@@ -191,9 +194,10 @@ class AsBuiltApp extends ConsumerWidget {
           GlobalWidgetsLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,
         ],
-        // DESKTOP: Começa no LoginScreen normal
+        // DESKTOP: Envolve tudo com GlobalKeyboardHandler
+        builder: (context, child) => GlobalKeyboardHandler(child: child!),
         home: const LoginScreen(),
-      ));
+      );
     }
   }
 }

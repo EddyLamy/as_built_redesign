@@ -4,11 +4,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../core/theme/app_colors.dart';
 import '../core/localization/translation_helper.dart';
 import '../models/notification.dart';
+import '../models/notification_settings.dart';
 import '../models/project_phase.dart';
 import '../providers/app_providers.dart';
 import 'edit_phase_dialog.dart';
 import '../screens/settings/notification_settings_screen.dart';
-import '../models/notification_settings.dart';
 
 /// Painel Lateral de Notificações
 class NotificationsPanel extends ConsumerStatefulWidget {
@@ -25,8 +25,14 @@ class _NotificationsPanelState extends ConsumerState<NotificationsPanel> {
   Widget build(BuildContext context) {
     final t = TranslationHelper.of(context);
     final notificationsAsync = ref.watch(notificationsProvider);
-    final settings = ref.watch(notificationSettingsProvider);
+    final settingsAsync = ref.watch(notificationSettingsProvider);
     final counts = ref.watch(notificationCountByPriorityProvider);
+
+    // Extrair settings do AsyncValue
+    final settings = settingsAsync.maybeWhen(
+      data: (s) => s,
+      orElse: () => NotificationSettings(),
+    );
 
     return Container(
       width: 400,
@@ -151,10 +157,13 @@ class _NotificationsPanelState extends ConsumerState<NotificationsPanel> {
                     ),
                   ),
                   TextButton(
-                    onPressed: () {
-                      ref
-                          .read(notificationSettingsProvider.notifier)
-                          .toggleEnabled();
+                    onPressed: () async {
+                      // Toggle enabled and save
+                      final currentSettings = await NotificationSettings.load();
+                      final newSettings = currentSettings.copyWith(
+                        enabled: !currentSettings.enabled,
+                      );
+                      await newSettings.save();
                     },
                     child: Text(t.translate('enable')),
                   ),
@@ -577,12 +586,14 @@ class _NotificationsPanelState extends ConsumerState<NotificationsPanel> {
     }
   }
 
-  void _handleAction(String action, AppNotification notification) {
-    final notifier = ref.read(notificationSettingsProvider.notifier);
+  Future<void> _handleAction(
+      String action, AppNotification notification) async {
+    final currentSettings = await NotificationSettings.load();
 
     switch (action) {
       case 'dismiss':
-        notifier.dismissAlert(notification.id);
+        final newSettings = currentSettings.dismissAlert(notification.id);
+        await newSettings.save();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -593,25 +604,33 @@ class _NotificationsPanelState extends ConsumerState<NotificationsPanel> {
         break;
 
       case 'mute_7':
-        notifier.muteProject(notification.projectId, 7);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(TranslationHelper.of(context)
-                .translate('project_muted_7_days')),
-            duration: const Duration(seconds: 2),
-          ),
-        );
+        {
+          final newSettings =
+              currentSettings.muteProject(notification.projectId, 7);
+          await newSettings.save();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(TranslationHelper.of(context)
+                  .translate('project_muted_7_days')),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
         break;
 
       case 'mute_30':
-        notifier.muteProject(notification.projectId, 30);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(TranslationHelper.of(context)
-                .translate('project_muted_30_days')),
-            duration: const Duration(seconds: 2),
-          ),
-        );
+        {
+          final newSettings =
+              currentSettings.muteProject(notification.projectId, 30);
+          await newSettings.save();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(TranslationHelper.of(context)
+                  .translate('project_muted_30_days')),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
         break;
     }
   }

@@ -142,8 +142,9 @@ class MobileProjectsScreen extends ConsumerWidget {
                   ),
                   onTap: () {
                     // Selecionar projeto
-                    ref.read(selectedProjectIdProvider.notifier).state =
-                        project.id;
+                    ref
+                        .read(selectedProjectIdProvider.notifier)
+                        .setValue(project.id);
 
                     // Navegar para turbinas
                     Navigator.push(

@@ -1,33 +1,34 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Provider que gere o tema atual (light/dark)
-final themeProvider = StateNotifierProvider<ThemeNotifier, String>((ref) {
-  return ThemeNotifier();
-});
+part 'theme_provider.g.dart';
 
-class ThemeNotifier extends StateNotifier<String> {
-  ThemeNotifier() : super('light') {
+/// Provider que controla o tema atual - Riverpod 3.x annotation-based
+@riverpod
+class ThemeNotifier extends _$ThemeNotifier {
+  @override
+  String build() {
     _loadTheme();
+    return 'light';
   }
 
-  /// Carregar tema salvo
   Future<void> _loadTheme() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final savedTheme = prefs.getString('theme') ?? 'light';
-      state = savedTheme;
+      if (state != savedTheme) {
+        state = savedTheme;
+      }
     } catch (e) {
       print('Erro ao carregar tema: $e');
     }
   }
 
-  /// Mudar tema
   Future<void> setTheme(String theme) async {
     if (theme != 'light' && theme != 'dark') return;
 
     state = theme;
-
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('theme', theme);
@@ -36,9 +37,13 @@ class ThemeNotifier extends StateNotifier<String> {
     }
   }
 
-  /// Toggle entre light e dark
   Future<void> toggleTheme() async {
     final newTheme = state == 'light' ? 'dark' : 'light';
     await setTheme(newTheme);
   }
 }
+
+/// Provider que retorna a string do tema - para compatibilidade
+final themeStringProvider = Provider<String>((ref) {
+  return ref.watch(themeProvider);
+});

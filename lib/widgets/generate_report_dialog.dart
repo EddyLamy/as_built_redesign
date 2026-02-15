@@ -368,7 +368,7 @@ class _GenerateReportDialogState extends ConsumerState<GenerateReportDialog> {
         projectName: widget.projectName,
         format: _selectedFormat,
         selectedPhases: selectedPhasesList,
-        language: ref.read(localeProvider),
+        language: ref.read(localeStringProvider),
       );
 
       if (mounted) {

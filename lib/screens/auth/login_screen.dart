@@ -93,7 +93,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final t = TranslationHelper.of(context);
-    final localeString = ref.watch(localeProvider);
+    final localeString = ref.watch(localeStringProvider);
 
     // ════════════════════════════════════════════════════════════════════
     // MOBILE: Ecrã completo com botão de idioma proeminente
@@ -196,8 +196,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () {
-            ref.read(localeProvider.notifier).toggleLanguage();
+          onTap: () async {
+            final newLocale =
+                ref.read(localeStringProvider) == 'pt' ? 'en' : 'pt';
+            await ref.read(localeProvider.notifier).setLocale(newLocale);
           },
           borderRadius: BorderRadius.circular(8),
           child: Padding(

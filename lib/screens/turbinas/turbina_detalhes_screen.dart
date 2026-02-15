@@ -39,7 +39,7 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(selectedTurbinaIdProvider.notifier).state = widget.turbinaId;
+      ref.read(selectedTurbinaIdProvider.notifier).setValue(widget.turbinaId);
       _checkAndMigrateIfNeeded();
     });
   }

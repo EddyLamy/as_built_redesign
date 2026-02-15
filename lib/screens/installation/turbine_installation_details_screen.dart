@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io' show Platform;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -16,13 +17,20 @@ import '../../screens/mobile/logistica_form_screen.dart';
 import '../auth/login_screen.dart';
 import '../dashboard/dashboard_screen.dart';
 
+part 'turbine_installation_details_screen.g.dart';
+
 // ============================================================================
 // 🏗️ TELA DE DETALHES DA INSTALAÇÃO DA TURBINA - COM BOTÕES MOBILE
 // ============================================================================
 
-// Provider para a fase selecionada
-final selectedInstallationPhaseProvider =
-    StateProvider<String>((ref) => 'reception');
+// Riverpod 3.x annotation-based provider for installation phase selection
+@riverpod
+class SelectedInstallationPhase extends _$SelectedInstallationPhase {
+  @override
+  String build() => 'reception';
+
+  void setPhase(String phase) => state = phase;
+}
 
 class TurbineInstallationDetailsScreen extends ConsumerStatefulWidget {
   final String turbineId;
@@ -465,8 +473,9 @@ class _TurbineInstallationDetailsScreenState
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            ref.read(selectedInstallationPhaseProvider.notifier).state =
-                'reception';
+            ref
+                .read(selectedInstallationPhaseProvider.notifier)
+                .setPhase('reception');
             Navigator.pop(context);
           },
         ),
@@ -501,10 +510,10 @@ class _TurbineInstallationDetailsScreenState
       ),
       floatingActionButton: Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
+          gradient: const LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [AppColors.primaryBlue, const Color(0xFF00BCD4)],
+            colors: [AppColors.primaryBlue, Color(0xFF00BCD4)],
           ),
           borderRadius: BorderRadius.circular(32),
           boxShadow: [
@@ -606,7 +615,9 @@ class _TurbineInstallationDetailsScreenState
 
         // Se selecionou um projeto, navegar para o dashboard
         if (selectedProject != null && mounted) {
-          ref.read(selectedProjectIdProvider.notifier).state = selectedProject;
+          ref
+              .read(selectedProjectIdProvider.notifier)
+              .setValue(selectedProject);
 
           // Voltar para o dashboard
           Navigator.of(context).pushAndRemoveUntil(
@@ -677,8 +688,8 @@ class _TurbineInstallationDetailsScreenState
         await FirebaseAuth.instance.signOut();
 
         // Limpar providers
-        ref.read(selectedProjectIdProvider.notifier).state = null;
-        ref.read(selectedTurbinaIdProvider.notifier).state = null;
+        ref.read(selectedProjectIdProvider.notifier).setValue(null);
+        ref.read(selectedTurbinaIdProvider.notifier).setValue(null);
 
         // Navegar para login
         if (mounted) {
@@ -784,8 +795,9 @@ class _TurbineInstallationDetailsScreenState
 
     return GestureDetector(
       onTap: () {
-        ref.read(selectedInstallationPhaseProvider.notifier).state =
-            phase['id'] as String;
+        ref
+            .read(selectedInstallationPhaseProvider.notifier)
+            .setPhase(phase['id'] as String);
       },
       child: Container(
         width: 90,
@@ -1284,8 +1296,9 @@ class _TurbineInstallationDetailsScreenState
         );
 
         if (mounted) {
-          ref.read(selectedInstallationPhaseProvider.notifier).state =
-              'assembly';
+          ref
+              .read(selectedInstallationPhaseProvider.notifier)
+              .setPhase('assembly');
         }
       }
     } catch (e) {
@@ -1297,7 +1310,9 @@ class _TurbineInstallationDetailsScreenState
             backgroundColor: Colors.red,
           ),
         );
-        ref.read(selectedInstallationPhaseProvider.notifier).state = 'assembly';
+        ref
+            .read(selectedInstallationPhaseProvider.notifier)
+            .setPhase('assembly');
       }
     }
   }

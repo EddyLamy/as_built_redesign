@@ -106,8 +106,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     }).toList(),
                     onChanged: (projectId) {
                       if (projectId != null) {
-                        ref.read(selectedProjectIdProvider.notifier).state =
-                            projectId;
+                        ref
+                            .read(selectedProjectIdProvider.notifier)
+                            .setValue(projectId);
                       }
                     },
                   ),
@@ -147,8 +148,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
           if (selectedProjectId == null) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              ref.read(selectedProjectIdProvider.notifier).state =
-                  projects.first.id;
+              ref
+                  .read(selectedProjectIdProvider.notifier)
+                  .setValue(projects.first.id);
             });
             return const Center(child: CircularProgressIndicator());
           }

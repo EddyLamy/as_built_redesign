@@ -79,7 +79,7 @@ class _DriveTrainEditDialogState extends ConsumerState<DriveTrainEditDialog>
 
   @override
   Widget build(BuildContext context) {
-    final locale = ref.watch(localeProvider);
+    final locale = ref.watch(localeStringProvider);
     final t = InstallationTranslations.translations[locale]!;
 
     return Dialog(

@@ -193,8 +193,9 @@ class MobileTurbinesScreen extends ConsumerWidget {
                     // ════════════════════════════════════════════════════════
 
                     // Selecionar turbina
-                    ref.read(selectedTurbinaIdProvider.notifier).state =
-                        turbina.id;
+                    ref
+                        .read(selectedTurbinaIdProvider.notifier)
+                        .setValue(turbina.id);
 
                     // Navegar para o ecrã de instalação (IGUAL AO PC)
                     Navigator.push(

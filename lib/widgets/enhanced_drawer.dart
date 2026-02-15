@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/localization/translation_helper.dart';
@@ -10,13 +11,11 @@ import '../providers/app_providers.dart';
 import '../screens/settings/settings_screen.dart';
 import '../screens/team/team_management_screen.dart';
 import '../screens/help/help_screen.dart';
-
-// ============================================================================
-// 🏗️ IMPORT DA TELA DE INSTALAÇÃO
-// ============================================================================
 import '../screens/installation/installation_screen.dart';
 import '../screens/dashboard/dashboard_screen.dart';
 import '../screens/mobile/gruas_gerais_screen.dart';
+
+part 'enhanced_drawer.g.dart';
 
 // ============================================================================
 // 🎯 MÓDULOS DO SISTEMA
@@ -26,9 +25,14 @@ enum AppModule {
   installation,
 }
 
-// Provider para gerenciar o módulo atual
-final currentModuleProvider =
-    StateProvider<AppModule>((ref) => AppModule.asBuilt);
+// Riverpod 3.x annotation-based provider for current module selection
+@riverpod
+class CurrentModule extends _$CurrentModule {
+  @override
+  AppModule build() => AppModule.asBuilt;
+
+  void setModule(AppModule module) => state = module;
+}
 
 class EnhancedDrawer extends ConsumerWidget {
   const EnhancedDrawer({super.key});
@@ -91,8 +95,9 @@ class EnhancedDrawer extends ConsumerWidget {
                     icon: Icons.assignment_turned_in,
                     isSelected: currentModule == AppModule.asBuilt,
                     onTap: () {
-                      ref.read(currentModuleProvider.notifier).state =
-                          AppModule.asBuilt;
+                      ref
+                          .read(currentModuleProvider.notifier)
+                          .setModule(AppModule.asBuilt);
                       Navigator.pop(context);
 
                       // Navega para Dashboard se não estiver lá
@@ -111,8 +116,9 @@ class EnhancedDrawer extends ConsumerWidget {
                     icon: Icons.construction,
                     isSelected: currentModule == AppModule.installation,
                     onTap: () {
-                      ref.read(currentModuleProvider.notifier).state =
-                          AppModule.installation;
+                      ref
+                          .read(currentModuleProvider.notifier)
+                          .setModule(AppModule.installation);
                       Navigator.pop(context);
 
                       // ✅ NAVEGA PARA A TELA DE INSTALAÇÃO
@@ -144,8 +150,9 @@ class EnhancedDrawer extends ConsumerWidget {
                   selected: currentModule == AppModule.asBuilt,
                   selectedTileColor: AppColors.mediumGray.withOpacity(0.1),
                   onTap: () {
-                    ref.read(currentModuleProvider.notifier).state =
-                        AppModule.asBuilt;
+                    ref
+                        .read(currentModuleProvider.notifier)
+                        .setModule(AppModule.asBuilt);
                     Navigator.pop(context);
                     Navigator.of(context).pushAndRemoveUntil(
                       MaterialPageRoute(
@@ -329,76 +336,6 @@ class EnhancedDrawer extends ConsumerWidget {
     );
   }
 
-  void _showComingSoonDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            Icon(Icons.info_outline, color: AppColors.primaryBlue),
-            const SizedBox(width: 12),
-            const Text('Em Breve'),
-          ],
-        ),
-        content: const Text(
-            'Esta funcionalidade está em desenvolvimento e estará disponível em breve!'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showHelpDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            Icon(Icons.help_outline, color: AppColors.primaryBlue),
-            const SizedBox(width: 12),
-            const Text('Ajuda'),
-          ],
-        ),
-        content: const Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Central de Ajuda',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-            SizedBox(height: 12),
-            _HelpItem(
-              icon: Icons.email,
-              title: 'Email',
-              subtitle: 'support@asbuilt.com',
-            ),
-            _HelpItem(
-              icon: Icons.phone,
-              title: 'Telefone',
-              subtitle: '+351 XXX XXX XXX',
-            ),
-            _HelpItem(
-              icon: Icons.book,
-              title: 'Documentação',
-              subtitle: 'docs.asbuilt.com',
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Fechar'),
-          ),
-        ],
-      ),
-    );
-  }
-
   Future<void> _handleLogout(BuildContext context) async {
     final shouldLogout = await showDialog<bool>(
       context: context,
@@ -478,53 +415,6 @@ class _ModuleButton extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-// ============================================================================
-// ℹ️ ITEM DE AJUDA
-// ============================================================================
-class _HelpItem extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-
-  const _HelpItem({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          Icon(icon, color: AppColors.primaryBlue, size: 20),
-          const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
-                ),
-              ),
-              Text(
-                subtitle,
-                style: TextStyle(
-                  color: AppColors.mediumGray,
-                  fontSize: 12,
-                ),
-              ),
-            ],
-          ),
-        ],
       ),
     );
   }

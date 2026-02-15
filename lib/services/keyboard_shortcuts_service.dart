@@ -3,24 +3,36 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/app_providers.dart';
 import '../widgets/add_turbina_dialog.dart';
 import '../widgets/create_project_dialog.dart';
+import '../widgets/generate_report_dialog.dart';
+import '../main.dart' show navigatorKey;
 
 /// Serviço centralizado para executar ações de atalhos de teclado
 class KeyboardShortcutsService {
   final BuildContext context;
   final WidgetRef ref;
+  final bool useRootNav;
 
   KeyboardShortcutsService({
     required this.context,
     required this.ref,
+    this.useRootNav = false,
   });
 
   /// Abre o diálogo para criar novo projeto
   void createNewProject() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const CreateProjectWizard(),
-    );
+    if (useRootNav && navigatorKey.currentContext != null) {
+      showDialog(
+        context: navigatorKey.currentContext!,
+        barrierDismissible: false,
+        builder: (context) => const CreateProjectWizard(),
+      );
+    } else {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const CreateProjectWizard(),
+      );
+    }
   }
 
   /// Adiciona nova turbina ao projeto selecionado
@@ -34,13 +46,23 @@ class KeyboardShortcutsService {
       return;
     }
 
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AddTurbinaDialog(
-        projectId: selectedProjectId,
-      ),
-    );
+    if (useRootNav && navigatorKey.currentContext != null) {
+      showDialog(
+        context: navigatorKey.currentContext!,
+        barrierDismissible: false,
+        builder: (context) => AddTurbinaDialog(
+          projectId: selectedProjectId,
+        ),
+      );
+    } else {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => AddTurbinaDialog(
+          projectId: selectedProjectId,
+        ),
+      );
+    }
   }
 
   /// Gera relatório para o projeto selecionado
@@ -54,21 +76,25 @@ class KeyboardShortcutsService {
       return;
     }
 
-    // Quando no dashboard, usar o método que já existe
-    if (context.mounted) {
-      try {
-        // Tentar chamar o método do dashboard se estamos numa rota com acesso
-        // Alternativamente, abrir um dialog genérico de geração de relatório
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Gerando relatório...'),
-            duration: Duration(seconds: 2),
+    // Obter o nome do projeto do provider
+    final selectedProjectAsync = ref.read(selectedProjectProvider);
+
+    selectedProjectAsync.whenData((project) {
+      if (project != null) {
+        // Usar rootNavigator para garantir que funciona
+        final dialogContext = useRootNav && navigatorKey.currentContext != null
+            ? navigatorKey.currentContext!
+            : context;
+        showDialog(
+          context: dialogContext,
+          barrierDismissible: false,
+          builder: (context) => GenerateReportDialog(
+            projectId: selectedProjectId,
+            projectName: project.nome,
           ),
         );
-      } catch (e) {
-        print('Erro ao gerar relatório: $e');
       }
-    }
+    });
   }
 
   /// Limpa a pesquisa (só funciona se há um campo de pesquisa ativo)
