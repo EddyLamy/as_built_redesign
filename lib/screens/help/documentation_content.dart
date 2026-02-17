@@ -45,7 +45,7 @@ Bem-vindo ao **As-Built**! Esta aplicação foi desenvolvida para facilitar a ge
 ### 4. Gerar Relatórios
 • Use o botão de relatórios no dashboard
 • Selecione as fases desejadas
-• Escolha formato (Excel ou PDF)
+• Gere o relatório em Excel
 • Download automático
 
 ## 💡 Dicas Úteis
@@ -268,9 +268,9 @@ O sistema apresenta uma **timeline interactiva** que mostra:
     'reports': '''
 # 📈 Relatórios - Guia Completo
 
-## Tipos de Relatórios
+## Tipos de Relatorios
 
-O As-Built permite gerar dois formatos:
+O As-Built permite gerar relatórios em Excel:
 
 ### 📊 Excel (.xlsx)
 • Múltiplas sheets por fase
@@ -279,24 +279,12 @@ O As-Built permite gerar dois formatos:
 • Fácil de manipular dados
 • **Recomendado para:** Análise de dados
 
-### 📄 PDF (.pdf)
-• Documento único
-• Formatação fixa
-• Pronto para imprimir
-• Fácil de partilhar
-• **Recomendado para:** Apresentações e arquivo
-
----
-
 ## Como Gerar Relatórios
 
 ### Passo 1: Aceder ao Botão
 No dashboard, clique no **botão de relatórios** (📊) ao lado do nome do projeto.
 
-### Passo 2: Selecionar Formato
-Escolha entre **Excel** ou **PDF**.
-
-### Passo 3: Selecionar Fases
+### Passo 2: Selecionar Fases
 Marque as fases que deseja incluir no relatório:
 
 **Fases de Instalação:**
@@ -315,7 +303,7 @@ Marque as fases que deseja incluir no relatório:
 • **Todos** - Seleciona todas as fases
 • **Limpar** - Desmarca tudo
 
-### Passo 4: Gerar
+### Passo 3: Gerar
 Clique em **"Gerar Relatório"** e aguarde:
 • Recolha de dados (~5-10s)
 • Processamento (~5-15s)
@@ -391,7 +379,7 @@ Clique em **"Gerar Relatório"** e aguarde:
 
 Os relatórios são salvos automaticamente em:
 **Windows:** `C:Users[YourUser]Documents`
-**Nome:** `report_[timestamp].xlsx` ou `report_[timestamp].pdf`
+**Nome:** `report_[timestamp].xlsx`
 
 ---
 
@@ -404,22 +392,13 @@ Os relatórios são salvos automaticamente em:
 • Larguras otimizadas
 • Múltiplas sheets
 
-### PDF:
-• Logo e título
-• Data de geração
-• Tabelas formatadas
-• Page breaks entre secções
-• Totais por secção
-
----
-
 ## ⚠️ Troubleshooting
 
 **Erro: "Nenhum dado encontrado"**
 → Verifique se registou dados nas fases selecionadas
 
 **Ficheiro não abre**
-→ Certifique-se que tem Excel ou PDF reader instalado
+→ Certifique-se que tem Excel instalado
 
 **Dados incompletos**
 → Alguns campos podem estar vazios se não foram preenchidos
@@ -434,7 +413,7 @@ Os relatórios são salvos automaticamente em:
 ✓ Gere relatórios regularmente (semanal)
 ✓ Guarde cópias em local seguro
 ✓ Use Excel para análise
-✓ Use PDF para apresentações
+✓ Use Excel para apresentações
 ✓ Verifique dados antes de gerar
     ''',
     'cranes': '''
@@ -616,7 +595,6 @@ Welcome to **As-Built**! This application was developed to facilitate the manage
 ### 4. Generate Reports
 • Use the reports button on the dashboard
 • Select desired phases
-• Choose format (Excel or PDF)
 • Automatic download
 
 ## 💡 Useful Tips

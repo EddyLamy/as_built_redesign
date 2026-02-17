@@ -60,6 +60,7 @@ dev_dependencies:
   riverpod_generator: ^4.0.0+1
   build_runner: ^2.4.13
   fl_chart: ^1.1.1
+  flutter_launcher_icons: ^0.13.1
 
 flutter:
   uses-material-design: true
@@ -68,3 +69,22 @@ flutter:
     - assets/master_template.json
     - assets/tessdata_config.json
     - assets/tessdata/
+
+# ══════════════════════════════════════════════════════════════════════════
+# 🎨 CONFIGURAÇÃO DE ÍCONES DA APLICAÇÃO
+# ══════════════════════════════════════════════════════════════════════════
+# Descomente as linhas abaixo após criar a imagem do ícone:
+# 1. Crie: assets/icons/app_icon_android.png (1024x1024 pixels)
+# 2. Descomente a configuração abaixo
+# 3. Execute: flutter pub run flutter_launcher_icons
+# ══════════════════════════════════════════════════════════════════════════
+
+# flutter_launcher_icons:
+#   android: true
+#   ios: false
+#   image_path: "assets/icons/app_icon_android.png"
+#   adaptive_icon_background: "#0F4C81"  # Azul escuro As-Built
+#   adaptive_icon_foreground: "assets/icons/app_icon_android.png"
+#   # Configurações opcionais:
+#   # min_sdk_android: 21
+#   # remove_alpha_ios: true

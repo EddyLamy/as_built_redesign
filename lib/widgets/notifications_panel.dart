@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../core/theme/app_colors.dart';
+import '../core/theme/app_decorations.dart';
 import '../core/localization/translation_helper.dart';
 import '../models/notification.dart';
 import '../models/notification_settings.dart';
@@ -9,8 +10,9 @@ import '../models/project_phase.dart';
 import '../providers/app_providers.dart';
 import 'edit_phase_dialog.dart';
 import '../screens/settings/notification_settings_screen.dart';
+import 'dart:ui';
 
-/// Painel Lateral de Notificações
+/// Painel Lateral de Notificações - Visual Modernizado
 class NotificationsPanel extends ConsumerStatefulWidget {
   const NotificationsPanel({super.key});
 
@@ -18,8 +20,33 @@ class NotificationsPanel extends ConsumerStatefulWidget {
   ConsumerState<NotificationsPanel> createState() => _NotificationsPanelState();
 }
 
-class _NotificationsPanelState extends ConsumerState<NotificationsPanel> {
+class _NotificationsPanelState extends ConsumerState<NotificationsPanel>
+    with SingleTickerProviderStateMixin {
   String _filterPriority = 'all'; // all, critical, warning, info
+  late AnimationController _animationController;
+  late Animation<double> _slideAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: AppAnimations.normal,
+      vsync: this,
+    );
+    _slideAnimation = Tween<double>(begin: 1.0, end: 0.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: AppAnimations.defaultCurve,
+      ),
+    );
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,38 +61,50 @@ class _NotificationsPanelState extends ConsumerState<NotificationsPanel> {
       orElse: () => NotificationSettings(),
     );
 
-    return Container(
-      width: 400,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(-2, 0),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          // Header
-          _buildHeader(t, settings, counts),
+    return AnimatedBuilder(
+      animation: _slideAnimation,
+      builder: (context, child) {
+        return Transform.translate(
+          offset: Offset(_slideAnimation.value * 400, 0),
+          child: child,
+        );
+      },
+      child: ClipRRect(
+        borderRadius: const BorderRadius.horizontal(left: Radius.circular(20)),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            width: 400,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius:
+                  const BorderRadius.horizontal(left: Radius.circular(20)),
+              boxShadow: AppColors.strongShadow,
+            ),
+            child: Column(
+              children: [
+                // Header
+                _buildHeader(t, settings, counts),
 
-          // Filtros
-          _buildFilters(t, counts),
+                // Filtros
+                _buildFilters(t, counts),
 
-          // Lista de notificações
-          Expanded(
-            child: notificationsAsync.when(
-              data: (notifications) =>
-                  _buildNotificationsList(t, notifications),
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, stack) => Center(
-                child: Text('${t.translate('error')}: $error'),
-              ),
+                // Lista de notificações
+                Expanded(
+                  child: notificationsAsync.when(
+                    data: (notifications) =>
+                        _buildNotificationsList(t, notifications),
+                    loading: () =>
+                        const Center(child: CircularProgressIndicator()),
+                    error: (error, stack) => Center(
+                      child: Text('${t.translate('error')}: $error'),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }
@@ -80,9 +119,16 @@ class _NotificationsPanelState extends ConsumerState<NotificationsPanel> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.primaryBlue.withOpacity(0.05),
+        gradient: LinearGradient(
+          colors: [
+            AppColors.primaryBlue.withOpacity(0.1),
+            AppColors.primaryBlueLight.withOpacity(0.05),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         border: const Border(
-          bottom: BorderSide(color: AppColors.borderGray),
+          bottom: BorderSide(color: AppColors.borderGray, width: 1),
         ),
       ),
       child: Column(
@@ -90,14 +136,27 @@ class _NotificationsPanelState extends ConsumerState<NotificationsPanel> {
         children: [
           Row(
             children: [
-              const Icon(Icons.notifications_active,
-                  color: AppColors.primaryBlue, size: 28),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  gradient: AppColors.primaryGradient,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: AppColors.softShadow,
+                ),
+                child: const Icon(
+                  Icons.notifications_active,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
               const SizedBox(width: 12),
-              Text(
-                t.translate('notifications'),
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+              Expanded(
+                child: Text(
+                  t.translate('notifications'),
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
               const Spacer(),

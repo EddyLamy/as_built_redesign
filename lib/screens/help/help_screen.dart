@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/localization/translation_helper.dart';
+import '../../widgets/background_watermark.dart';
 
 class HelpScreen extends ConsumerStatefulWidget {
   const HelpScreen({super.key});
@@ -47,13 +48,22 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
           ],
         ),
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(24),
+      body: Stack(
         children: [
-          // ══════════════════════════════════════════════════════════════
-          // DOCUMENTAÇÃO
-          // ══════════════════════════════════════════════════════════════
-          _buildSectionHeader(
+          // Background watermark
+          const BackgroundWatermark(
+            size: 600,
+            opacity: 0.02,
+            alignment: Alignment.bottomRight,
+          ),
+          // Main content
+          ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              // ══════════════════════════════════════════════════════════════
+              // DOCUMENTAÇÃO
+              // ══════════════════════════════════════════════════════════════
+              _buildSectionHeader(
             context,
             Icons.menu_book,
             t.translate('documentation'),
@@ -204,28 +214,40 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
           const SizedBox(height: 12),
           Card(
             child: Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(12),
               child: Column(
                 children: [
-                  // Logo
+                  // Logo with gradient
                   Container(
-                    width: 80,
-                    height: 80,
+                    width: 60,
+                    height: 60,
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
-                        colors: [AppColors.primaryBlue, AppColors.accentTeal],
+                        colors: [AppColors.primaryBlue, Color(0xFF00BCD4)],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primaryBlue.withOpacity(0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
                     ),
-                    child: const Icon(Icons.business,
-                        size: 40, color: Colors.white),
+                    child: const Center(
+                      child: Icon(
+                        Icons.wind_power,
+                        size: 32,
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
                   const Text(
                     'As-Built',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -290,14 +312,14 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
           const SizedBox(height: 12),
           Card(
             child: Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(12),
               child: Column(
                 children: [
                   Row(
                     children: [
                       const Icon(Icons.check_circle,
-                          color: AppColors.successGreen, size: 32),
-                      const SizedBox(width: 16),
+                          color: AppColors.successGreen, size: 24),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -349,18 +371,18 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
           const SizedBox(height: 12),
           Card(
             child: Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     t.translate('productivity_shortcuts'),
                     style: const TextStyle(
-                      fontSize: 16,
+                      fontSize: 14,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
                   _buildShortcutRow('Ctrl + N', t.translate('new_project')),
                   _buildShortcutRow('Ctrl + T', t.translate('add_turbine')),
                   _buildShortcutRow('Ctrl + R', t.translate('generate_report')),
@@ -422,8 +444,10 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
               ),
             ),
           ),
-        ],
-      ),
+            ],  // fecha children do ListView
+          ),    // fecha ListView
+        ],      // fecha children do Stack
+      ),        // fecha Stack (body)
     );
   }
 

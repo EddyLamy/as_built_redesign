@@ -722,11 +722,10 @@ final Map<String, String> translationsPT = {
 
   // Reports
   'generate_report': 'Gerar Relatório',
-  'report_format': 'Formato do Relatório',
+  'report_complete': 'Completo (capa, resumo e gráficos)',
   'select_phases': 'Selecionar Fases',
   'select_all': 'Selecionar Tudo',
   'clear_all': 'Limpar Tudo',
-  'report_email_info': 'O relatório será enviado para o seu email',
   'generate_and_send': 'Gerar e Enviar',
   'generating': 'A gerar...',
   'report_sent_success': 'Relatório gerado e enviado com sucesso!',
@@ -889,7 +888,7 @@ final Map<String, String> translationsPT = {
   'video_tutorials': 'Tutoriais em Vídeo',
   'overview_video_desc': 'Visão geral da aplicação',
   'components_video_desc': 'Adicionar e gerir componentes',
-  'reports_video_desc': 'Gerar relatórios Excel e PDF',
+  'reports_video_desc': 'Gerar relatórios Excel',
   'support': 'Suporte',
   'contact_support': 'Contactar Suporte',
   'live_chat': 'Chat ao Vivo',
@@ -930,7 +929,7 @@ final Map<String, String> translationsPT = {
   'phases_content':
       'As fases de instalação são:\n\n• Receção\n• Preparação\n• Pré-Assemblagem\n• Assemblagem\n• Torque & Tensionamento\n• Fases Finais',
   'reports_content':
-      'Para gerar relatórios:\n\n1. Clique no botão de relatórios\n2. Selecione as fases desejadas\n3. Escolha Excel ou PDF\n4. Clique em Gerar',
+      'Para gerar relatórios:\n\n1. Clique no botão de relatórios\n2. Selecione as fases desejadas\n3. Clique em Gerar',
   'cranes_content':
       'Gerir gruas:\n\n1. Aceda ao menu Gruas\n2. Registe mobilizações/desmobilizações\n3. Acompanhe atividades\n4. Gere relatórios específicos',
 

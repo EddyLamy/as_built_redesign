@@ -26,8 +26,6 @@ class _GlobalKeyboardHandlerState extends ConsumerState<GlobalKeyboardHandler> {
   @override
   void initState() {
     super.initState();
-    // Register global keyboard handler - works independently of focus
-    HardwareKeyboard.instance.addHandler(_handleKeyEvent);
   }
 
   bool _handleKeyEvent(KeyEvent event) {
@@ -131,12 +129,20 @@ class _GlobalKeyboardHandlerState extends ConsumerState<GlobalKeyboardHandler> {
 
   @override
   void dispose() {
-    HardwareKeyboard.instance.removeHandler(_handleKeyEvent);
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return widget.child;
+    return Focus(
+      autofocus: true,
+      canRequestFocus: true,
+      onKeyEvent: (node, event) {
+        return _handleKeyEvent(event)
+            ? KeyEventResult.handled
+            : KeyEventResult.ignored;
+      },
+      child: widget.child,
+    );
   }
 }

@@ -23,7 +23,7 @@ class GenerateReportDialog extends ConsumerStatefulWidget {
 }
 
 class _GenerateReportDialogState extends ConsumerState<GenerateReportDialog> {
-  String _selectedFormat = 'excel';
+  bool _isCompleteReport = false;
   final Map<String, bool> _selectedPhases = {
     'recepcao': false,
     'preparacao': false,
@@ -97,40 +97,21 @@ class _GenerateReportDialogState extends ConsumerState<GenerateReportDialog> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // SELEÇÃO DE FORMATO
-                    Text(
-                      t.translate('report_format'),
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.darkGray,
+                    // OPCAO DE RELATORIO COMPLETO
+                    CheckboxListTile(
+                      title: Text(
+                        t.translate('report_complete'),
+                        style: const TextStyle(fontSize: 14),
                       ),
+                      value: _isCompleteReport,
+                      onChanged: (value) =>
+                          setState(() => _isCompleteReport = value ?? false),
+                      activeColor: AppColors.primaryBlue,
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
                     ),
+
                     const SizedBox(height: 12),
-
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildFormatOption(
-                            'excel',
-                            Icons.table_chart,
-                            'Excel (.xlsx)',
-                            AppColors.successGreen,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _buildFormatOption(
-                            'pdf',
-                            Icons.picture_as_pdf,
-                            'PDF',
-                            AppColors.errorRed,
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 24),
 
                     // SELEÇÃO DE FASES
                     Row(
@@ -188,22 +169,40 @@ class _GenerateReportDialogState extends ConsumerState<GenerateReportDialog> {
                           // FASES DE INSTALAÇÃO
                           // ══════════════════════════════════════════════
                           _buildPhaseCheckbox(
-                              'recepcao', '[REC] ${t.translate('reception')}'),
+                            'recepcao',
+                            Icons.inventory_2_outlined,
+                            t.translate('reception'),
+                          ),
                           const Divider(height: 1),
-                          _buildPhaseCheckbox('preparacao',
-                              '[PREP] ${t.translate('preparation')}'),
+                          _buildPhaseCheckbox(
+                            'preparacao',
+                            Icons.handyman_outlined,
+                            t.translate('preparation'),
+                          ),
                           const Divider(height: 1),
-                          _buildPhaseCheckbox('preAssemblagem',
-                              '[PRE-ASM] ${t.translate('pre_assembly')}'),
+                          _buildPhaseCheckbox(
+                            'preAssemblagem',
+                            Icons.build_outlined,
+                            t.translate('pre_assembly'),
+                          ),
                           const Divider(height: 1),
-                          _buildPhaseCheckbox('assemblagem',
-                              '[ASM] ${t.translate('assembly')}'),
+                          _buildPhaseCheckbox(
+                            'assemblagem',
+                            Icons.construction_outlined,
+                            t.translate('assembly'),
+                          ),
                           const Divider(height: 1),
-                          _buildPhaseCheckbox('torqueTensionamento',
-                              '[TORQUE] ${t.translate('torqueTensioning')}'),
+                          _buildPhaseCheckbox(
+                            'torqueTensionamento',
+                            Icons.bolt_outlined,
+                            t.translate('torqueTensioning'),
+                          ),
                           const Divider(height: 1),
-                          _buildPhaseCheckbox('fasesFinais',
-                              '[FINAL] ${t.translate('final_phases')}'),
+                          _buildPhaseCheckbox(
+                            'fasesFinais',
+                            Icons.task_alt_outlined,
+                            t.translate('final_phases'),
+                          ),
 
                           // ══════════════════════════════════════════════
                           // 🆕 SEPARADOR VISUAL
@@ -216,11 +215,17 @@ class _GenerateReportDialogState extends ConsumerState<GenerateReportDialog> {
                           // ══════════════════════════════════════════════
                           // 🆕 GRUAS
                           // ══════════════════════════════════════════════
-                          _buildPhaseCheckbox('gruasPads',
-                              '[CRANES-PADS] ${t.translate('cranes_pads_report')}'),
+                          _buildPhaseCheckbox(
+                            'gruasPads',
+                            Icons.precision_manufacturing_outlined,
+                            t.translate('cranes_pads_report'),
+                          ),
                           const Divider(height: 1),
-                          _buildPhaseCheckbox('gruasGerais',
-                              '[CRANES-GENERAL] ${t.translate('cranes_general_report')}'),
+                          _buildPhaseCheckbox(
+                            'gruasGerais',
+                            Icons.local_shipping_outlined,
+                            t.translate('cranes_general_report'),
+                          ),
                         ],
                       ),
                     ),
@@ -304,46 +309,17 @@ class _GenerateReportDialogState extends ConsumerState<GenerateReportDialog> {
     );
   }
 
-  Widget _buildFormatOption(
-      String format, IconData icon, String label, Color color) {
-    final isSelected = _selectedFormat == format;
-
-    return InkWell(
-      onTap: () => setState(() => _selectedFormat = format),
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: isSelected ? color.withOpacity(0.1) : Colors.transparent,
-          border: Border.all(
-            color: isSelected ? color : AppColors.borderGray,
-            width: isSelected ? 2 : 1,
-          ),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon,
-                color: isSelected ? color : AppColors.mediumGray, size: 24),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                color: isSelected ? color : AppColors.darkGray,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPhaseCheckbox(String phaseKey, String label) {
+  Widget _buildPhaseCheckbox(String phaseKey, IconData icon, String label) {
     return CheckboxListTile(
-      title: Text(label, style: const TextStyle(fontSize: 14)),
+      title: Row(
+        children: [
+          Icon(icon, size: 18, color: AppColors.darkGray),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(label, style: const TextStyle(fontSize: 14)),
+          ),
+        ],
+      ),
       value: _selectedPhases[phaseKey],
       onChanged: (value) =>
           setState(() => _selectedPhases[phaseKey] = value ?? false),
@@ -366,7 +342,7 @@ class _GenerateReportDialogState extends ConsumerState<GenerateReportDialog> {
       await reportService.generateAndSendReport(
         projectId: widget.projectId,
         projectName: widget.projectName,
-        format: _selectedFormat,
+        completeReport: _isCompleteReport,
         selectedPhases: selectedPhasesList,
         language: ref.read(localeStringProvider),
       );

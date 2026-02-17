@@ -1145,12 +1145,11 @@ class InstallationTranslations {
 
     // REPORT
     'generate_report': 'Gerar Relatório',
-    'report_format': 'Formato do Relatório',
+    'report_complete': 'Completo (capa, resumo e graficos)',
     'select_phases': 'Selecionar Fases',
     'select_all': 'Selecionar Tudo',
     'clear_all': 'Limpar Tudo',
     'torqueTensioning': 'Torque & Tensionamento',
-    'report_email_info': 'O relatório será enviado para o seu email',
     'generate_and_send': 'Gerar e Enviar',
     'generating': 'A gerar...',
     'report_sent_success': 'Relatório gerado e enviado com sucesso!',

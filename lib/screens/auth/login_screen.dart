@@ -105,7 +105,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [AppColors.primaryBlue, AppColors.secondaryBlue],
+              colors: [
+                Color(0xFF0A2540), // Azul muito escuro
+                AppColors.primaryBlueDark,
+                AppColors.accentTeal,
+                AppColors.accentTealLight, // Turquesa
+              ],
+              stops: [0.0, 0.3, 0.7, 1.0],
             ),
           ),
           child: SafeArea(
@@ -151,7 +157,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [AppColors.primaryBlue, AppColors.secondaryBlue],
+            colors: [
+              Color(0xFF0A2540), // Azul muito escuro
+              AppColors.primaryBlueDark,
+              AppColors.accentTeal,
+              AppColors.accentTealLight, // Turquesa
+            ],
+            stops: [0.0, 0.3, 0.7, 1.0],
           ),
         ),
         child: Center(

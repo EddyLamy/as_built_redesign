@@ -51,7 +51,8 @@ class ProjectPhasesScreen extends ConsumerWidget {
               // Lista de fases
               Expanded(
                 child: ListView.builder(
-                  padding: const EdgeInsets.all(16),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   itemCount: phases.length,
                   itemBuilder: (context, index) {
                     return _buildPhaseCard(context, ref, phases[index]);
@@ -80,7 +81,7 @@ class ProjectPhasesScreen extends ConsumerWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -96,17 +97,17 @@ class ProjectPhasesScreen extends ConsumerWidget {
           // Progresso circular
           progressAsync.when(
             data: (progress) => SizedBox(
-              width: 120,
-              height: 120,
+              width: 100,
+              height: 100,
               child: Stack(
                 alignment: Alignment.center,
                 children: [
                   SizedBox(
-                    width: 120,
-                    height: 120,
+                    width: 100,
+                    height: 100,
                     child: CircularProgressIndicator(
                       value: progress / 100,
-                      strokeWidth: 10,
+                      strokeWidth: 8,
                       backgroundColor: AppColors.borderGray,
                       valueColor:
                           const AlwaysStoppedAnimation(AppColors.primaryBlue),
@@ -118,7 +119,7 @@ class ProjectPhasesScreen extends ConsumerWidget {
                       Text(
                         '${progress.toStringAsFixed(0)}%',
                         style: const TextStyle(
-                          fontSize: 32,
+                          fontSize: 28,
                           fontWeight: FontWeight.bold,
                           color: AppColors.primaryBlue,
                         ),
@@ -126,7 +127,7 @@ class ProjectPhasesScreen extends ConsumerWidget {
                       Text(
                         t.translate('complete'),
                         style: const TextStyle(
-                          fontSize: 12,
+                          fontSize: 11,
                           color: AppColors.mediumGray,
                         ),
                       ),
@@ -138,11 +139,11 @@ class ProjectPhasesScreen extends ConsumerWidget {
             loading: () => const CircularProgressIndicator(),
             error: (_, __) => const Icon(Icons.error),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           Text(
             '$completas / $total ${t.translate('phases_completed')}',
             style: const TextStyle(
-              fontSize: 16,
+              fontSize: 14,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -161,24 +162,24 @@ class ProjectPhasesScreen extends ConsumerWidget {
     final icon = _getPhaseIcon(phase);
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 8),
       child: InkWell(
         onTap: () => _showEditPhaseDialog(context, ref, phase),
         borderRadius: BorderRadius.circular(12),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(12),
           child: Row(
             children: [
               // Ícone
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: color.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(icon, color: color, size: 24),
+                child: Icon(icon, color: color, size: 20),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 12),
 
               // Info
               Expanded(
@@ -188,34 +189,37 @@ class ProjectPhasesScreen extends ConsumerWidget {
                     Row(
                       children: [
                         Text(
-                          t.translate('phase_${phase.nome}'), // ✅ MUDANÇA AQUI
+                          t.translate('phase_${phase.nome}'),
                           style: const TextStyle(
-                            fontSize: 16,
+                            fontSize: 14,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         if (!phase.obrigatorio)
-                          Chip(
-                            label: Text(
-                              t.translate('optional'),
-                              style: const TextStyle(fontSize: 10),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 6),
+                            child: Chip(
+                              label: Text(
+                                t.translate('optional'),
+                                style: const TextStyle(fontSize: 9),
+                              ),
+                              backgroundColor:
+                                  AppColors.mediumGray.withOpacity(0.2),
+                              padding: EdgeInsets.zero,
+                              materialTapTargetSize:
+                                  MaterialTapTargetSize.shrinkWrap,
                             ),
-                            backgroundColor:
-                                AppColors.mediumGray.withOpacity(0.2),
-                            padding: EdgeInsets.zero,
-                            materialTapTargetSize:
-                                MaterialTapTargetSize.shrinkWrap,
                           ),
                       ],
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 4),
 
                     // Status e datas
                     if (!phase.aplicavel)
                       Text(
                         t.translate('not_applicable'),
                         style: const TextStyle(
-                          fontSize: 12,
+                          fontSize: 11,
                           color: AppColors.mediumGray,
                           fontStyle: FontStyle.italic,
                         ),
@@ -224,7 +228,7 @@ class ProjectPhasesScreen extends ConsumerWidget {
                       Text(
                         t.translate('not_started'),
                         style: const TextStyle(
-                          fontSize: 12,
+                          fontSize: 11,
                           color: AppColors.mediumGray,
                         ),
                       )
@@ -235,12 +239,12 @@ class ProjectPhasesScreen extends ConsumerWidget {
                           if (phase.dataInicio != null)
                             Text(
                               '${t.translate('start')}: ${_formatDate(phase.dataInicio!)}',
-                              style: const TextStyle(fontSize: 12),
+                              style: const TextStyle(fontSize: 11),
                             ),
                           if (phase.dataFim != null)
                             Text(
                               '${t.translate('end')}: ${_formatDate(phase.dataFim!)}',
-                              style: const TextStyle(fontSize: 12),
+                              style: const TextStyle(fontSize: 11),
                             ),
                         ],
                       ),
@@ -250,18 +254,18 @@ class ProjectPhasesScreen extends ConsumerWidget {
 
               // Progresso
               SizedBox(
-                width: 60,
+                width: 50,
                 child: Column(
                   children: [
                     Text(
                       '${phase.progresso.toStringAsFixed(0)}%',
                       style: TextStyle(
-                        fontSize: 18,
+                        fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: color,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 3),
                     LinearProgressIndicator(
                       value: phase.progresso / 100,
                       backgroundColor: AppColors.borderGray,

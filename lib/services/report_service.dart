@@ -8,7 +8,7 @@ final reportServiceProvider = Provider<ReportService>((ref) {
   return ReportService();
 });
 
-/// Serviço para gerar relatórios (Excel/PDF)
+/// Serviço para gerar relatórios (Excel)
 class ReportService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
@@ -74,7 +74,7 @@ class ReportService {
   Future<void> generateAndSendReport({
     required String projectId,
     required String projectName,
-    required String format,
+    required bool completeReport,
     required List<String> selectedPhases,
     required String language,
   }) async {
@@ -82,7 +82,8 @@ class ReportService {
     print(' GERANDO RELATÓRIO');
     print('═══════════════════════════════════════════════════════════');
     print('   Projeto: $projectName ($projectId)');
-    print('   Formato: $format');
+    print('   Formato: excel');
+    print('   Completo: $completeReport');
     print('   Fases: $selectedPhases');
     print('───────────────────────────────────────────────────────────');
 
@@ -120,25 +121,15 @@ class ReportService {
       print(' ${dataByPhase[phase]!.length} registros encontrados');
     }
 
-    // Gerar arquivo conforme formato
-    String filePath;
-    if (format == 'excel') {
-      print('Gerando Excel...');
-      filePath = await _generateExcelReport(
-        projectName,
-        dataByPhase,
-        selectedPhases,
-        language,
-      );
-    } else {
-      print('Gerando PDF...');
-      filePath = await _generatePDFReport(
-        projectName,
-        dataByPhase,
-        selectedPhases,
-        language,
-      );
-    }
+    // Gerar arquivo Excel
+    print('Gerando Excel...');
+    final filePath = await _generateExcelReport(
+      projectName,
+      dataByPhase,
+      selectedPhases,
+      completeReport,
+      language,
+    );
     print('Ficheiro gerado: $filePath');
 
     // Abrir ficheiro automaticamente
@@ -384,6 +375,7 @@ class ReportService {
     String projectName,
     Map<String, List<Map<String, dynamic>>> dataByPhase,
     List<String> selectedPhases,
+    bool completeReport,
     String language,
   ) async {
     final timestamp = DateTime.now().millisecondsSinceEpoch;
@@ -408,6 +400,7 @@ class ReportService {
       'dataByPhase': _serializeDataForPython(dataByPhase),
       'selectedPhases': selectedPhases,
       'outputPath': outputPath,
+      'completeReport': completeReport,
       'language': language,
     };
 
@@ -441,72 +434,6 @@ class ReportService {
     final outputFile = File(outputPath);
     if (!await outputFile.exists()) {
       throw Exception('Ficheiro Excel não foi gerado: $outputPath');
-    }
-
-    return outputPath;
-  }
-
-  Future<String> _generatePDFReport(
-    String projectName,
-    Map<String, List<Map<String, dynamic>>> dataByPhase,
-    List<String> selectedPhases,
-    String language,
-  ) async {
-    final timestamp = DateTime.now().millisecondsSinceEpoch;
-    final documentsPath = Platform.environment['USERPROFILE'] ?? '';
-    final documentsDir = Directory('$documentsPath\\Documents');
-
-    if (!await documentsDir.exists()) {
-      await documentsDir.create(recursive: true);
-    }
-
-    final outputPath = '$documentsPath\\Documents\\report_$timestamp.pdf';
-    final currentDir = Directory.current.path;
-    final scriptPath = '$currentDir\\lib\\scripts\\pdf_report_generator.py';
-
-    final scriptFile = File(scriptPath);
-    if (!await scriptFile.exists()) {
-      throw Exception('Script Python não encontrado: $scriptPath');
-    }
-
-    final inputData = {
-      'projectName': projectName,
-      'dataByPhase': _serializeDataForPython(dataByPhase),
-      'selectedPhases': selectedPhases,
-      'outputPath': outputPath,
-      'language': language,
-    };
-
-    final jsonInput = json.encode(inputData);
-
-    print('Executando script Python PDF...');
-    print('   Script: $scriptPath');
-    print('   Output: $outputPath');
-
-    final process = await Process.start(
-      'python',
-      [scriptPath],
-      runInShell: true,
-    );
-
-    process.stdin.write(jsonInput);
-    await process.stdin.close();
-
-    final stdout = await process.stdout.transform(utf8.decoder).join();
-    final stderr = await process.stderr.transform(utf8.decoder).join();
-    final exitCode = await process.exitCode;
-
-    print('Python stdout: $stdout');
-    if (stderr.isNotEmpty) print('[WARN] Python stderr: $stderr');
-    print('Exit code: $exitCode');
-
-    if (exitCode != 0) {
-      throw Exception('Erro ao gerar PDF: $stderr');
-    }
-
-    final outputFile = File(outputPath);
-    if (!await outputFile.exists()) {
-      throw Exception('Ficheiro PDF não foi gerado: $outputPath');
     }
 
     return outputPath;

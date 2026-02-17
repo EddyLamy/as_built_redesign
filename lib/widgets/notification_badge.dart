@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/theme/app_colors.dart';
+import '../core/theme/app_decorations.dart';
 import '../providers/app_providers.dart';
 
-/// Badge de Notificações para o AppBar
+/// Badge de Notificações para o AppBar - Visual Modernizado
 class NotificationBadge extends ConsumerWidget {
   final VoidCallback onTap;
 
@@ -37,32 +38,30 @@ class NotificationBadge extends ConsumerWidget {
         child: Stack(
           clipBehavior: Clip.none,
           children: [
-            // Ícone do sino
-            Icon(
-              notificationCount > 0
-                  ? Icons.notifications_active
-                  : Icons.notifications_outlined,
-              color: Colors
-                  .white, // ✅ Sempre branco para contrastar com AppBar azul
-              size: 24,
+            // Ícone do sino com animação sutil
+            AnimatedSwitcher(
+              duration: AppAnimations.normal,
+              child: Icon(
+                notificationCount > 0
+                    ? Icons.notifications_active
+                    : Icons.notifications_outlined,
+                key: ValueKey(notificationCount > 0),
+                color: Colors.white,
+                size: 24,
+              ),
             ),
 
-            // Badge com número
+            // Badge com número - Visual moderno com glow
             if (notificationCount > 0)
               Positioned(
                 right: -8,
                 top: -8,
                 child: Container(
                   padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
+                  decoration: AppDecorations.badgeGlow(
                     color: hasCritical
                         ? AppColors.errorRed
-                        : AppColors.accentOrange,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: Colors.white,
-                      width: 2,
-                    ),
+                        : AppColors.accentAmber,
                   ),
                   constraints: const BoxConstraints(
                     minWidth: 20,

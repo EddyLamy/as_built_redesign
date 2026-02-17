@@ -153,7 +153,7 @@ class _NotificationSettingsScreenState
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(16),
               children: [
                 // Seção: Geral
                 _buildSectionTitle(t.translate('general')),

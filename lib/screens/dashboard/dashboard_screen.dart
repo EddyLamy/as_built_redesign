@@ -12,6 +12,7 @@ import '../../widgets/notifications_panel.dart';
 import '../../widgets/enhanced_drawer.dart';
 import '../../widgets/create_project_dialog.dart';
 import '../turbinas/turbina_detalhes_screen.dart';
+import '../../widgets/background_watermark.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -244,9 +245,18 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final statsAsync = ref.watch(projectStatisticsProvider);
     final t = TranslationHelper.of(context);
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
+    return Stack(
+      children: [
+        // Background watermark
+        const BackgroundWatermark(
+          size: 500,
+          opacity: 0.03,
+          alignment: Alignment.center,
+        ),
+        // Main content
+        SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           projectAsync.when(
@@ -508,6 +518,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           ),
         ],
       ),
+        ),
+      ],
     );
   }
 
@@ -542,22 +554,22 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final t = TranslationHelper.of(context);
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(12),
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: AppColors.primaryBlue.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(10),
               ),
               child: const Icon(
                 Icons.business,
-                size: 32,
+                size: 24,
                 color: AppColors.primaryBlue,
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -707,28 +719,28 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   Widget _buildKPICard(String title, String value, IconData icon, Color color) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Icon(icon, color: color, size: 28),
+                Icon(icon, color: color, size: 20),
                 Text(
                   value,
                   style: TextStyle(
-                    fontSize: 32,
+                    fontSize: 24,
                     fontWeight: FontWeight.bold,
                     color: color,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Text(
               title,
-              style: const TextStyle(fontSize: 14, color: AppColors.mediumGray),
+              style: const TextStyle(fontSize: 12, color: AppColors.mediumGray),
             ),
           ],
         ),

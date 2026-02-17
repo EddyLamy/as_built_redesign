@@ -319,21 +319,21 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(16),
         child: Column(
           children: [
             SizedBox(
-              width: 150,
-              height: 150,
+              width: 100,
+              height: 100,
               child: Stack(
                 alignment: Alignment.center,
                 children: [
                   SizedBox(
-                    width: 150,
-                    height: 150,
+                    width: 100,
+                    height: 100,
                     child: CircularProgressIndicator(
                       value: progresso / 100,
-                      strokeWidth: 12,
+                      strokeWidth: 8,
                       backgroundColor: AppColors.borderGray,
                       valueColor: AlwaysStoppedAnimation(color),
                     ),
@@ -344,7 +344,7 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
                       Text(
                         '${progresso.toStringAsFixed(0)}%',
                         style: TextStyle(
-                          fontSize: 36,
+                          fontSize: 28,
                           fontWeight: FontWeight.bold,
                           color: color,
                         ),
@@ -352,7 +352,7 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
                       Text(
                         turbina.status,
                         style: const TextStyle(
-                          fontSize: 14,
+                          fontSize: 11,
                           color: AppColors.mediumGray,
                         ),
                       ),

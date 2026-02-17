@@ -146,204 +146,235 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
     }
 
     return Dialog(
-      child: Container(
-        width: MediaQuery.of(context).size.width * 0.9,
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.85,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Header
-            Container(
-              padding: const EdgeInsets.all(16),
-              color: Colors.orange,
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          tipoNome,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          widget.fase.componenteId,
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close, color: Colors.white),
-                    onPressed: () {
-                      print('🔴 Dialog CANCELADO');
-                      Navigator.pop(context);
-                    },
-                  ),
-                ],
-              ),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final screenHeight = MediaQuery.of(context).size.height;
+          final maxDialogHeight =
+              screenHeight - 48; // 24 padding top + 24 bottom
+
+          return Container(
+            width: MediaQuery.of(context).size.width * 0.9,
+            constraints: BoxConstraints(
+              maxHeight: maxDialogHeight,
             ),
-
-            // Content
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Header
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  color: Colors.orange,
+                  child: Row(
                     children: [
-                      // ════════════════════════════════════════════════════════
-                      // 🆕 INDICADOR DE OCR PROCESSANDO
-                      // ════════════════════════════════════════════════════════
-                      if (_isProcessingOCR)
-                        Container(
-                          margin: const EdgeInsets.only(bottom: 16),
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.orange.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: Colors.orange.withOpacity(0.3),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              tipoNome,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ),
-                          child: Row(
-                            children: [
-                              const SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation(
-                                    Colors.orange,
-                                  ),
-                                ),
+                            Text(
+                              widget.fase.componenteId,
+                              style: const TextStyle(
+                                color: Colors.white70,
+                                fontSize: 14,
                               ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      '🔍 Extraindo texto da foto...',
-                                      style: TextStyle(
-                                        color: Colors.orange[800],
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      'Identificando VUI, Serial e Item',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey[600],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
-
-                      // Botão N/A
-                      _buildNAButton(t),
-
-                      if (!_isFaseNA) ...[
-                        const SizedBox(height: 16),
-                        _buildDataFields(t),
-                        const SizedBox(height: 16),
-                        ..._buildTipoSpecificFields(t),
-                        const SizedBox(height: 16),
-                        _buildFotosSection(t),
-                        const SizedBox(height: 16),
-                        _buildObservacoesField(t),
-                      ] else ...[
-                        const SizedBox(height: 16),
-                        _buildMotivoNAField(t),
-                      ],
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close, color: Colors.white),
+                        onPressed: () {
+                          print('🔴 Dialog CANCELADO');
+                          Navigator.pop(context);
+                        },
+                      ),
                     ],
                   ),
                 ),
-              ),
-            ),
 
-            // Footer
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.grey[100],
-                border: Border(top: BorderSide(color: Colors.grey[300]!)),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Progresso à esquerda
-                  Text(
-                    '${_t(t, 'progresso', 'Progresso')}: ${_calcularProgresso()}%',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
+                // Content
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(16),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // ════════════════════════════════════════════════════════
+                          // 🆕 INDICADOR DE OCR PROCESSANDO
+                          // ════════════════════════════════════════════════════════
+                          if (_isProcessingOCR)
+                            Container(
+                              margin: const EdgeInsets.only(bottom: 16),
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.orange.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: Colors.orange.withOpacity(0.3),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  const SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation(
+                                        Colors.orange,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          '🔍 Extraindo texto da foto...',
+                                          style: TextStyle(
+                                            color: Colors.orange[800],
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          'Identificando VUI, Serial e Item',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey[600],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                          // Botão N/A
+                          _buildNAButton(t),
+
+                          if (!_isFaseNA) ...[
+                            const SizedBox(height: 16),
+                            _buildDataFields(t),
+                            const SizedBox(height: 16),
+                            ..._buildTipoSpecificFields(t),
+                            const SizedBox(height: 16),
+                            _buildFotosSection(t),
+                            const SizedBox(height: 16),
+                            _buildObservacoesField(t),
+                          ] else ...[
+                            const SizedBox(height: 16),
+                            _buildMotivoNAField(t),
+                          ],
+                        ],
+                      ),
                     ),
                   ),
+                ),
 
-                  Row(
+                // Footer
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    border: Border(top: BorderSide(color: Colors.grey[300]!)),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Botão Limpar Campos
-                      TextButton.icon(
-                        onPressed: _limparCampos,
-                        icon: const Icon(Icons.clear_all,
-                            color: AppColors.warningOrange),
-                        label: const Text(
-                          'Limpar',
-                          style: TextStyle(color: AppColors.warningOrange),
+                      // Progresso
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Text(
+                          '${_t(t, 'progresso', 'Progresso')}: ${_calcularProgresso()}%',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      // Botão Cancelar
-                      TextButton(
-                        onPressed: () {
-                          print('🔴 Botão CANCELAR clicado');
-                          Navigator.pop(context);
-                        },
-                        child: Text(_t(t, 'cancelar', 'Cancelar')),
-                      ),
-                      const SizedBox(width: 8),
-                      // Botão Guardar
-                      ElevatedButton(
-                        onPressed: _isSaving ? null : _guardar,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.orange,
-                        ),
-                        child: _isSaving
-                            ? const SizedBox(
-                                width: 16,
-                                height: 16,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor:
-                                      AlwaysStoppedAnimation(Colors.white),
-                                ),
-                              )
-                            : Text(_t(t, 'guardar', 'Guardar')),
+
+                      // Botões
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          // Botão Limpar Campos
+                          Expanded(
+                            child: TextButton.icon(
+                              onPressed: _limparCampos,
+                              icon: const Icon(Icons.clear_all,
+                                  size: 18, color: AppColors.warningOrange),
+                              label: const Text(
+                                'Limpar',
+                                style: TextStyle(
+                                    color: AppColors.warningOrange,
+                                    fontSize: 13),
+                              ),
+                            ),
+                          ),
+                          // Botão Cancelar
+                          Expanded(
+                            child: TextButton(
+                              onPressed: () {
+                                print('🔴 Botão CANCELAR clicado');
+                                Navigator.pop(context);
+                              },
+                              child: Text(
+                                _t(t, 'cancelar', 'Cancelar'),
+                                style: const TextStyle(fontSize: 13),
+                              ),
+                            ),
+                          ),
+                          // Botão Guardar
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: _isSaving ? null : _guardar,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.orange,
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 12),
+                              ),
+                              child: _isSaving
+                                  ? const SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor: AlwaysStoppedAnimation(
+                                            Colors.white),
+                                      ),
+                                    )
+                                  : Text(
+                                      _t(t, 'guardar', 'Guardar'),
+                                      style: const TextStyle(fontSize: 13),
+                                    ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

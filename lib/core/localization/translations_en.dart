@@ -743,11 +743,10 @@ final Map<String, String> translationsEN = {
 
   //Report
   'generate_report': 'Generate Report',
-  'report_format': 'Report Format',
+  'report_complete': 'Complete (cover, summary, and charts)',
   'select_phases': 'Select Phases',
   'select_all': 'Select All',
   'clear_all': 'Clear All',
-  'report_email_info': 'The report will be sent to your email',
   'generate_and_send': 'Generate and Send',
   'generating': 'Generating...',
   'report_sent_success': 'Report generated and sent successfully!',
@@ -910,7 +909,7 @@ final Map<String, String> translationsEN = {
   'video_tutorials': 'Video Tutorials',
   'overview_video_desc': 'Application overview',
   'components_video_desc': 'Add and manage components',
-  'reports_video_desc': 'Generate Excel and PDF reports',
+  'reports_video_desc': 'Generate Excel reports',
   'support': 'Support',
   'contact_support': 'Contact Support',
   'live_chat': 'Live Chat',
@@ -951,7 +950,7 @@ final Map<String, String> translationsEN = {
   'phases_content':
       'Installation phases are:\n\n• Reception\n• Preparation\n• Pre-Assembly\n• Assembly\n• Torque & Tensioning\n• Final Phases',
   'reports_content':
-      'To generate reports:\n\n1. Click the reports button\n2. Select desired phases\n3. Choose Excel or PDF\n4. Click Generate',
+      'To generate reports:\n\n1. Click the reports button\n2. Select desired phases\n3. Click Generate',
   'cranes_content':
       'Manage cranes:\n\n1. Access the Cranes menu\n2. Register mobilizations/demobilizations\n3. Track activities\n4. Generate specific reports',
 
