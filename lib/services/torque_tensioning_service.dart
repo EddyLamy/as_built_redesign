@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/torque_tensioning.dart';
+import 'package:flutter/foundation.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // TORQUE & TENSIONING SERVICE - CRUD COMPLETO
@@ -88,9 +89,9 @@ class TorqueTensioningService {
       // 4. Criar em batch
       if (novasConexoes.isNotEmpty) {
         await createConexoesBatch(novasConexoes);
-        print('✅ ${novasConexoes.length} conexões standard criadas');
+        debugPrint('✅ ${novasConexoes.length} conexões standard criadas');
       } else {
-        print('ℹ️ Todas as conexões standard já existem');
+        debugPrint('ℹ️ Todas as conexões standard já existem');
       }
     } catch (e) {
       throw Exception('Erro ao gerar conexões standard: $e');

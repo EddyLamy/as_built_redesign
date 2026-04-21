@@ -251,27 +251,41 @@ class _TrabalhoEditDialogState extends ConsumerState<TrabalhoEditDialog> {
           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 8),
-        RadioListTile<TipoTrabalhoMecanico>(
-          value: TipoTrabalhoMecanico.torque,
-          groupValue: _tipo,
-          onChanged: (value) {
-            setState(() {
-              _tipo = value;
-            });
-          },
+        ListTile(
+          contentPadding: EdgeInsets.zero,
+          leading: Icon(
+            _tipo == TipoTrabalhoMecanico.torque
+                ? Icons.check_circle
+                : Icons.radio_button_unchecked,
+            color: _tipo == TipoTrabalhoMecanico.torque
+                ? Colors.blue
+                : Colors.grey,
+          ),
           title: Text(t['torque'] ?? 'Torque'),
-          secondary: const Icon(Icons.build, color: Colors.blue),
-        ),
-        RadioListTile<TipoTrabalhoMecanico>(
-          value: TipoTrabalhoMecanico.tensionamento,
-          groupValue: _tipo,
-          onChanged: (value) {
+          trailing: const Icon(Icons.build, color: Colors.blue),
+          onTap: () {
             setState(() {
-              _tipo = value;
+              _tipo = TipoTrabalhoMecanico.torque;
             });
           },
+        ),
+        ListTile(
+          contentPadding: EdgeInsets.zero,
+          leading: Icon(
+            _tipo == TipoTrabalhoMecanico.tensionamento
+                ? Icons.check_circle
+                : Icons.radio_button_unchecked,
+            color: _tipo == TipoTrabalhoMecanico.tensionamento
+                ? Colors.purple
+                : Colors.grey,
+          ),
           title: Text(t['tensionamento'] ?? 'Tensionamento'),
-          secondary: const Icon(Icons.compress, color: Colors.purple),
+          trailing: const Icon(Icons.compress, color: Colors.purple),
+          onTap: () {
+            setState(() {
+              _tipo = TipoTrabalhoMecanico.tensionamento;
+            });
+          },
         ),
       ],
     );

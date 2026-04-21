@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../models/notification.dart';
 import '../models/notification_settings.dart';
 import '../services/notification_service.dart';
+import 'app_providers.dart' show accessibleSelectedProjectIdProvider;
 
 /// Provider do Service
 final notificationServiceProvider = Provider<NotificationService>((ref) {
@@ -20,6 +21,7 @@ final notificationsProvider =
     FutureProvider.autoDispose<List<AppNotification>>((ref) async {
   final user = FirebaseAuth.instance.currentUser;
   if (user == null) return [];
+  final selectedProjectId = ref.watch(accessibleSelectedProjectIdProvider);
 
   final service = ref.watch(notificationServiceProvider);
   final settingsAsync = ref.watch(notificationSettingsProvider);
@@ -31,7 +33,11 @@ final notificationsProvider =
   );
 
   // Gerar notificações
-  final notifications = await service.generateNotifications(user.uid, settings);
+  final notifications = await service.generateNotifications(
+    user.uid,
+    settings,
+    selectedProjectId: selectedProjectId,
+  );
 
   return notifications;
 });

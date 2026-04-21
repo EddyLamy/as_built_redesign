@@ -4,6 +4,7 @@ import '../core/theme/app_colors.dart';
 import '../core/localization/translation_helper.dart';
 import '../services/report_service.dart';
 import '../providers/locale_provider.dart';
+import '../utils/app_feedback.dart';
 
 /// Dialog para gerar relatórios - VERSÃO COM GRUAS
 /// Inclui relatórios de Gruas de Pads e Gruas Gerais
@@ -31,8 +32,11 @@ class _GenerateReportDialogState extends ConsumerState<GenerateReportDialog> {
     'assemblagem': false,
     'torqueTensionamento': false,
     'fasesFinais': false,
+    'ncrs': false,
+    'equipamentos': false, // 🆕 EQUIPAMENTOS
     'gruasPads': false, // 🆕 GRUAS DE PADS
     'gruasGerais': false, // 🆕 GRUAS GERAIS
+    'dailyJournal': false,
   };
   bool _isGenerating = false;
 
@@ -203,13 +207,25 @@ class _GenerateReportDialogState extends ConsumerState<GenerateReportDialog> {
                             Icons.task_alt_outlined,
                             t.translate('final_phases'),
                           ),
+                          const Divider(height: 1),
+                          _buildPhaseCheckbox(
+                            'equipamentos',
+                            Icons.build,
+                            t.translate('equipment_report'),
+                          ),
+                          const Divider(height: 1),
+                          _buildPhaseCheckbox(
+                            'ncrs',
+                            Icons.rule_folder_outlined,
+                            t.translate('ncrs'),
+                          ),
 
                           // ══════════════════════════════════════════════
                           // 🆕 SEPARADOR VISUAL
                           // ══════════════════════════════════════════════
                           Container(
                             height: 8,
-                            color: AppColors.borderGray.withOpacity(0.3),
+                            color: AppColors.borderGray.withValues(alpha: 0.3),
                           ),
 
                           // ══════════════════════════════════════════════
@@ -226,6 +242,12 @@ class _GenerateReportDialogState extends ConsumerState<GenerateReportDialog> {
                             Icons.local_shipping_outlined,
                             t.translate('cranes_general_report'),
                           ),
+                          const Divider(height: 1),
+                          _buildPhaseCheckbox(
+                            'dailyJournal',
+                            Icons.menu_book_outlined,
+                            t.translate('daily_journal'),
+                          ),
                         ],
                       ),
                     ),
@@ -236,10 +258,10 @@ class _GenerateReportDialogState extends ConsumerState<GenerateReportDialog> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: AppColors.primaryBlue.withOpacity(0.1),
+                        color: AppColors.primaryBlue.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: AppColors.primaryBlue.withOpacity(0.3),
+                          color: AppColors.primaryBlue.withValues(alpha: 0.3),
                         ),
                       ),
                       child: const Row(
@@ -349,22 +371,20 @@ class _GenerateReportDialogState extends ConsumerState<GenerateReportDialog> {
 
       if (mounted) {
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Relatório gerado com sucesso!'),
-            backgroundColor: AppColors.successGreen,
-            duration: Duration(seconds: 3),
-          ),
-        );
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          showAppFeedback(
+            'Relatorio gerado com sucesso!',
+            type: AppFeedbackType.success,
+            duration: const Duration(seconds: 5),
+          );
+        });
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erro: $e'),
-            backgroundColor: AppColors.errorRed,
-            duration: const Duration(seconds: 5),
-          ),
+        showAppFeedback(
+          'Erro: $e',
+          type: AppFeedbackType.error,
+          duration: const Duration(seconds: 6),
         );
       }
     } finally {

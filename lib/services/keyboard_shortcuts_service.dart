@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../providers/app_providers.dart';
+import '../utils/app_feedback.dart';
 import '../widgets/add_turbina_dialog.dart';
 import '../widgets/create_project_dialog.dart';
 import '../widgets/generate_report_dialog.dart';
@@ -8,103 +10,126 @@ import '../main.dart' show navigatorKey;
 
 /// Serviço centralizado para executar ações de atalhos de teclado
 class KeyboardShortcutsService {
-  final BuildContext context;
   final WidgetRef ref;
-  final bool useRootNav;
 
   KeyboardShortcutsService({
-    required this.context,
     required this.ref,
-    this.useRootNav = false,
   });
 
-  /// Abre o diálogo para criar novo projeto
-  void createNewProject() {
-    if (useRootNav && navigatorKey.currentContext != null) {
-      showDialog(
-        context: navigatorKey.currentContext!,
-        barrierDismissible: false,
-        builder: (context) => const CreateProjectWizard(),
+  static bool _shortcutDialogVisible = false;
+
+  BuildContext? get _actionContext =>
+      navigatorKey.currentState?.overlay?.context ??
+      navigatorKey.currentContext;
+
+  NavigatorState? get _rootNavigator => navigatorKey.currentState;
+
+  Future<T?> _showShortcutDialog<T>({
+    required WidgetBuilder builder,
+    bool barrierDismissible = false,
+  }) async {
+    final navigator = _rootNavigator;
+    final dialogContext = _actionContext;
+
+    if (navigator == null || dialogContext == null) {
+      showAppFeedback(
+        'Atalho indisponível neste momento',
+        type: AppFeedbackType.warning,
       );
-    } else {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => const CreateProjectWizard(),
-      );
+      return null;
     }
+
+    if (_shortcutDialogVisible) {
+      return null;
+    }
+
+    _shortcutDialogVisible = true;
+
+    try {
+      return await navigator.push<T>(
+        DialogRoute<T>(
+          context: dialogContext,
+          barrierDismissible: barrierDismissible,
+          builder: builder,
+        ),
+      );
+    } finally {
+      _shortcutDialogVisible = false;
+    }
+  }
+
+  /// Abre o diálogo para criar novo projeto
+  Future<void> createNewProject() async {
+    await _showShortcutDialog(
+      barrierDismissible: false,
+      builder: (context) => const CreateProjectWizard(),
+    );
   }
 
   /// Adiciona nova turbina ao projeto selecionado
-  void addNewTurbine() {
+  Future<void> addNewTurbine() async {
     final selectedProjectId = ref.read(selectedProjectIdProvider);
 
     if (selectedProjectId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Selecione um projeto primeiro')),
+      showAppFeedback(
+        'Selecione um projeto primeiro',
+        type: AppFeedbackType.warning,
       );
       return;
     }
 
-    if (useRootNav && navigatorKey.currentContext != null) {
-      showDialog(
-        context: navigatorKey.currentContext!,
-        barrierDismissible: false,
-        builder: (context) => AddTurbinaDialog(
-          projectId: selectedProjectId,
-        ),
-      );
-    } else {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => AddTurbinaDialog(
-          projectId: selectedProjectId,
-        ),
-      );
-    }
+    await _showShortcutDialog(
+      barrierDismissible: false,
+      builder: (context) => AddTurbinaDialog(
+        projectId: selectedProjectId,
+      ),
+    );
   }
 
   /// Gera relatório para o projeto selecionado
-  void generateReport() {
+  Future<void> generateReport() async {
     final selectedProjectId = ref.read(selectedProjectIdProvider);
 
     if (selectedProjectId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Selecione um projeto primeiro')),
+      showAppFeedback(
+        'Selecione um projeto primeiro',
+        type: AppFeedbackType.warning,
       );
       return;
     }
 
-    // Obter o nome do projeto do provider
-    final selectedProjectAsync = ref.read(selectedProjectProvider);
+    try {
+      final selectedProject = ref.read(selectedProjectProvider).asData?.value ??
+          await ref.read(selectedProjectProvider.future);
 
-    selectedProjectAsync.whenData((project) {
-      if (project != null) {
-        // Usar rootNavigator para garantir que funciona
-        final dialogContext = useRootNav && navigatorKey.currentContext != null
-            ? navigatorKey.currentContext!
-            : context;
-        showDialog(
-          context: dialogContext,
-          barrierDismissible: false,
-          builder: (context) => GenerateReportDialog(
-            projectId: selectedProjectId,
-            projectName: project.nome,
-          ),
+      if (selectedProject == null) {
+        showAppFeedback(
+          'Não foi possível carregar o projeto selecionado',
+          type: AppFeedbackType.warning,
         );
+        return;
       }
-    });
+
+      await _showShortcutDialog(
+        barrierDismissible: false,
+        builder: (context) => GenerateReportDialog(
+          projectId: selectedProjectId,
+          projectName: selectedProject.nome,
+        ),
+      );
+    } catch (_) {
+      showAppFeedback(
+        'Não foi possível carregar o projeto selecionado',
+        type: AppFeedbackType.error,
+      );
+    }
   }
 
-  /// Limpa a pesquisa (só funciona se há um campo de pesquisa ativo)
-  void clearSearch() {
-    // Esta ação precisa ser implementada por quem tenha o campo de pesquisa
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Pesquisa limpa'),
-        duration: Duration(milliseconds: 500),
-      ),
+  Future<void> focusSearch() async {
+    showAppFeedback(
+      'Use o campo de pesquisa visível nesta página',
+      type: AppFeedbackType.info,
+      duration: const Duration(seconds: 2),
     );
   }
 }

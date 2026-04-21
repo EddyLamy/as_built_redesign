@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../core/theme/app_colors.dart';
 
 /// Background watermark widget with large wind_power icon in light gray
 /// Use as a Stack background to add subtle branding to screens
@@ -26,7 +25,7 @@ class BackgroundWatermark extends StatelessWidget {
           Icons.wind_power,
           size: size,
           color: (color ?? const Color.fromARGB(255, 11, 11, 11))
-              .withOpacity(opacity),
+              .withValues(alpha: opacity),
         ),
       ),
     );

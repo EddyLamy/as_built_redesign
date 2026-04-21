@@ -3,40 +3,130 @@ import 'package:flutter/services.dart';
 
 /// Sistema de atalhos de teclado para toda a aplicação
 class KeyboardShortcuts {
+  static final List<_ShortcutBinding> _bindings = [
+    _ShortcutBinding.mod(LogicalKeyboardKey.keyN, const NewProjectIntent()),
+    _ShortcutBinding.mod(LogicalKeyboardKey.keyT, const AddTurbineIntent()),
+    _ShortcutBinding.mod(
+      LogicalKeyboardKey.keyR,
+      const GenerateReportIntent(),
+    ),
+    _ShortcutBinding.mod(LogicalKeyboardKey.keyF, const SearchIntent()),
+    _ShortcutBinding.mod(
+      LogicalKeyboardKey.comma,
+      const OpenSettingsIntent(),
+    ),
+    _ShortcutBinding.single(LogicalKeyboardKey.f1, const OpenHelpIntent()),
+    _ShortcutBinding.mod(
+      LogicalKeyboardKey.keyL,
+      const ToggleLanguageIntent(),
+    ),
+    _ShortcutBinding.mod(LogicalKeyboardKey.keyD, const ToggleThemeIntent()),
+  ];
+
   /// Criar atalhos para o ecrã principal
   static Map<ShortcutActivator, Intent> getMainShortcuts() {
     return {
-      // Ctrl + N - Novo Projeto
-      LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.keyN):
-          const NewProjectIntent(),
-
-      // Ctrl + T - Adicionar Turbina
-      LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.keyT):
-          const AddTurbineIntent(),
-
-      // Ctrl + R - Gerar Relatório
-      LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.keyR):
-          const GenerateReportIntent(),
-
-      // Ctrl + F - Pesquisar
-      LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.keyF):
-          const SearchIntent(),
-
-      // Ctrl + , - Configurações
-      LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.comma):
-          const OpenSettingsIntent(),
-
-      // F1 - Ajuda
-      LogicalKeySet(LogicalKeyboardKey.f1): const OpenHelpIntent(),
-
-      // Ctrl + L - Mudar Idioma
-      LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.keyL):
-          const ToggleLanguageIntent(),
-
-      // Ctrl + D - Tema Dark/Light
-      LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.keyD):
-          const ToggleThemeIntent(),
+      for (final binding in _bindings) ...binding.activators,
     };
+  }
+
+  static Intent? matchEvent(KeyEvent event) {
+    if (event is! KeyDownEvent) {
+      return null;
+    }
+
+    for (final binding in _bindings) {
+      if (binding.matches(event)) {
+        return binding.intent;
+      }
+    }
+
+    return null;
+  }
+}
+
+class _ShortcutBinding {
+  const _ShortcutBinding._({
+    required this.key,
+    required this.intent,
+    required this.requiresModifier,
+  });
+
+  factory _ShortcutBinding.mod(LogicalKeyboardKey key, Intent intent) {
+    return _ShortcutBinding._(
+      key: key,
+      intent: intent,
+      requiresModifier: true,
+    );
+  }
+
+  factory _ShortcutBinding.single(LogicalKeyboardKey key, Intent intent) {
+    return _ShortcutBinding._(
+      key: key,
+      intent: intent,
+      requiresModifier: false,
+    );
+  }
+
+  final LogicalKeyboardKey key;
+  final Intent intent;
+  final bool requiresModifier;
+
+  Map<ShortcutActivator, Intent> get activators {
+    if (!requiresModifier) {
+      return {
+        LogicalKeySet(key): intent,
+      };
+    }
+
+    return {
+      LogicalKeySet(LogicalKeyboardKey.control, key): intent,
+      LogicalKeySet(LogicalKeyboardKey.meta, key): intent,
+    };
+  }
+
+  bool matches(KeyEvent event) {
+    if (event.logicalKey != key) {
+      return false;
+    }
+
+    if (!requiresModifier) {
+      return true;
+    }
+
+    return HardwareKeyboard.instance.isControlPressed ||
+        HardwareKeyboard.instance.isMetaPressed;
+  }
+}
+
+class ShortcutExecutionGuard {
+  ShortcutExecutionGuard({
+    this.cooldown = const Duration(milliseconds: 400),
+  });
+
+  final Duration cooldown;
+  final Map<Object, DateTime> _lastExecutionByShortcut = <Object, DateTime>{};
+
+  bool canExecute(Object shortcutId, {DateTime? now}) {
+    final currentTime = now ?? DateTime.now();
+    final lastExecution = _lastExecutionByShortcut[shortcutId];
+
+    if (lastExecution != null &&
+        currentTime.difference(lastExecution) < cooldown) {
+      return false;
+    }
+
+    _lastExecutionByShortcut[shortcutId] = currentTime;
+    return true;
+  }
+
+  void reset([Object? shortcutId]) {
+    if (shortcutId == null) {
+      _lastExecutionByShortcut.clear();
+      return;
+    }
+
+    _lastExecutionByShortcut.remove(shortcutId);
   }
 }
 

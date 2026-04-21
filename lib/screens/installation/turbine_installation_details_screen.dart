@@ -1,21 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:as_built/widgets/liquid_glass_overlays.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io' show Platform;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/localization/translation_helper.dart';
 import '../../models/installation/fase_componente.dart';
 import '../../models/installation/tipo_fase.dart';
+import '../../widgets/installation/final_phases_cards_view.dart';
 import 'fase_edit_dialog.dart';
 import '../../providers/app_providers.dart';
 import '../../screens/torque_tensioning/torque_tensioning_screen.dart';
 import '../../screens/mobile/logistica_form_screen.dart';
+import '../../screens/mobile/mobile_app.dart';
+import '../../screens/mobile/mobile_projects_screen.dart';
+import '../../widgets/app_bar_dashboard_shortcut.dart';
+import '../../widgets/mobile/turbine_location_sheet.dart';
 import '../auth/login_screen.dart';
-import '../dashboard/dashboard_screen.dart';
 
 part 'turbine_installation_details_screen.g.dart';
 
@@ -27,9 +31,9 @@ part 'turbine_installation_details_screen.g.dart';
 @riverpod
 class SelectedInstallationPhase extends _$SelectedInstallationPhase {
   @override
-  String build() => 'reception';
+  String? build() => null;
 
-  void setPhase(String phase) => state = phase;
+  void setPhase(String? phase) => state = phase;
 }
 
 class TurbineInstallationDetailsScreen extends ConsumerStatefulWidget {
@@ -55,9 +59,8 @@ class TurbineInstallationDetailsScreen extends ConsumerStatefulWidget {
 
 class _TurbineInstallationDetailsScreenState
     extends ConsumerState<TurbineInstallationDetailsScreen> {
-  final ImagePicker _imagePicker = ImagePicker();
-
   bool _isMigrating = false;
+  bool _isOpeningTorqueScreen = false;
 
   // ══════════════════════════════════════════════════════════════════════════
   // 🔧 HELPER: VERIFICAR SE É MOBILE
@@ -83,21 +86,23 @@ class _TurbineInstallationDetailsScreenState
       final status =
           await componenteService.getMigrationStatus(widget.turbineId);
 
-      print('📊 Status migração Instalação turbina ${widget.turbineName}:');
-      print('   Total: ${status['total']}');
-      print('   Migrados: ${status['migrated']}');
-      print('   Pendentes: ${status['pending']}');
+      debugPrint(
+          '📊 Status migração Instalação turbina ${widget.turbineName}:');
+      debugPrint('   Total: ${status['total']}');
+      debugPrint('   Migrados: ${status['migrated']}');
+      debugPrint('   Pendentes: ${status['pending']}');
 
       // Se houver componentes pendentes, migrar automaticamente
       if (status['pending'] > 0) {
-        print('🔄 Instalação: Migrando ${status['pending']} componentes...');
+        debugPrint(
+            '🔄 Instalação: Migrando ${status['pending']} componentes...');
 
         await componenteService.migrateComponentesForTurbina(widget.turbineId);
 
-        print('✅ Instalação: Migração automática concluída!');
+        debugPrint('✅ Instalação: Migração automática concluída!');
       }
     } catch (e) {
-      print('❌ Erro na migração automática: $e');
+      debugPrint('❌ Erro na migração automática: $e');
       // Não bloquear a UI por erro de migração
     } finally {
       if (mounted) {
@@ -109,55 +114,68 @@ class _TurbineInstallationDetailsScreenState
   // ══════════════════════════════════════════════════════════════════════════
   // 📋 DEFINIÇÃO DAS 5 FASES
   // ══════════════════════════════════════════════════════════════════════════
-  final List<Map<String, dynamic>> _phases = [
-    {
-      'id': 'reception',
-      'tipoFase': TipoFase.recepcao,
-      'icon': Icons.local_shipping,
-      'nameKey': 'reception',
-      'color': const Color(0xFF2196F3), // Azul
-    },
-    {
-      'id': 'preparation',
-      'tipoFase': TipoFase.preparacao,
-      'icon': Icons.assignment,
-      'nameKey': 'preparation',
-      'color': const Color(0xFF9C27B0), // Roxo
-    },
-    {
-      'id': 'preAssembly',
-      'tipoFase': TipoFase.preInstalacao,
-      'icon': Icons.construction,
-      'nameKey': 'pre_assembly',
-      'color': const Color(0xFF00BCD4), // Ciano
-    },
-    {
-      'id': 'assembly',
-      'tipoFase': TipoFase.instalacao,
-      'icon': Icons.build_circle,
-      'nameKey': 'assembly',
-      'color': const Color(0xFFFF9800), // Laranja
-    },
-    {
-      'id': 'logistics',
-      'icon': Icons.construction, // ✅ Ícone de grua
-      'nameKey': 'cranes', // ✅ Novo nome
-      'color': const Color(0xFF607D8B), // Blue Grey
-    },
-    {
-      'id': 'torqueTensioning',
-      'tipoFase': TipoFase.torqueTensionamento,
-      'icon': Icons.bolt,
-      'nameKey': 'torqueTensioning',
-      'color': const Color(0xFFFF5722), // Laranja/Vermelho forte
-    },
-    {
-      'id': 'finalPhases',
-      'icon': Icons.checklist_rtl,
-      'nameKey': 'final_phases',
-      'color': const Color(0xFF4CAF50), // Verde
-    },
-  ];
+  List<Map<String, dynamic>> get _phases {
+    final phases = <Map<String, dynamic>>[
+      {
+        'id': 'reception',
+        'tipoFase': TipoFase.recepcao,
+        'icon': Icons.local_shipping,
+        'nameKey': 'reception',
+        'color': AppColors.primaryBlue,
+      },
+      {
+        'id': 'preparation',
+        'tipoFase': TipoFase.preparacao,
+        'icon': Icons.assignment,
+        'nameKey': 'preparation',
+        'color': AppColors.primaryBlueMedium,
+      },
+      {
+        'id': 'preAssembly',
+        'tipoFase': TipoFase.preInstalacao,
+        'icon': Icons.construction,
+        'nameKey': 'pre_assembly',
+        'color': AppColors.accentCyan,
+      },
+      {
+        'id': 'assembly',
+        'tipoFase': TipoFase.instalacao,
+        'icon': Icons.build_circle,
+        'nameKey': 'assembly',
+        'color': AppColors.warningOrange,
+      },
+      {
+        'id': 'logistics',
+        'icon': Icons.construction,
+        'nameKey': 'cranes',
+        'color': AppColors.darkGray,
+      },
+      {
+        'id': 'torqueTensioning',
+        'tipoFase': TipoFase.torqueTensionamento,
+        'icon': Icons.bolt,
+        'nameKey': 'torqueTensioning',
+        'color': AppColors.errorRed,
+      },
+      {
+        'id': 'finalPhases',
+        'icon': Icons.checklist_rtl,
+        'nameKey': 'final_phases',
+        'color': AppColors.successGreen,
+      },
+    ];
+
+    if (_isMobile) {
+      phases.insert(0, {
+        'id': 'location',
+        'icon': Icons.location_on,
+        'nameKey': 'location',
+        'color': AppColors.accentTeal,
+      });
+    }
+
+    return phases;
+  }
 
   // ══════════════════════════════════════════════════════════════════════════
   // 📦 COMPONENTES DA FASE RECEÇÃO (HARDCODED) - DINÂMICO
@@ -423,23 +441,6 @@ class _TurbineInstallationDetailsScreenState
     return components;
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // 🎯 7 FASES FINAIS (SEM COMPONENTES)
-  // ══════════════════════════════════════════════════════════════════════════
-  final List<Map<String, String>> _finalPhases = [
-    {'id': 'electricalWorks', 'nameKey': 'electricalWorks', 'icon': '⚡'},
-    {'id': 'mechanicalWorks', 'nameKey': 'mechanicalWorks', 'icon': '🔩'},
-    {'id': 'finish', 'nameKey': 'finish', 'icon': '🎨'},
-    {
-      'id': 'supervisorInspection',
-      'nameKey': 'supervisorInspection',
-      'icon': '🔍'
-    },
-    {'id': 'punchlist', 'nameKey': 'punchlist', 'icon': '📝'},
-    {'id': 'clientInspection', 'nameKey': 'clientInspection', 'icon': '👥'},
-    {'id': 'clientPunchlist', 'nameKey': 'clientPunchlist', 'icon': '📋'},
-  ];
-
   @override
   Widget build(BuildContext context) {
     final t = TranslationHelper.of(context);
@@ -448,18 +449,28 @@ class _TurbineInstallationDetailsScreenState
     // Mostrar indicador se estiver migrando
     if (_isMigrating) {
       return Scaffold(
-        appBar: AppBar(title: Text(widget.turbineName)),
-        body: const Center(
+        appBar: AppBar(
+          flexibleSpace: Container(
+            decoration: const BoxDecoration(
+              gradient: AppColors.primaryGradient,
+            ),
+          ),
+          title: DashboardShortcutTitle(
+            child: Text(widget.turbineName),
+          ),
+        ),
+        body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              CircularProgressIndicator(),
-              SizedBox(height: 16),
-              Text('Preparing components...'),
-              SizedBox(height: 8),
+              const CircularProgressIndicator(),
+              const SizedBox(height: 16),
+              Text(t.translate('preparing_components')),
+              const SizedBox(height: 8),
               Text(
-                'This only happens once per turbine',
-                style: TextStyle(fontSize: 12, color: AppColors.mediumGray),
+                t.translate('migration_once_per_turbine'),
+                style:
+                    const TextStyle(fontSize: 12, color: AppColors.mediumGray),
               ),
             ],
           ),
@@ -469,7 +480,14 @@ class _TurbineInstallationDetailsScreenState
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.turbineName),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: AppColors.primaryGradient,
+          ),
+        ),
+        title: DashboardShortcutTitle(
+          child: Text(widget.turbineName),
+        ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
@@ -487,7 +505,14 @@ class _TurbineInstallationDetailsScreenState
                 // Botão Escolher Parque
                 IconButton(
                   icon: const Icon(Icons.home_outlined),
-                  onPressed: () => _showProjectSelectionDialog(),
+                  onPressed: () {
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(
+                        builder: (_) => const MobileProjectsScreen(),
+                      ),
+                      (route) => false,
+                    );
+                  },
                   tooltip: t.translate('select_project'),
                 ),
                 // Botão Logout
@@ -508,144 +533,52 @@ class _TurbineInstallationDetailsScreenState
           ),
         ],
       ),
-      floatingActionButton: Container(
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [AppColors.primaryBlue, Color(0xFF00BCD4)],
-          ),
-          borderRadius: BorderRadius.circular(32),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: () => _openLogisticaForm(),
-            borderRadius: BorderRadius.circular(32),
-            splashColor: Colors.white.withOpacity(0.3),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.precision_manufacturing_sharp,
-                      color: Colors.white),
-                  const SizedBox(width: 8),
-                  Text(
-                    t.translate('register_activity'),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w500,
-                    ),
+      floatingActionButton: selectedPhase == 'logistics'
+          ? Container(
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [AppColors.primaryBlue, AppColors.accentCyan],
+                ),
+                borderRadius: BorderRadius.circular(32),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.2),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
                   ),
                 ],
               ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ══════════════════════════════════════════════════════════════════════════
-  // 🏠 DIALOG: ESCOLHER PARQUE/PROJETO
-  // ══════════════════════════════════════════════════════════════════════════
-  void _showProjectSelectionDialog() async {
-    final t = TranslationHelper.of(context);
-    final projectsAsync = ref.read(userProjectsProvider);
-
-    await projectsAsync.when(
-      data: (projects) async {
-        if (projects.isEmpty) {
-          // Nenhum projeto disponível
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(t.translate('no_projects_available')),
-                backgroundColor: AppColors.warningOrange,
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () => _openLogisticaForm(),
+                  borderRadius: BorderRadius.circular(32),
+                  splashColor: Colors.white.withValues(alpha: 0.3),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.precision_manufacturing_sharp,
+                            color: Colors.white),
+                        const SizedBox(width: 8),
+                        Text(
+                          t.translate('register_activity'),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
-            );
-          }
-          return;
-        }
-
-        // Mostrar diálogo com lista de projetos
-        final selectedProject = await showDialog<String>(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Row(
-              children: [
-                const Icon(Icons.business, color: AppColors.primaryBlue),
-                const SizedBox(width: 12),
-                Text(t.translate('select_project')),
-              ],
-            ),
-            content: SizedBox(
-              width: double.maxFinite,
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: projects.length,
-                itemBuilder: (context, index) {
-                  final project = projects[index];
-                  return ListTile(
-                    leading: const Icon(Icons.wind_power,
-                        color: AppColors.primaryBlue),
-                    title: Text(project.nome),
-                    subtitle: Text('ID: ${project.projectId}'),
-                    onTap: () => Navigator.of(context).pop(project.id),
-                  );
-                },
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: Text(t.translate('cancel')),
-              ),
-            ],
-          ),
-        );
-
-        // Se selecionou um projeto, navegar para o dashboard
-        if (selectedProject != null && mounted) {
-          ref
-              .read(selectedProjectIdProvider.notifier)
-              .setValue(selectedProject);
-
-          // Voltar para o dashboard
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (_) => const DashboardScreen()),
-            (route) => false,
-          );
-        }
-      },
-      loading: () {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(t.translate('loading')),
-              duration: const Duration(seconds: 1),
-            ),
-          );
-        }
-      },
-      error: (error, _) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('${t.translate('error')}: $error'),
-              backgroundColor: AppColors.errorRed,
-            ),
-          );
-        }
-      },
+            )
+          : null,
     );
   }
 
@@ -655,7 +588,7 @@ class _TurbineInstallationDetailsScreenState
   void _showLogoutDialog() async {
     final t = TranslationHelper.of(context);
 
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showLiquidDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: Row(
@@ -691,10 +624,13 @@ class _TurbineInstallationDetailsScreenState
         ref.read(selectedProjectIdProvider.notifier).setValue(null);
         ref.read(selectedTurbinaIdProvider.notifier).setValue(null);
 
-        // Navegar para login
+        // Navegar para login correto por plataforma
         if (mounted) {
           Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (_) => const LoginScreen()),
+            MaterialPageRoute(
+              builder: (_) =>
+                  _isMobile ? const MobileApp() : const LoginScreen(),
+            ),
             (route) => false,
           );
         }
@@ -715,13 +651,23 @@ class _TurbineInstallationDetailsScreenState
   // 🎨 WIDGET: CARD DA TURBINA (FIXO NO TOPO)
   // ══════════════════════════════════════════════════════════════════════════
   Widget _buildTurbineInfoCard(TranslationHelper t) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final surfaceColor = isDark
+        ? AppColors.glassSurfaceDark
+        : AppColors.primaryBlue.withValues(alpha: 0.1);
+    final borderColor = isDark
+        ? const Color(0xFF758392)
+        : AppColors.primaryBlue.withValues(alpha: 0.3);
+    final primaryText = AppColors.adaptivePrimaryText(context);
+    final secondaryText = AppColors.adaptiveSecondaryText(context);
+
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.primaryBlue.withValues(alpha: 0.1),
+        color: surfaceColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.primaryBlue.withValues(alpha: 0.3)),
+        border: Border.all(color: borderColor),
       ),
       child: Row(
         children: [
@@ -740,17 +686,16 @@ class _TurbineInstallationDetailsScreenState
               children: [
                 Text(
                   widget.turbineName,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.darkGray,
+                    color: primaryText,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   '${t.translate('turbine_model')}: ${widget.turbineModel} | ${t.translate('sequence')}: ${widget.turbineSequence}',
-                  style: const TextStyle(
-                      fontSize: 14, color: AppColors.mediumGray),
+                  style: TextStyle(fontSize: 14, color: secondaryText),
                 ),
               ],
             ),
@@ -763,14 +708,22 @@ class _TurbineInstallationDetailsScreenState
   // ══════════════════════════════════════════════════════════════════════════
   // 🎨 WIDGET: BARRA DE FASES
   // ══════════════════════════════════════════════════════════════════════════
-  Widget _buildPhasesBar(String selectedPhase, TranslationHelper t) {
+  Widget _buildPhasesBar(String? selectedPhase, TranslationHelper t) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final panelColor =
+        isDark ? AppColors.glassSurfaceDark : AppColors.glassSurfaceStrongLight;
+    final borderColor = isDark ? const Color(0xFF6F7E8C) : AppColors.borderGray;
+
     return Container(
       height: 100,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: panelColor,
+        border: Border(
+          bottom: BorderSide(color: borderColor.withValues(alpha: 0.55)),
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withValues(alpha: isDark ? 0.18 : 0.05),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -791,7 +744,15 @@ class _TurbineInstallationDetailsScreenState
 
   Widget _buildPhaseButton(
       Map<String, dynamic> phase, bool isSelected, TranslationHelper t) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final color = phase['color'] as Color;
+    final borderColor = isDark ? const Color(0xFF758392) : AppColors.borderGray;
+    final backgroundColor = isDark
+        ? AppColors.glassSurfaceDark.withValues(alpha: isSelected ? 0.94 : 0.88)
+        : (isSelected ? color : Colors.white);
+    final iconColor = isDark ? color : (isSelected ? Colors.white : color);
+    final textColor =
+        isDark ? color : (isSelected ? Colors.white : AppColors.darkGray);
 
     return GestureDetector(
       onTap: () {
@@ -803,26 +764,27 @@ class _TurbineInstallationDetailsScreenState
         width: 90,
         margin: const EdgeInsets.only(right: 12),
         decoration: BoxDecoration(
-          color: isSelected ? color : Colors.white,
+          color: backgroundColor,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? color : AppColors.borderGray,
-            width: 2,
+            color: borderColor,
+            width: 1.2,
           ),
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                      color: color.withValues(alpha: 0.3),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4))
+                    color: (isDark ? borderColor : color)
+                        .withValues(alpha: isDark ? 0.18 : 0.3),
+                    blurRadius: isDark ? 10 : 8,
+                    offset: const Offset(0, 4),
+                  )
                 ]
               : [],
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(phase['icon'] as IconData,
-                size: 28, color: isSelected ? Colors.white : color),
+            Icon(phase['icon'] as IconData, size: 28, color: iconColor),
             const SizedBox(height: 6),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -831,7 +793,7 @@ class _TurbineInstallationDetailsScreenState
                 style: TextStyle(
                   fontSize: 10,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                  color: isSelected ? Colors.white : AppColors.darkGray,
+                  color: textColor,
                 ),
                 textAlign: TextAlign.center,
                 maxLines: 2,
@@ -847,8 +809,31 @@ class _TurbineInstallationDetailsScreenState
   // ══════════════════════════════════════════════════════════════════════════
   // 📝 WIDGET: CONTEÚDO DA FASE (COMPONENTES)
   // ══════════════════════════════════════════════════════════════════════════
-  Widget _buildPhaseContent(String selectedPhase, TranslationHelper t) {
+  Widget _buildPhaseContent(String? selectedPhase, TranslationHelper t) {
+    if (selectedPhase == null) {
+      return _buildPhaseSelectionPlaceholder(t);
+    }
+
     switch (selectedPhase) {
+      case 'location':
+        return ref.watch(turbinaByIdProvider(widget.turbineId)).when(
+              data: (turbina) => TurbineLocationSheet(
+                turbinaId: widget.turbineId,
+                turbinaNome: widget.turbineName,
+                initialLocation: turbina?.localizacao,
+                embedded: true,
+                onCancel: () {
+                  ref
+                      .read(selectedInstallationPhaseProvider.notifier)
+                      .setPhase(null);
+                },
+              ),
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (_, __) => Center(
+                child: Text(t.translate('error')),
+              ),
+            );
+
       case 'reception':
         return _buildComponentsList(
             _getReceptionComponents(), TipoFase.recepcao, t);
@@ -864,11 +849,20 @@ class _TurbineInstallationDetailsScreenState
       case 'logistics':
         return _buildLogisticaList(t);
       case 'torqueTensioning':
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
+        if (!_isOpeningTorqueScreen) {
+          _isOpeningTorqueScreen = true;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+
+            final currentPhase = ref.read(selectedInstallationPhaseProvider);
+            if (currentPhase != 'torqueTensioning') {
+              _isOpeningTorqueScreen = false;
+              return;
+            }
+
             _openTorqueTensioningScreen();
-          }
-        });
+          });
+        }
         return Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -884,10 +878,38 @@ class _TurbineInstallationDetailsScreenState
           ),
         );
       case 'finalPhases':
-        return _buildFinalPhasesContent(t);
+        return _buildFinalPhasesContent();
       default:
-        return const Center(child: Text('Unknown phase'));
+        return Center(child: Text(t.translate('unknown_phase')));
     }
+  }
+
+  Widget _buildPhaseSelectionPlaceholder(TranslationHelper t) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.touch_app,
+              size: 48,
+              color: AppColors.mediumGray.withValues(alpha: 0.75),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              t.translate('select_phase_to_open'),
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: AppColors.darkGray,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   void _openLogisticaForm({Map<String, dynamic>? existingData, String? docId}) {
@@ -978,6 +1000,10 @@ class _TurbineInstallationDetailsScreenState
     final componentId = '${component['id']}_${widget.turbineId}';
     final displayName =
         component['displayName'] ?? t.translate(component['nameKey']);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final borderColor = isDark ? const Color(0xFF758392) : AppColors.borderGray;
+    final cardColor =
+        isDark ? AppColors.glassSurfaceDark : Theme.of(context).cardTheme.color;
 
     return FutureBuilder<FaseComponente?>(
       future: _getFaseDoComponente(componentId, tipoFase),
@@ -986,8 +1012,11 @@ class _TurbineInstallationDetailsScreenState
           return Card(
             elevation: 1,
             margin: EdgeInsets.zero,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            color: cardColor,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+              side: BorderSide(color: borderColor, width: 1),
+            ),
             child: const Padding(
               padding: EdgeInsets.all(8),
               child: Center(
@@ -1002,7 +1031,7 @@ class _TurbineInstallationDetailsScreenState
         }
 
         if (snapshot.hasError) {
-          print('❌ Erro ao buscar fase: ${snapshot.error}');
+          debugPrint('❌ Erro ao buscar fase: ${snapshot.error}');
         }
 
         final fase = snapshot.data;
@@ -1016,7 +1045,11 @@ class _TurbineInstallationDetailsScreenState
         return Card(
           elevation: 1,
           margin: EdgeInsets.zero,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          color: cardColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+            side: BorderSide(color: borderColor, width: 1),
+          ),
           child: InkWell(
             onTap: () =>
                 _openComponentDialog(componentId, component, tipoFase, fase, t),
@@ -1031,10 +1064,10 @@ class _TurbineInstallationDetailsScreenState
                   const SizedBox(height: 2),
                   Text(
                     displayName,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 9,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.darkGray,
+                      color: statusColor,
                     ),
                     textAlign: TextAlign.center,
                     maxLines: 2,
@@ -1043,10 +1076,10 @@ class _TurbineInstallationDetailsScreenState
                   const SizedBox(height: 2),
                   Text(
                     '${progresso.toStringAsFixed(0)}%',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.darkGray,
+                      color: statusColor,
                     ),
                   ),
                 ],
@@ -1074,7 +1107,7 @@ class _TurbineInstallationDetailsScreenState
       }
       return null;
     } catch (e) {
-      print('❌ Erro ao buscar fase: $e');
+      debugPrint('❌ Erro ao buscar fase: $e');
       return null;
     }
   }
@@ -1106,10 +1139,11 @@ class _TurbineInstallationDetailsScreenState
           .collection('fases_componente')
           .add(novaFase.toFirestore());
 
+      if (!mounted) return;
       fase = novaFase.copyWith(id: docRef.id);
     }
 
-    final result = await showDialog<bool>(
+    final result = await showLiquidDialog<bool>(
       context: context,
       barrierDismissible: false,
       builder: (context) => FaseEditDialog(
@@ -1123,154 +1157,18 @@ class _TurbineInstallationDetailsScreenState
     }
   }
 
-  Widget _buildFinalPhasesContent(TranslationHelper t) {
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: _finalPhases.length,
-      itemBuilder: (context, index) {
-        final phase = _finalPhases[index];
-        return Card(
-          margin: const EdgeInsets.only(bottom: 16),
-          child: ExpansionTile(
-            leading: Text(phase['icon']!, style: const TextStyle(fontSize: 24)),
-            title: Text(t.translate(phase['nameKey']!),
-                style: const TextStyle(fontWeight: FontWeight.bold)),
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                            child: _buildDateField(
-                                label: t.translate('startDate'),
-                                hint: 'DD/MM/AAAA')),
-                        const SizedBox(width: 12),
-                        Expanded(
-                            child: _buildDateField(
-                                label: t.translate('endDate'),
-                                hint: 'DD/MM/AAAA')),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    _buildPhotoField(t),
-                    const SizedBox(height: 12),
-                    _buildTextField(
-                        label: t.translate('observations'),
-                        hint: t.translate('add_notes_optional'),
-                        icon: Icons.notes,
-                        maxLines: 3),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: () {},
-                            icon: const Icon(Icons.not_interested),
-                            label: const Text('N/A'),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          flex: 2,
-                          child: ElevatedButton.icon(
-                            onPressed: () {},
-                            icon: const Icon(Icons.save),
-                            label: Text(t.translate('save')),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildTextField(
-      {required String label,
-      required String hint,
-      IconData? icon,
-      int maxLines = 1}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label,
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-        const SizedBox(height: 6),
-        TextField(
-          maxLines: maxLines,
-          decoration: InputDecoration(
-            hintText: hint,
-            prefixIcon: icon != null ? Icon(icon) : null,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDateField({required String label, required String hint}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label,
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-        const SizedBox(height: 6),
-        TextField(
-          decoration: InputDecoration(
-            hintText: hint,
-            prefixIcon: const Icon(Icons.calendar_today),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-          ),
-          onTap: () async {
-            await showDatePicker(
-                context: context,
-                initialDate: DateTime.now(),
-                firstDate: DateTime(2020),
-                lastDate: DateTime(2030));
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPhotoField(TranslationHelper t) {
-    return InkWell(
-      onTap: () async {
-        await _imagePicker.pickImage(source: ImageSource.camera);
-      },
-      child: Container(
-        height: 120,
-        decoration: BoxDecoration(
-          color: AppColors.borderGray.withValues(alpha: 0.3),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: AppColors.borderGray, width: 2),
-        ),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.camera_alt,
-                  size: 40, color: AppColors.mediumGray),
-              const SizedBox(height: 8),
-              Text(t.translate('add_photo'),
-                  style: const TextStyle(color: AppColors.mediumGray)),
-            ],
-          ),
-        ),
-      ),
+  Widget _buildFinalPhasesContent() {
+    return FinalPhasesCardsView(
+      turbinaId: widget.turbineId,
+      physics: const BouncingScrollPhysics(),
     );
   }
 
   Future<void> _openTorqueTensioningScreen() async {
+    if (!_isOpeningTorqueScreen) {
+      _isOpeningTorqueScreen = true;
+    }
+
     try {
       final turbinaDoc = await FirebaseFirestore.instance
           .collection('turbinas')
@@ -1302,7 +1200,7 @@ class _TurbineInstallationDetailsScreenState
         }
       }
     } catch (e) {
-      print('❌ Erro ao abrir Torque: $e');
+      debugPrint('❌ Erro ao abrir Torque: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -1314,6 +1212,8 @@ class _TurbineInstallationDetailsScreenState
             .read(selectedInstallationPhaseProvider.notifier)
             .setPhase('assembly');
       }
+    } finally {
+      _isOpeningTorqueScreen = false;
     }
   }
 
@@ -1352,7 +1252,7 @@ class _TurbineInstallationDetailsScreenState
               margin: const EdgeInsets.only(bottom: 12),
               child: ListTile(
                 leading: CircleAvatar(
-                  backgroundColor: AppColors.primaryBlue.withOpacity(0.1),
+                  backgroundColor: AppColors.primaryBlue.withValues(alpha: 0.1),
                   child: Icon(_getIconForTipo(logData['tipo']),
                       color: AppColors.primaryBlue),
                 ),
@@ -1387,7 +1287,7 @@ class _TurbineInstallationDetailsScreenState
 
   void _showLogDetail(
       Map<String, dynamic> data, String docId, TranslationHelper t) {
-    showModalBottomSheet(
+    showLiquidBottomSheet(
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
@@ -1473,7 +1373,7 @@ class _TurbineInstallationDetailsScreenState
   }
 
   void _deleteLog(String docId) async {
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showLiquidDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text("Eliminar Registo"),

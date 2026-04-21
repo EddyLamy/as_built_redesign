@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../core/theme/app_colors.dart';
 import '../../i18n/installation_translations.dart';
 import '../../providers/locale_provider.dart';
 
@@ -37,7 +38,7 @@ class TimelineTab extends ConsumerWidget {
                 const Icon(Icons.timeline, size: 64, color: Colors.grey),
                 const SizedBox(height: 16),
                 Text(t['nenhumEventoEncontrado'] ?? 'Nenhum evento encontrado',
-                    style: TextStyle(color: Colors.grey[600])),
+                    style: const TextStyle(color: AppColors.mediumGray)),
               ],
             ),
           );
@@ -78,7 +79,7 @@ class TimelineTab extends ConsumerWidget {
         subtitulo: 'Início',
         tipo: 'fase',
         icon: Icons.play_arrow,
-        color: Colors.green,
+        color: AppColors.successGreen,
       ));
 
       eventos.add(TimelineEvent(
@@ -87,7 +88,7 @@ class TimelineTab extends ConsumerWidget {
         subtitulo: 'Fim',
         tipo: 'fase',
         icon: Icons.stop,
-        color: Colors.red,
+        color: AppColors.errorRed,
       ));
     }
 
@@ -104,7 +105,7 @@ class TimelineTab extends ConsumerWidget {
         subtitulo: 'Trabalho Mecânico',
         tipo: 'trabalho',
         icon: Icons.build,
-        color: Colors.orange,
+        color: AppColors.warningOrange,
       ));
     }
 
@@ -159,7 +160,7 @@ class _TimelineItem extends StatelessWidget {
                   Expanded(
                     child: Container(
                       width: 2,
-                      color: Colors.grey[300],
+                      color: AppColors.lightGray,
                     ),
                   ),
                 Container(
@@ -175,7 +176,7 @@ class _TimelineItem extends StatelessWidget {
                   Expanded(
                     child: Container(
                       width: 2,
-                      color: Colors.grey[300],
+                      color: AppColors.lightGray,
                     ),
                   ),
               ],
@@ -193,9 +194,9 @@ class _TimelineItem extends StatelessWidget {
                   children: [
                     Text(
                       _formatDate(evento.data),
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 12,
-                        color: Colors.grey[600],
+                        color: AppColors.mediumGray,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -210,9 +211,9 @@ class _TimelineItem extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       evento.subtitulo,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 12,
-                        color: Colors.grey[600],
+                        color: AppColors.mediumGray,
                       ),
                     ),
                   ],

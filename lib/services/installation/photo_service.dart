@@ -64,10 +64,10 @@ class PhotoService {
       await ref.putData(bytes);
 
       final url = await ref.getDownloadURL();
-      print('✅ Upload: $url');
+      debugPrint('✅ Upload: $url');
       return url;
     } catch (e) {
-      print('❌ Upload erro: $e');
+      debugPrint('❌ Upload erro: $e');
       return null;
     }
   }

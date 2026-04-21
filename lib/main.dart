@@ -5,6 +5,7 @@ import 'package:flutter/services.dart' show rootBundle, ByteData;
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'providers/auth_observer.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'core/theme/app_theme.dart';
 import 'core/localization/translation_helper.dart';
@@ -13,11 +14,17 @@ import 'screens/auth/login_screen.dart';
 import 'firebase_options.dart';
 import 'utils/platform_helper.dart';
 import 'screens/mobile/mobile_app.dart';
-import '../../providers/theme_provider.dart';
-import '../utils/global_keyboard_handler.dart';
+import 'providers/theme_provider.dart';
+import 'utils/global_keyboard_handler.dart'
+    show GlobalKeyboardHandler, shortcutRouteObserver;
+import 'screens/equipment/equipment_screen.dart';
+import 'widgets/liquid_glass_shell.dart';
+// import 'screens/documentation/documentation_screen.dart'; // Quando criares a documentação, descomenta isto e adiciona a rota no LoginScreen
 
 // Global navigator key para aceder ao Navigator de qualquer lugar
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
+    GlobalKey<ScaffoldMessengerState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -64,7 +71,14 @@ void main() async {
   // ══════════════════════════════════════════════════════════════════════════
   // 4. INICIAR APP (UMA VEZ APENAS!)
   // ══════════════════════════════════════════════════════════════════════════
-  runApp(const ProviderScope(child: AsBuiltApp()));
+  runApp(
+    ProviderScope(
+      observers: [
+        AuthStateObserver(),
+      ],
+      child: const AsBuiltApp(),
+    ),
+  );
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -78,7 +92,6 @@ void _setupWindowsErrorHandling() {
 
   FlutterError.onError = (FlutterErrorDetails details) {
     final exceptionString = details.exception.toString();
-    final stackString = details.stack?.toString() ?? '';
 
     // 1. Erros do Firebase (threading)
     if (exceptionString.contains('platform thread') ||
@@ -86,11 +99,9 @@ void _setupWindowsErrorHandling() {
       return; // Ignorar silenciosamente
     }
 
-    // 2. Erros de teclado duplicados (QUALQUER KeyDownEvent)
-    if (exceptionString.contains('KeyDownEvent') ||
-        exceptionString.contains('KeyUpEvent') ||
-        exceptionString.contains('physical key is already pressed') ||
-        stackString.contains('hardware_keyboard.dart')) {
+    // 2. Erros de teclado duplicados (APENAS o erro específico)
+    // ⚠️ NÃO bloquear todos os KeyDownEvent, apenas o erro de tecla já pressionada!
+    if (exceptionString.contains('physical key is already pressed')) {
       return; // Ignorar silenciosamente
     }
 
@@ -105,7 +116,8 @@ void _setupWindowsErrorHandling() {
   };
 
   debugPrint('🪟 Running on Windows Desktop');
-  debugPrint('✅ All keyboard keys enabled (including Backspace)');
+  debugPrint(
+      '✅ All keyboard keys enabled (including Portuguese special characters and Backspace)');
 }
 
 Future<void> _prepareOCR() async {
@@ -159,6 +171,9 @@ class AsBuiltApp extends ConsumerWidget {
       return MaterialApp(
         title: 'As-Built Mobile',
         debugShowCheckedModeBanner: false,
+        scaffoldMessengerKey: scaffoldMessengerKey,
+        themeAnimationDuration: const Duration(milliseconds: 280),
+        themeAnimationCurve: Curves.easeInOutCubic,
         theme: AppTheme.lightTheme,
         darkTheme: AppTheme.darkTheme,
         themeMode: currentTheme == 'light' ? ThemeMode.light : ThemeMode.dark,
@@ -170,6 +185,9 @@ class AsBuiltApp extends ConsumerWidget {
           GlobalWidgetsLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,
         ],
+        builder: (context, child) => LiquidGlassShell(
+          child: child ?? const SizedBox.shrink(),
+        ),
         // MOBILE: Vai direto para MobileApp (que tem seu próprio auth check)
         home: const MobileApp(),
       );
@@ -183,6 +201,9 @@ class AsBuiltApp extends ConsumerWidget {
         title: 'As-Built - Wind Turbine Installation',
         debugShowCheckedModeBanner: false,
         navigatorKey: navigatorKey,
+        scaffoldMessengerKey: scaffoldMessengerKey,
+        themeAnimationDuration: const Duration(milliseconds: 280),
+        themeAnimationCurve: Curves.easeInOutCubic,
         theme: AppTheme.lightTheme,
         darkTheme: AppTheme.darkTheme,
         themeMode: currentTheme == 'light' ? ThemeMode.light : ThemeMode.dark,
@@ -194,8 +215,20 @@ class AsBuiltApp extends ConsumerWidget {
           GlobalWidgetsLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,
         ],
+        // ══════════════════════════════════════════════════════════════════
+        // 🗺️ ROTAS NOMEADAS
+        // ══════════════════════════════════════════════════════════════════
+        navigatorObservers: [shortcutRouteObserver],
+        routes: {
+          '/equipment': (context) => const EquipmentScreen(),
+          // '/documentation': (context) => const DocumentationScreen(), // Próxima feature
+        },
         // DESKTOP: Envolve tudo com GlobalKeyboardHandler
-        builder: (context, child) => GlobalKeyboardHandler(child: child!),
+        builder: (context, child) => LiquidGlassShell(
+          child: GlobalKeyboardHandler(
+            child: child ?? const SizedBox.shrink(),
+          ),
+        ),
         home: const LoginScreen(),
       );
     }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:as_built/widgets/liquid_glass_overlays.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../../core/theme/app_colors.dart';
 import '../../models/torque_tensioning.dart';
 import '../../providers/torque_tensioning_providers.dart';
 import '../../widgets/torque_tensioning_edit_dialog.dart';
@@ -40,7 +42,10 @@ class TorqueFaseCard extends ConsumerWidget {
 
         return Card(
           margin: const EdgeInsets.only(bottom: 8),
-          elevation: 1,
+          elevation: 6,
+          shadowColor: AppColors.isDarkContext(context)
+              ? Colors.black.withValues(alpha: 0.42)
+              : const Color(0xFF0F4C81).withValues(alpha: 0.18),
           child: Column(
             children: [
               // Header com progresso geral
@@ -64,19 +69,22 @@ class TorqueFaseCard extends ConsumerWidget {
       error: (error, _) => Card(
         child: Padding(
           padding: const EdgeInsets.all(16),
-          child:
-              Text('Erro: $error', style: const TextStyle(color: Colors.red)),
+          child: Text('Erro: $error',
+              style: const TextStyle(color: AppColors.errorRed)),
         ),
       ),
     );
   }
 
   Widget _buildHeader(BuildContext context, double progresso, int total) {
-    Color progressoColor = Colors.grey;
+    final primaryText = AppColors.adaptivePrimaryText(context);
+    final secondaryText = AppColors.adaptiveSecondaryText(context);
+    final progressTrack = AppColors.adaptiveProgressTrack(context);
+    Color progressoColor = AppColors.mediumGray;
     if (progresso > 0 && progresso < 100) {
-      progressoColor = Colors.orange;
+      progressoColor = AppColors.warningOrange;
     } else if (progresso >= 100) {
-      progressoColor = Colors.green;
+      progressoColor = AppColors.successGreen;
     }
 
     return Padding(
@@ -88,11 +96,12 @@ class TorqueFaseCard extends ConsumerWidget {
             children: [
               Icon(Icons.construction, color: progressoColor, size: 20),
               const SizedBox(width: 8),
-              const Text(
+              Text(
                 'Torque & Tensioning',
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
                   fontSize: 14,
+                  color: primaryText,
                 ),
               ),
               const Spacer(),
@@ -111,7 +120,7 @@ class TorqueFaseCard extends ConsumerWidget {
             borderRadius: BorderRadius.circular(3),
             child: LinearProgressIndicator(
               value: progresso / 100,
-              backgroundColor: Colors.grey[200],
+              backgroundColor: progressTrack,
               valueColor: AlwaysStoppedAnimation<Color>(progressoColor),
               minHeight: 4,
             ),
@@ -121,7 +130,7 @@ class TorqueFaseCard extends ConsumerWidget {
             '$total conexões',
             style: TextStyle(
               fontSize: 11,
-              color: Colors.grey[600],
+              color: secondaryText,
             ),
           ),
         ],
@@ -146,17 +155,21 @@ class TorqueFaseCard extends ConsumerWidget {
     WidgetRef ref,
     TorqueTensioning conexao,
   ) {
-    Color statusColor = Colors.grey;
+    final primaryText = AppColors.adaptivePrimaryText(context);
+    final secondaryText = AppColors.adaptiveSecondaryText(context);
+    final progressTrack = AppColors.adaptiveProgressTrack(context);
+    final outline = AppColors.adaptiveOutline(context);
+    Color statusColor = AppColors.mediumGray;
     IconData statusIcon = Icons.circle_outlined;
 
     if (conexao.status == 'Pendente') {
-      statusColor = Colors.grey;
+      statusColor = AppColors.mediumGray;
       statusIcon = Icons.circle_outlined;
     } else if (conexao.status == 'Em Progresso') {
-      statusColor = Colors.orange;
+      statusColor = AppColors.warningOrange;
       statusIcon = Icons.access_time;
     } else if (conexao.status == 'Concluído') {
-      statusColor = Colors.green;
+      statusColor = AppColors.successGreen;
       statusIcon = Icons.check_circle;
     }
 
@@ -166,7 +179,7 @@ class TorqueFaseCard extends ConsumerWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           border: Border(
-            top: BorderSide(color: Colors.grey[200]!, width: 0.5),
+            top: BorderSide(color: outline.withValues(alpha: 0.6), width: 0.5),
           ),
         ),
         child: Row(
@@ -182,9 +195,10 @@ class TorqueFaseCard extends ConsumerWidget {
                 children: [
                   Text(
                     '${conexao.componenteOrigem} → ${conexao.componenteDestino}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
+                      color: primaryText,
                     ),
                   ),
                   if (conexao.isExtra) ...[
@@ -195,14 +209,15 @@ class TorqueFaseCard extends ConsumerWidget {
                         vertical: 1,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.purple[100],
+                        color:
+                            AppColors.primaryBlueMedium.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(3),
                       ),
                       child: Text(
                         'Extra',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 9,
-                          color: Colors.purple[700],
+                          color: AppColors.primaryBlueMedium,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -221,7 +236,7 @@ class TorqueFaseCard extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(2),
                     child: LinearProgressIndicator(
                       value: conexao.progresso / 100,
-                      backgroundColor: Colors.grey[200],
+                      backgroundColor: progressTrack,
                       valueColor: AlwaysStoppedAnimation<Color>(statusColor),
                       minHeight: 3,
                     ),
@@ -240,7 +255,7 @@ class TorqueFaseCard extends ConsumerWidget {
             ),
 
             const SizedBox(width: 4),
-            Icon(Icons.chevron_right, size: 16, color: Colors.grey[400]),
+            Icon(Icons.chevron_right, size: 16, color: secondaryText),
           ],
         ),
       ),
@@ -248,26 +263,29 @@ class TorqueFaseCard extends ConsumerWidget {
   }
 
   Widget _buildAddButton(BuildContext context, WidgetRef ref) {
+    final outline = AppColors.adaptiveOutline(context);
+    final cardSurface = AppColors.adaptiveCardSurface(context);
     return InkWell(
       onTap: () => _showAddExtraDialog(context, ref),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
         decoration: BoxDecoration(
           border: Border(
-            top: BorderSide(color: Colors.grey[300]!, width: 1),
+            top: BorderSide(color: outline.withValues(alpha: 0.8), width: 1),
           ),
-          color: Colors.grey[50],
+          color: cardSurface,
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.add_circle_outline, size: 18, color: Colors.blue[700]),
+            const Icon(Icons.add_circle_outline,
+                size: 18, color: AppColors.primaryBlue),
             const SizedBox(width: 8),
-            Text(
+            const Text(
               'Adicionar Conexão Extra',
               style: TextStyle(
                 fontSize: 13,
-                color: Colors.blue[700],
+                color: AppColors.primaryBlue,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -278,17 +296,25 @@ class TorqueFaseCard extends ConsumerWidget {
   }
 
   Widget _buildEmptyState(BuildContext context, WidgetRef ref) {
+    final secondaryText = AppColors.adaptiveSecondaryText(context);
+    final cardSurface = AppColors.adaptiveCardSurface(context);
+    final outline = AppColors.adaptiveOutline(context);
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
+      color: cardSurface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: outline, width: 1),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            Icon(Icons.construction, size: 40, color: Colors.grey[400]),
+            Icon(Icons.construction, size: 40, color: secondaryText),
             const SizedBox(height: 8),
             Text(
               'Nenhuma conexão',
-              style: TextStyle(color: Colors.grey[600], fontSize: 14),
+              style: TextStyle(color: secondaryText, fontSize: 14),
             ),
             const SizedBox(height: 12),
             ElevatedButton.icon(
@@ -296,7 +322,7 @@ class TorqueFaseCard extends ConsumerWidget {
               icon: const Icon(Icons.refresh, size: 18),
               label: const Text('Gerar Conexões'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
+                backgroundColor: AppColors.primaryBlue,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 8,
@@ -314,7 +340,7 @@ class TorqueFaseCard extends ConsumerWidget {
     WidgetRef ref,
     TorqueTensioning conexao,
   ) {
-    showDialog(
+    showLiquidDialog(
       context: context,
       builder: (context) => TorqueTensioningEditDialog(
         conexao: conexao,
@@ -325,7 +351,7 @@ class TorqueFaseCard extends ConsumerWidget {
   }
 
   void _showAddExtraDialog(BuildContext context, WidgetRef ref) {
-    showDialog(
+    showLiquidDialog(
       context: context,
       builder: (context) => AddConexaoExtraDialog(
         turbinaId: turbinaId,
@@ -354,7 +380,7 @@ class TorqueFaseCard extends ConsumerWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('✅ Conexões geradas com sucesso!'),
-            backgroundColor: Colors.green,
+            backgroundColor: AppColors.successGreen,
           ),
         );
       }
@@ -363,7 +389,7 @@ class TorqueFaseCard extends ConsumerWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('❌ Erro: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.errorRed,
           ),
         );
       }

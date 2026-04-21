@@ -4,6 +4,8 @@
 <dict>
     <key>NSCameraUsageDescription</key>
     <string>Precisamos acesso à câmera para fotos da instalação</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Precisamos da sua localização para guardar as coordenadas GPS da torre.</string>
     <key>NSPhotoLibraryUsageDescription</key>
     <string>Precisamos acesso à galeria para fotos da instalação</string>
 	<key>CFBundleDevelopmentRegion</key>

@@ -106,7 +106,8 @@ def translate_phase(phase_key, lang='pt'):
             'preAssemblagem': 'Pre-Assembly',
             'assemblagem': 'Assembly',
             'torqueTensionamento': 'Torque & Tensioning',
-            'fasesFinal': 'Final Phases'
+            'fasesFinal': 'Final Phases',
+            'ncrs': 'NCRs'
         }
     else:  # pt
         translations = {
@@ -115,9 +116,66 @@ def translate_phase(phase_key, lang='pt'):
             'preAssemblagem': 'Pré-Assemblagem',
             'assemblagem': 'Assemblagem',
             'torqueTensionamento': 'Torque & Tensioning',
-            'fasesFinal': 'Fases Finais'
+            'fasesFinal': 'Fases Finais',
+            'ncrs': 'NCRs'
         }
     return translations.get(phase_key, phase_key)
+
+def _add_ncr_sheet(wb, ncrs_data, language='pt'):
+    ws = wb.create_sheet('NCRs')
+
+    widths = [16, 24, 18, 16, 16, 16, 18, 14, 14, 16, 18, 14, 42, 36, 12, 28]
+    for idx, width in enumerate(widths, 1):
+        ws.column_dimensions[get_column_letter(idx)].width = width
+
+    headers = [
+        'Código' if language == 'pt' else 'Code',
+        'Título' if language == 'pt' else 'Title',
+        'Turbina' if language == 'pt' else 'Turbine',
+        'Categoria' if language == 'pt' else 'Category',
+        'Severidade' if language == 'pt' else 'Severity',
+        'Estado' if language == 'pt' else 'Status',
+        'Responsável' if language == 'pt' else 'Assigned To',
+        'Data Limite' if language == 'pt' else 'Due Date',
+        'Criada' if language == 'pt' else 'Created',
+        'Fechada' if language == 'pt' else 'Closed',
+        'Fechada Por' if language == 'pt' else 'Closed By',
+        'Evidências' if language == 'pt' else 'Evidence',
+        'Descrição' if language == 'pt' else 'Description',
+        'Nota de Fecho' if language == 'pt' else 'Closure Note',
+        'Histórico' if language == 'pt' else 'History',
+        'Última Nota de Estado' if language == 'pt' else 'Latest Status Note',
+    ]
+
+    for col, header_text in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col)
+        cell.value = header_text
+        cell.font = Font(name='Arial', size=10, bold=True, color=COLORS['white'])
+        cell.fill = PatternFill(start_color=COLORS['subheader'], end_color=COLORS['subheader'], fill_type='solid')
+        cell.alignment = Alignment(horizontal='center', vertical='center')
+        cell.border = BORDER_ALL
+
+    for row_idx, item in enumerate(ncrs_data, 2):
+        ws.cell(row=row_idx, column=1, value=item.get('code', '')).border = BORDER_ALL
+        ws.cell(row=row_idx, column=2, value=item.get('title', '')).border = BORDER_ALL
+        ws.cell(row=row_idx, column=3, value=item.get('turbina', '')).border = BORDER_ALL
+        ws.cell(row=row_idx, column=4, value=item.get('category', '')).border = BORDER_ALL
+        ws.cell(row=row_idx, column=5, value=item.get('severity', '')).border = BORDER_ALL
+        ws.cell(row=row_idx, column=6, value=item.get('status', '')).border = BORDER_ALL
+        ws.cell(row=row_idx, column=7, value=item.get('assignedTo', '')).border = BORDER_ALL
+        ws.cell(row=row_idx, column=8, value=item.get('dueDate', '')).border = BORDER_ALL
+        ws.cell(row=row_idx, column=9, value=item.get('createdAt', '')).border = BORDER_ALL
+        ws.cell(row=row_idx, column=10, value=item.get('closedAt', '')).border = BORDER_ALL
+        ws.cell(row=row_idx, column=11, value=item.get('closedByName', '')).border = BORDER_ALL
+        ws.cell(row=row_idx, column=12, value=item.get('evidenceCount', 0)).border = BORDER_ALL
+        ws.cell(row=row_idx, column=13, value=item.get('description', '')).border = BORDER_ALL
+        ws.cell(row=row_idx, column=14, value=item.get('closureNote', '')).border = BORDER_ALL
+        ws.cell(row=row_idx, column=15, value=item.get('historyCount', 0)).border = BORDER_ALL
+        ws.cell(row=row_idx, column=16, value=item.get('latestStatusNote', '')).border = BORDER_ALL
+
+    ws.auto_filter.ref = f"A1:P{max(len(ncrs_data) + 1, 2)}"
+    ws.freeze_panes = 'A2'
+    print(f"✓ NCR sheet created with {len(ncrs_data)} items")
 
 def get_status_icon(status):
     """Retornar ícone de status"""
@@ -1423,6 +1481,68 @@ def _add_gruas_gerais_sheet(wb, gruas_data, lang='pt'):
     
     print(f"✓ Gruas - Gerais sheet created with {len(gruas_data)} items")
 
+def _add_equipamentos_sheet(wb, equipamentos_data, lang='pt'):
+    """Adicionar sheet de Equipamentos (rastreabilidade)"""
+    ws = wb.create_sheet('Equipamentos' if lang == 'pt' else 'Equipment')
+
+    border = BORDER_ALL
+    header_fill = PatternFill(start_color=COLORS['subheader'], end_color=COLORS['subheader'], fill_type='solid')
+    header_font = Font(name='Arial', size=9, bold=True, color=COLORS['white'])
+
+    headers = [
+        'ID',
+        'Tipo',
+        'Fabricante' if lang == 'pt' else 'Manufacturer',
+        'Modelo' if lang == 'pt' else 'Model',
+        'Nº Série' if lang == 'pt' else 'Serial Number',
+        'Estado' if lang == 'pt' else 'Status',
+        'Condição' if lang == 'pt' else 'Condition',
+        'Calibração' if lang == 'pt' else 'Calibration',
+        'Validade' if lang == 'pt' else 'Expiry',
+        'Certificado' if lang == 'pt' else 'Certificate',
+        'Localização' if lang == 'pt' else 'Location',
+        'Projeto Uso' if lang == 'pt' else 'Usage Project',
+        'Turbina' if lang == 'pt' else 'Turbine',
+        'Ligação' if lang == 'pt' else 'Connection',
+        'Operação' if lang == 'pt' else 'Operation',
+        'Utilizador' if lang == 'pt' else 'User',
+        'Data Uso' if lang == 'pt' else 'Usage Date',
+        'Observações' if lang == 'pt' else 'Notes',
+    ]
+
+    widths = [14, 16, 16, 16, 16, 12, 14, 12, 12, 14, 14, 16, 12, 14, 14, 14, 12, 20]
+
+    for col, (header_text, width) in enumerate(zip(headers, widths), 1):
+        cell = ws.cell(row=1, column=col)
+        cell.value = header_text
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.border = border
+        cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+        ws.column_dimensions[get_column_letter(col)].width = width
+
+    for row_idx, item in enumerate(equipamentos_data, start=2):
+        ws.cell(row=row_idx, column=1, value=item.get('equipmentId', '')).border = border
+        ws.cell(row=row_idx, column=2, value=item.get('type', '')).border = border
+        ws.cell(row=row_idx, column=3, value=item.get('manufacturer', '')).border = border
+        ws.cell(row=row_idx, column=4, value=item.get('model', '')).border = border
+        ws.cell(row=row_idx, column=5, value=item.get('serialNumber', '')).border = border
+        ws.cell(row=row_idx, column=6, value=item.get('status', '')).border = border
+        ws.cell(row=row_idx, column=7, value=item.get('condition', '')).border = border
+        ws.cell(row=row_idx, column=8, value=item.get('calibrationLastDate', '')).border = border
+        ws.cell(row=row_idx, column=9, value=item.get('calibrationExpiryDate', '')).border = border
+        ws.cell(row=row_idx, column=10, value=item.get('certificateNumber', '')).border = border
+        ws.cell(row=row_idx, column=11, value=item.get('currentLocation', '')).border = border
+        ws.cell(row=row_idx, column=12, value=item.get('currentProjectName', '')).border = border
+        ws.cell(row=row_idx, column=13, value=item.get('usageTurbineId', '')).border = border
+        ws.cell(row=row_idx, column=14, value=item.get('usageConnection', '')).border = border
+        ws.cell(row=row_idx, column=15, value=item.get('usageOperation', '')).border = border
+        ws.cell(row=row_idx, column=16, value=item.get('usageUser', '')).border = border
+        ws.cell(row=row_idx, column=17, value=item.get('usageDate', '')).border = border
+        ws.cell(row=row_idx, column=18, value=item.get('notes', '')).border = border
+
+    print(f"✓ Equipamentos sheet created with {len(equipamentos_data)} items")
+
 # ═════════════════════════════════════════════════════════════════
 # FUNÇÃO PRINCIPAL
 # ═════════════════════════════════════════════════════════════════
@@ -1456,6 +1576,8 @@ def generate_excel_report(project_name, data_by_phase, selected_phases, output_p
     # FASE 3: ANÁLISES AVANÇADAS
     gruas_pads_data = data_by_phase.get('gruasPads', [])
     gruas_gerais_data = data_by_phase.get('gruasGerais', [])
+    equipamentos_data = data_by_phase.get('equipamentos', [])
+    ncrs_data = data_by_phase.get('ncrs', [])
     
     if (gruas_pads_data or gruas_gerais_data) or complete_report:
         _add_deviation_analysis_sheet(wb, data_by_phase, language)
@@ -1561,7 +1683,32 @@ def generate_excel_report(project_name, data_by_phase, selected_phases, output_p
         _add_project_header(ws, project_name, 'Gruas - Gerais', language)
         _add_auto_filters(ws, 4, 12)  # Linha 1 + 3 linhas inseridas = linha 4
         _add_footer(ws, language)
+
+    # Processar Equipamentos
+    if equipamentos_data:
+        print(f"[OK] Adding 'Equipamentos' sheet with {len(equipamentos_data)} items")
+        _add_equipamentos_sheet(wb, equipamentos_data, language)
+        sheet_name = 'Equipamentos' if language == 'pt' else 'Equipment'
+        ws = wb[sheet_name]
+        _add_project_header(ws, project_name, sheet_name, language)
+        _add_auto_filters(ws, 4, 18)  # Linha 1 + 3 linhas inseridas = linha 4
+        _add_footer(ws, language)
+
+    if ncrs_data:
+        print(f"[OK] Adding 'NCRs' sheet with {len(ncrs_data)} items")
+        _add_ncr_sheet(wb, ncrs_data, language)
+        ws = wb['NCRs']
+        _add_project_header(ws, project_name, 'NCRs', language)
+        _add_footer(ws, language)
     
+    # Garantir que o workbook tem pelo menos uma sheet visível
+    if not wb.sheetnames:
+        empty_sheet_name = 'Sem Dados' if language == 'pt' else 'No Data'
+        ws = wb.create_sheet(empty_sheet_name)
+        ws['A1'] = 'Não existem dados para as fases selecionadas.' if language == 'pt' else 'There is no data for the selected phases.'
+        ws['A1'].font = Font(name='Arial', size=11, color=COLORS['dark_gray'])
+        ws.column_dimensions['A'].width = 60
+
     # 📝 SALVAR
     print(f"\n{'─'*60}")
     print(f"💾 Salvando relatório em: {output_path}")

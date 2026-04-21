@@ -57,19 +57,97 @@ class AppColors {
   static const Color darkGray = Color(0xFF212121); // Text primary (darker)
   static const Color mediumGray = Color(0xFF616161); // Text secondary
   static const Color lightGray = Color(0xFF9E9E9E); // Text disabled
-  static const Color backgroundGray = Color(0xFFF5F7FA); // Soft background
+  static const Color sidebarDark = Color(0xFF111827); // Dark sidebar background
+  static const Color backgroundGray =
+      Color(0xFFF2F3FC); // Soft lavender background
   static const Color cardBackground = Color(0xFFFFFFFF); // Pure white cards
   static const Color borderGray = Color(0xFFE0E0E0); // Subtle borders
   static const Color dividerGray = Color(0xFFBDBDBD); // Dividers
+
+  // Liquid glass palette
+  static const Color glassCanvas = Color(0xFFC3CEDA);
+  static const Color glassCanvasDark = Color(0xFF061521);
+  static const Color glassBlue = Color(0xFF7DD3FC);
+  static const Color glassMint = Color(0xFF6EE7B7);
+  static const Color glassRose = Color(0xFFF9A8D4);
+
+  static bool isDarkContext(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark;
+
+  static Color adaptivePrimaryText(BuildContext context) =>
+      isDarkContext(context) ? const Color(0xFFEAF6FF) : darkGray;
+
+  static Color adaptiveSecondaryText(BuildContext context) =>
+      isDarkContext(context) ? const Color(0xFFD2DEE7) : mediumGray;
+
+  static Color adaptiveMutedText(BuildContext context) =>
+      isDarkContext(context) ? const Color(0xFFC2CFD8) : lightGray;
+
+  static Color adaptiveCardSurface(BuildContext context) =>
+      isDarkContext(context) ? glassSurfaceDark : glassSurfaceStrongLight;
+
+  static Color adaptivePanelSurface(BuildContext context) =>
+      isDarkContext(context) ? glassSurfaceStrongDark : glassSurfaceStrongLight;
+
+  static Color adaptiveOutline(BuildContext context) =>
+      isDarkContext(context) ? const Color(0xFF758392) : borderGray;
+
+  static Color adaptiveProgressTrack(BuildContext context) =>
+      isDarkContext(context) ? Colors.white.withValues(alpha: 0.14) : lightGray;
+
+  static Color get glassSurfaceLight =>
+      const Color(0xFFD9E2EB).withValues(alpha: 0.56);
+  static Color get glassSurfaceStrongLight =>
+      const Color(0xFFE2E9F0).withValues(alpha: 0.68);
+  static Color get glassSurfaceDark =>
+      const Color(0xFF10283B).withValues(alpha: 0.54);
+  static Color get glassSurfaceStrongDark =>
+      const Color(0xFF16344B).withValues(alpha: 0.66);
+  static Color get glassBorderLight =>
+      const Color(0xFFF8FBFF).withValues(alpha: 0.62);
+  static Color get glassBorderDark => Colors.white.withValues(alpha: 0.22);
+  static Color get glassHighlight =>
+      const Color(0xFFFFFFFF).withValues(alpha: 0.24);
+
+  static Color get menuSurfaceLight => Colors.white.withValues(alpha: 0.98);
+  static Color get menuSurfaceDark => const Color(0xFF183046);
+  static Color get menuBorderLight => const Color(0xFFD5DFEA);
+  static Color get menuBorderDark => Colors.white.withValues(alpha: 0.18);
+
+  static Color get snackbarSurfaceLight => const Color(0xFF173C63);
+  static Color get snackbarSurfaceDark => const Color(0xFF0D1F30);
+  static Color get snackbarBorderLight => Colors.white.withValues(alpha: 0.14);
+  static Color get snackbarBorderDark => Colors.white.withValues(alpha: 0.12);
+
+  static LinearGradient get liquidGlassBackground => LinearGradient(
+        colors: [
+          glassCanvas,
+          const Color(0xFFB6C3D0),
+          const Color(0xFFCAD5E0),
+        ],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        stops: const [0.0, 0.55, 1.0],
+      );
+
+  static LinearGradient get liquidGlassBackgroundDark => LinearGradient(
+        colors: [
+          glassCanvasDark,
+          const Color(0xFF0C2234),
+          const Color(0xFF14324A),
+        ],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        stops: const [0.0, 0.5, 1.0],
+      );
 
   // ══════════════════════════════════════════════════════════════
   // MODERN GRADIENTS - Sophisticated multi-stop gradients
   // ══════════════════════════════════════════════════════════════
   static const LinearGradient primaryGradient = LinearGradient(
-    colors: [primaryBlue, primaryBlueMedium, primaryBlueLight],
+    colors: [primaryBlue, accentTeal],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    stops: [0.0, 0.5, 1.0],
   );
 
   static const LinearGradient oceanGradient = LinearGradient(
@@ -121,7 +199,7 @@ class AppColors {
   // ══════════════════════════════════════════════════════════════
   static List<BoxShadow> get softShadow => [
         BoxShadow(
-          color: Colors.black.withOpacity(0.08),
+          color: Colors.black.withValues(alpha: 0.08),
           offset: const Offset(0, 2),
           blurRadius: 8,
         ),
@@ -129,12 +207,12 @@ class AppColors {
 
   static List<BoxShadow> get mediumShadow => [
         BoxShadow(
-          color: Colors.black.withOpacity(0.1),
+          color: Colors.black.withValues(alpha: 0.1),
           offset: const Offset(0, 4),
           blurRadius: 12,
         ),
         BoxShadow(
-          color: Colors.black.withOpacity(0.05),
+          color: Colors.black.withValues(alpha: 0.05),
           offset: const Offset(0, 2),
           blurRadius: 4,
         ),
@@ -142,12 +220,12 @@ class AppColors {
 
   static List<BoxShadow> get strongShadow => [
         BoxShadow(
-          color: Colors.black.withOpacity(0.15),
+          color: Colors.black.withValues(alpha: 0.15),
           offset: const Offset(0, 8),
           blurRadius: 24,
         ),
         BoxShadow(
-          color: Colors.black.withOpacity(0.1),
+          color: Colors.black.withValues(alpha: 0.1),
           offset: const Offset(0, 4),
           blurRadius: 8,
         ),
@@ -155,7 +233,7 @@ class AppColors {
 
   static List<BoxShadow> get glowShadow => [
         BoxShadow(
-          color: primaryBlueLight.withOpacity(0.3),
+          color: primaryBlueLight.withValues(alpha: 0.3),
           offset: const Offset(0, 0),
           blurRadius: 20,
           spreadRadius: 0,
@@ -164,10 +242,25 @@ class AppColors {
 
   static List<BoxShadow> get cardShadow => [
         BoxShadow(
-          color: Colors.black.withOpacity(0.06),
+          color: Colors.black.withValues(alpha: 0.06),
           offset: const Offset(0, 2),
           blurRadius: 12,
           spreadRadius: 0,
+        ),
+      ];
+
+  static List<BoxShadow> get glassShadow => [
+        BoxShadow(
+          color: const Color(0xFF0F4C81).withValues(alpha: 0.12),
+          offset: const Offset(0, 16),
+          blurRadius: 42,
+          spreadRadius: -18,
+        ),
+        BoxShadow(
+          color: Colors.white.withValues(alpha: 0.25),
+          offset: const Offset(-6, -6),
+          blurRadius: 18,
+          spreadRadius: -14,
         ),
       ];
 
@@ -175,7 +268,10 @@ class AppColors {
   // UTILITY METHODS - Dynamic colors based on state
   // ══════════════════════════════════════════════════════════════
   static Color getStatusColor(String status) {
-    switch (status.toLowerCase()) {
+    final normalizedStatus =
+        status.startsWith('status_') ? status.substring(7).trim() : status;
+
+    switch (normalizedStatus.toLowerCase()) {
       case 'concluído':
       case 'completed':
       case 'comissionada':

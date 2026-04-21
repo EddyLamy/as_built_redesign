@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:latlong2/latlong.dart';
 import '../core/theme/app_colors.dart';
 import '../core/localization/translation_helper.dart';
 import '../models/project.dart';
 import '../providers/app_providers.dart';
 import '../services/project_phase_service.dart';
+import '../utils/map_launcher.dart';
+import '../utils/app_feedback.dart';
 
 // ════════════════════════════════════════════════════════════════════════════
 // 🎨 CREATE PROJECT WIZARD - VERSÃO ATUALIZADA
@@ -41,6 +45,7 @@ class _CreateProjectWizardState extends ConsumerState<CreateProjectWizard> {
   final _localizacaoController = TextEditingController();
   final _moradaController = TextEditingController(); // 🆕 NOVO
   final _coordenadasGPSController = TextEditingController(); // 🆕 NOVO
+  final _coordenadasGPSEscritorioController = TextEditingController();
   final _projectManagerController = TextEditingController();
   final _siteManagerController = TextEditingController();
   final _turbineTypeController = TextEditingController();
@@ -65,6 +70,7 @@ class _CreateProjectWizardState extends ConsumerState<CreateProjectWizard> {
     _localizacaoController.dispose();
     _moradaController.dispose(); // 🆕 NOVO
     _coordenadasGPSController.dispose(); // 🆕 NOVO
+    _coordenadasGPSEscritorioController.dispose();
     _projectManagerController.dispose();
     _siteManagerController.dispose();
     _turbineTypeController.dispose();
@@ -106,7 +112,7 @@ class _CreateProjectWizardState extends ConsumerState<CreateProjectWizard> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.primaryBlue.withOpacity(0.05),
+        color: AppColors.primaryBlue.withValues(alpha: 0.05),
         border: const Border(
           bottom: BorderSide(color: AppColors.borderGray),
         ),
@@ -274,18 +280,7 @@ class _CreateProjectWizardState extends ConsumerState<CreateProjectWizard> {
           ),
           const SizedBox(height: 16),
 
-          // ════════════════════════════════════════════════════════════════
-          // 🆕 NOVO: COORDENADAS GPS (opcional)
-          // ════════════════════════════════════════════════════════════════
-          TextFormField(
-            controller: _coordenadasGPSController,
-            decoration: InputDecoration(
-              labelText: t.translate('gps_coordinates'),
-              hintText: 'Ex: 38.7223°N, 9.1393°W',
-              border: const OutlineInputBorder(),
-              helperText: t.translate('optional'),
-            ),
-          ),
+          _buildCoordinatesSection(t),
           const SizedBox(height: 16),
 
           // Gestor do Projeto e Gestor do Local
@@ -364,6 +359,194 @@ class _CreateProjectWizardState extends ConsumerState<CreateProjectWizard> {
     );
   }
 
+  Widget _buildCoordinatesSection(TranslationHelper t) {
+    final projectCoordinatesLabel = _localizedWizardText(
+      t,
+      'project_gps_coordinates',
+      'Coordenadas GPS do projeto',
+      'Project GPS coordinates',
+    );
+    final officeCoordinatesLabel = _localizedWizardText(
+      t,
+      'office_gps_coordinates',
+      'Coordenadas GPS do escritório',
+      'Office GPS coordinates',
+    );
+    final enterOrPickText = _localizedWizardText(
+      t,
+      'enter_or_pick_coordinates',
+      'Introduza manualmente ou selecione no mapa.',
+      'Enter them manually or choose them on the map.',
+    );
+    final officeOptionalText = _localizedWizardText(
+      t,
+      'office_coordinates_optional',
+      'Opcional. Use este campo quando o escritório/base estiver noutro local.',
+      'Optional. Use this field when the office/base is in a different place.',
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildCoordinateInputCard(
+          t: t,
+          title: projectCoordinatesLabel,
+          controller: _coordenadasGPSController,
+          hintText: 'Ex: 38.7223, -9.1393',
+          helperText: enterOrPickText,
+        ),
+        const SizedBox(height: 12),
+        _buildCoordinateInputCard(
+          t: t,
+          title: officeCoordinatesLabel,
+          controller: _coordenadasGPSEscritorioController,
+          hintText: 'Ex: 41.1579, -8.6291',
+          helperText: officeOptionalText,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCoordinateInputCard({
+    required TranslationHelper t,
+    required String title,
+    required TextEditingController controller,
+    required String hintText,
+    required String helperText,
+  }) {
+    final parsedCoordinates = MapLauncher.tryParseCoordinates(controller.text);
+    final pickOnMapLabel = _localizedWizardText(
+      t,
+      'pick_on_map',
+      'Selecionar no mapa',
+      'Pick on map',
+    );
+    final noSelectionLabel = _localizedWizardText(
+      t,
+      'map_picker_no_selection',
+      'Nenhuma coordenada selecionada.',
+      'No coordinates selected.',
+    );
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        border: Border.all(color: AppColors.borderGray),
+        borderRadius: BorderRadius.circular(12),
+        color: AppColors.lightGray.withValues(alpha: 0.25),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 12),
+          TextFormField(
+            controller: controller,
+            onChanged: (_) => setState(() {}),
+            decoration: InputDecoration(
+              labelText: title,
+              hintText: hintText,
+              border: const OutlineInputBorder(),
+              helperText: helperText,
+              suffixIcon: IconButton(
+                tooltip: pickOnMapLabel,
+                onPressed: () => _openCoordinatePicker(
+                  t: t,
+                  title: title,
+                  controller: controller,
+                ),
+                icon: const Icon(Icons.map_outlined),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              OutlinedButton.icon(
+                onPressed: () => _openCoordinatePicker(
+                  t: t,
+                  title: title,
+                  controller: controller,
+                ),
+                icon: const Icon(Icons.place_outlined),
+                label: Text(pickOnMapLabel),
+              ),
+              const SizedBox(width: 12),
+              if (controller.text.trim().isNotEmpty)
+                TextButton.icon(
+                  onPressed: () {
+                    controller.clear();
+                    setState(() {});
+                  },
+                  icon: const Icon(Icons.clear),
+                  label: Text(t.translate('cancel')),
+                ),
+              const Spacer(),
+              Flexible(
+                child: Text(
+                  parsedCoordinates?.displayValue ?? noSelectionLabel,
+                  textAlign: TextAlign.right,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: parsedCoordinates != null
+                        ? AppColors.primaryBlue
+                        : AppColors.mediumGray,
+                    fontWeight: parsedCoordinates != null
+                        ? FontWeight.w600
+                        : FontWeight.normal,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _localizedWizardText(
+    TranslationHelper t,
+    String key,
+    String fallbackPt,
+    String fallbackEn,
+  ) {
+    final translated = t.translate(key);
+    if (translated != key) {
+      return translated;
+    }
+
+    final languageCode = Localizations.localeOf(context).languageCode;
+    return languageCode == 'pt' ? fallbackPt : fallbackEn;
+  }
+
+  Future<void> _openCoordinatePicker({
+    required TranslationHelper t,
+    required String title,
+    required TextEditingController controller,
+  }) async {
+    final result = await showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => _ProjectCoordinatePickerDialog(
+        title: title,
+        subtitle: t.translate('map_picker_subtitle'),
+        initialValue: controller.text,
+        confirmLabel: t.translate('confirm'),
+        cancelLabel: t.translate('cancel'),
+      ),
+    );
+
+    if (result != null) {
+      controller.text = result;
+      setState(() {});
+    }
+  }
+
   // ══════════════════════════════════════════════════════════════════════════
   // 📅 TAB 2: FASES DO PROJETO (ATUALIZADO - COM DISPONIBILIDADE DA REDE)
   // ══════════════════════════════════════════════════════════════════════════
@@ -389,7 +572,7 @@ class _CreateProjectWizardState extends ConsumerState<CreateProjectWizard> {
         // 🆕 ADICIONADO: Disponibilidade Estimada da Rede (TOPO DO TAB 2)
         // ════════════════════════════════════════════════════════════════════
         Card(
-          color: AppColors.accentTeal.withOpacity(0.1),
+          color: AppColors.accentTeal.withValues(alpha: 0.1),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -537,7 +720,8 @@ class _CreateProjectWizardState extends ConsumerState<CreateProjectWizard> {
                       t.translate('optional'),
                       style: const TextStyle(fontSize: 10),
                     ),
-                    backgroundColor: AppColors.mediumGray.withOpacity(0.2),
+                    backgroundColor:
+                        AppColors.mediumGray.withValues(alpha: 0.2),
                     padding: EdgeInsets.zero,
                   ),
               ],
@@ -672,6 +856,8 @@ class _CreateProjectWizardState extends ConsumerState<CreateProjectWizard> {
             // 🆕 NOVO
             if (_coordenadasGPSController.text.isNotEmpty)
               '${t.translate('gps_coordinates')}: ${_coordenadasGPSController.text}',
+            if (_coordenadasGPSEscritorioController.text.isNotEmpty)
+              '${t.translate('office_gps_coordinates')}: ${_coordenadasGPSEscritorioController.text}',
             '${t.translate('project_manager')}: ${_projectManagerController.text}',
             '${t.translate('site_manager')}: ${_siteManagerController.text}',
             '${t.translate('turbine_type')}: ${_turbineTypeController.text}',
@@ -698,10 +884,10 @@ class _CreateProjectWizardState extends ConsumerState<CreateProjectWizard> {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppColors.accentTeal.withOpacity(0.1),
+            color: AppColors.accentTeal.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color: AppColors.accentTeal.withOpacity(0.3),
+              color: AppColors.accentTeal.withValues(alpha: 0.3),
             ),
           ),
           child: Row(
@@ -874,6 +1060,10 @@ class _CreateProjectWizardState extends ConsumerState<CreateProjectWizard> {
         coordenadasGPS: _coordenadasGPSController.text.trim().isEmpty
             ? null
             : _coordenadasGPSController.text.trim(),
+        coordenadasGPSEscritorio:
+            _coordenadasGPSEscritorioController.text.trim().isEmpty
+                ? null
+                : _coordenadasGPSEscritorioController.text.trim(),
         projectManager: _projectManagerController.text.trim(),
         siteManager: _siteManagerController.text.trim(),
         turbineType: _turbineTypeController.text.trim(),
@@ -894,20 +1084,18 @@ class _CreateProjectWizardState extends ConsumerState<CreateProjectWizard> {
 
       if (mounted) {
         Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(t.translate('project_created_success')),
-            backgroundColor: AppColors.successGreen,
-          ),
-        );
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          showAppFeedback(
+            t.translate('project_created_success'),
+            type: AppFeedbackType.success,
+          );
+        });
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${t.translate('error')}: $e'),
-            backgroundColor: AppColors.errorRed,
-          ),
+        showAppFeedback(
+          '${t.translate('error')}: $e',
+          type: AppFeedbackType.error,
         );
       }
     } finally {
@@ -930,5 +1118,256 @@ class _CreateProjectWizardState extends ConsumerState<CreateProjectWizard> {
 
   String _formatDate(DateTime date) {
     return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+  }
+}
+
+class _ProjectCoordinatePickerDialog extends StatefulWidget {
+  const _ProjectCoordinatePickerDialog({
+    required this.title,
+    required this.subtitle,
+    required this.initialValue,
+    required this.confirmLabel,
+    required this.cancelLabel,
+  });
+
+  final String title;
+  final String subtitle;
+  final String initialValue;
+  final String confirmLabel;
+  final String cancelLabel;
+
+  @override
+  State<_ProjectCoordinatePickerDialog> createState() =>
+      _ProjectCoordinatePickerDialogState();
+}
+
+class _ProjectCoordinatePickerDialogState
+    extends State<_ProjectCoordinatePickerDialog> {
+  static const LatLng _fallbackCenter = LatLng(39.6, -8.2);
+
+  late final TextEditingController _coordinatesController;
+  late final MapController _mapController;
+  LatLng? _selectedPoint;
+
+  @override
+  void initState() {
+    super.initState();
+    _coordinatesController = TextEditingController(text: widget.initialValue);
+    _mapController = MapController();
+
+    final initialCoordinates =
+        MapLauncher.tryParseCoordinates(widget.initialValue);
+    if (initialCoordinates != null) {
+      _selectedPoint =
+          LatLng(initialCoordinates.latitude, initialCoordinates.longitude);
+    }
+  }
+
+  @override
+  void dispose() {
+    _coordinatesController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = TranslationHelper.of(context);
+    final selectedCoordinates =
+        MapLauncher.tryParseCoordinates(_coordinatesController.text);
+
+    return Dialog(
+      child: SizedBox(
+        width: 980,
+        height: 720,
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 20, 24, 12),
+              child: Row(
+                children: [
+                  const Icon(Icons.map_outlined,
+                      color: AppColors.primaryBlue, size: 28),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.title,
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          widget.subtitle,
+                          style: const TextStyle(color: AppColors.mediumGray),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(Icons.close),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(height: 1),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(18),
+                        child: FlutterMap(
+                          mapController: _mapController,
+                          options: MapOptions(
+                            initialCenter: _selectedPoint ?? _fallbackCenter,
+                            initialZoom: _selectedPoint == null ? 6.6 : 12,
+                            onTap: (_, point) => _selectPoint(point),
+                          ),
+                          children: [
+                            TileLayer(
+                              urlTemplate:
+                                  'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                              userAgentPackageName: 'com.asbuilt.app',
+                            ),
+                            if (_selectedPoint != null)
+                              MarkerLayer(
+                                markers: [
+                                  Marker(
+                                    point: _selectedPoint!,
+                                    width: 60,
+                                    height: 60,
+                                    child: const Icon(
+                                      Icons.location_on,
+                                      size: 40,
+                                      color: AppColors.errorRed,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _coordinatesController,
+                      onChanged: _handleManualCoordinateChange,
+                      decoration: const InputDecoration(
+                        labelText: 'Latitude, Longitude',
+                        hintText: 'Ex: 38.7223, -9.1393',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      selectedCoordinates?.displayValue ??
+                          _coordinatesController.text.trim(),
+                      style: TextStyle(
+                        color: selectedCoordinates != null
+                            ? AppColors.primaryBlue
+                            : AppColors.mediumGray,
+                        fontWeight: selectedCoordinates != null
+                            ? FontWeight.w600
+                            : FontWeight.normal,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  TextButton.icon(
+                    onPressed: () {
+                      _coordinatesController.clear();
+                      setState(() {
+                        _selectedPoint = null;
+                      });
+                    },
+                    icon: const Icon(Icons.clear),
+                    label: Text(
+                      _localizedDialogText(
+                        t,
+                        'clear_selection',
+                        'Limpar seleção',
+                        'Clear selection',
+                      ),
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: Text(widget.cancelLabel),
+                      ),
+                      const SizedBox(width: 8),
+                      ElevatedButton.icon(
+                        onPressed: () => Navigator.of(context).pop(
+                          _coordinatesController.text.trim(),
+                        ),
+                        icon: const Icon(Icons.check),
+                        label: Text(widget.confirmLabel),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _localizedDialogText(
+    TranslationHelper t,
+    String key,
+    String fallbackPt,
+    String fallbackEn,
+  ) {
+    final translated = t.translate(key);
+    if (translated != key) {
+      return translated;
+    }
+
+    final languageCode = Localizations.localeOf(context).languageCode;
+    return languageCode == 'pt' ? fallbackPt : fallbackEn;
+  }
+
+  void _selectPoint(LatLng point) {
+    setState(() {
+      _selectedPoint = point;
+      _coordinatesController.text =
+          MapLauncher.formatCoordinates(point.latitude, point.longitude);
+    });
+  }
+
+  void _handleManualCoordinateChange(String value) {
+    final parsedCoordinates = MapLauncher.tryParseCoordinates(value);
+    if (parsedCoordinates == null) {
+      setState(() {});
+      return;
+    }
+
+    final point =
+        LatLng(parsedCoordinates.latitude, parsedCoordinates.longitude);
+    setState(() {
+      _selectedPoint = point;
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _mapController.move(point, 12);
+    });
   }
 }

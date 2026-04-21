@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:as_built/widgets/liquid_glass_overlays.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../core/theme/app_colors.dart';
@@ -8,6 +9,7 @@ import '../models/notification.dart';
 import '../models/notification_settings.dart';
 import '../models/project_phase.dart';
 import '../providers/app_providers.dart';
+import '../utils/app_feedback.dart';
 import 'edit_phase_dialog.dart';
 import '../screens/settings/notification_settings_screen.dart';
 import 'dart:ui';
@@ -114,15 +116,15 @@ class _NotificationsPanelState extends ConsumerState<NotificationsPanel>
     NotificationSettings settings,
     Map<NotificationPriority, int> counts,
   ) {
-    final totalCount = counts.values.fold<int>(0, (sum, count) => sum + count);
+    final totalCount = counts.values.fold<int>(0, (acc, item) => acc + item);
 
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AppColors.primaryBlue.withOpacity(0.1),
-            AppColors.primaryBlueLight.withOpacity(0.05),
+            AppColors.primaryBlue.withValues(alpha: 0.1),
+            AppColors.primaryBlueLight.withValues(alpha: 0.05),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -153,13 +155,14 @@ class _NotificationsPanelState extends ConsumerState<NotificationsPanel>
               Expanded(
                 child: Text(
                   t.translate('notifications'),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
-              const Spacer(),
 
               // Botão de configurações
               IconButton(
@@ -198,10 +201,10 @@ class _NotificationsPanelState extends ConsumerState<NotificationsPanel>
               margin: const EdgeInsets.only(top: 12),
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.accentOrange.withOpacity(0.1),
+                color: AppColors.accentOrange.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: AppColors.accentOrange.withOpacity(0.3),
+                  color: AppColors.accentOrange.withValues(alpha: 0.3),
                 ),
               ),
               child: Row(
@@ -223,6 +226,12 @@ class _NotificationsPanelState extends ConsumerState<NotificationsPanel>
                         enabled: !currentSettings.enabled,
                       );
                       await newSettings.save();
+                      if (!mounted) return;
+                      ref.invalidate(notificationSettingsProvider);
+                      ref.invalidate(notificationsProvider);
+                      ref.invalidate(notificationCountProvider);
+                      ref.invalidate(notificationCountByPriorityProvider);
+                      setState(() {});
                     },
                     child: Text(t.translate('enable')),
                   ),
@@ -250,7 +259,7 @@ class _NotificationsPanelState extends ConsumerState<NotificationsPanel>
           _buildFilterChip(
             t.translate('all'),
             'all',
-            counts.values.fold<int>(0, (sum, count) => sum + count),
+            counts.values.fold<int>(0, (acc, item) => acc + item),
           ),
           const SizedBox(width: 8),
           _buildFilterChip(
@@ -289,7 +298,7 @@ class _NotificationsPanelState extends ConsumerState<NotificationsPanel>
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
           color: isSelected
-              ? (color ?? AppColors.primaryBlue).withOpacity(0.1)
+              ? (color ?? AppColors.primaryBlue).withValues(alpha: 0.1)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
@@ -363,7 +372,7 @@ class _NotificationsPanelState extends ConsumerState<NotificationsPanel>
             Icon(
               Icons.check_circle_outline,
               size: 64,
-              color: AppColors.successGreen.withOpacity(0.5),
+              color: AppColors.successGreen.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Text(
@@ -379,7 +388,7 @@ class _NotificationsPanelState extends ConsumerState<NotificationsPanel>
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       itemCount: filtered.length,
       itemBuilder: (context, index) {
         return _buildNotificationCard(t, filtered[index]);
@@ -467,7 +476,7 @@ class _NotificationsPanelState extends ConsumerState<NotificationsPanel>
     }
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 8),
       child: InkWell(
         onTap: () => _handleNotificationTap(notification),
         borderRadius: BorderRadius.circular(8),
@@ -482,7 +491,7 @@ class _NotificationsPanelState extends ConsumerState<NotificationsPanel>
             borderRadius: BorderRadius.circular(8),
           ),
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -491,21 +500,23 @@ class _NotificationsPanelState extends ConsumerState<NotificationsPanel>
                   children: [
                     Text(
                       notification.icon,
-                      style: const TextStyle(fontSize: 20),
+                      style: const TextStyle(fontSize: 17),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 6),
                     Expanded(
                       child: Text(
                         displayTitle, // ✅ Usa título traduzido
                         style: const TextStyle(
-                          fontSize: 14,
+                          fontSize: 13,
                           fontWeight: FontWeight.bold,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     // Menu de ações
                     PopupMenuButton<String>(
-                      icon: const Icon(Icons.more_vert, size: 18),
+                      icon: const Icon(Icons.more_vert, size: 16),
                       onSelected: (value) => _handleAction(value, notification),
                       itemBuilder: (context) => [
                         PopupMenuItem(
@@ -544,29 +555,31 @@ class _NotificationsPanelState extends ConsumerState<NotificationsPanel>
                 ),
 
                 // Projeto
-                const SizedBox(height: 4),
+                const SizedBox(height: 2),
                 Text(
                   notification.projectName,
                   style: const TextStyle(
-                    fontSize: 12,
+                    fontSize: 11,
                     color: AppColors.mediumGray,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
 
                 // Descrição (traduzida)
-                const SizedBox(height: 8),
+                const SizedBox(height: 5),
                 Text(
                   displayDescription,
-                  style: const TextStyle(fontSize: 13),
+                  style: const TextStyle(fontSize: 12),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
 
                 // Footer (tempo)
-                const SizedBox(height: 8),
+                const SizedBox(height: 5),
                 Text(
                   _formatTimeAgo(notification.createdAt, t),
                   style: const TextStyle(
-                    fontSize: 11,
+                    fontSize: 10,
                     color: AppColors.mediumGray,
                   ),
                 ),
@@ -598,11 +611,13 @@ class _NotificationsPanelState extends ConsumerState<NotificationsPanel>
                 .doc(phaseId)
                 .get();
 
-            if (doc.exists && context.mounted) {
+            if (!mounted) return;
+
+            if (doc.exists) {
               final phase = ProjectPhase.fromFirestore(doc);
 
               // Abrir diálogo de edição diretamente (SEM fechar painel)
-              await showDialog(
+              await showLiquidDialog(
                 context: context,
                 builder: (_) => EditPhaseDialog(
                   projectId: notification.projectId,
@@ -611,21 +626,16 @@ class _NotificationsPanelState extends ConsumerState<NotificationsPanel>
               );
 
               // ✅ Forçar refresh do provider após fechar o diálogo
-              if (context.mounted) {
-                ref.invalidate(notificationsProvider);
-                // Força um rebuild do widget
-                setState(() {});
-              }
+              if (!mounted) return;
+              ref.invalidate(notificationsProvider);
+              setState(() {});
             }
           } catch (e) {
-            if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Erro ao carregar fase: $e'),
-                  backgroundColor: AppColors.errorRed,
-                ),
-              );
-            }
+            if (!mounted) return;
+            showAppFeedback(
+              'Erro ao carregar fase: $e',
+              type: AppFeedbackType.error,
+            );
           }
         }
         break;
@@ -635,11 +645,10 @@ class _NotificationsPanelState extends ConsumerState<NotificationsPanel>
       case NotificationType.componentReplaced:
       case NotificationType.turbineLowProgress:
         // TODO: Navegar para turbina/componente específico
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Navegar para ${notification.projectName}'),
-            duration: const Duration(seconds: 2),
-          ),
+        showAppFeedback(
+          'Navegar para ${notification.projectName}',
+          type: AppFeedbackType.info,
+          duration: const Duration(seconds: 4),
         );
         break;
     }
@@ -648,17 +657,21 @@ class _NotificationsPanelState extends ConsumerState<NotificationsPanel>
   Future<void> _handleAction(
       String action, AppNotification notification) async {
     final currentSettings = await NotificationSettings.load();
+    if (!mounted) return;
 
     switch (action) {
       case 'dismiss':
         final newSettings = currentSettings.dismissAlert(notification.id);
         await newSettings.save();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-                TranslationHelper.of(context).translate('alert_dismissed')),
-            duration: const Duration(seconds: 2),
-          ),
+        if (!mounted) return;
+        ref.invalidate(notificationSettingsProvider);
+        ref.invalidate(notificationsProvider);
+        ref.invalidate(notificationCountProvider);
+        ref.invalidate(notificationCountByPriorityProvider);
+        showAppFeedback(
+          TranslationHelper.of(context).translate('alert_dismissed'),
+          type: AppFeedbackType.info,
+          duration: const Duration(seconds: 4),
         );
         break;
 
@@ -667,12 +680,15 @@ class _NotificationsPanelState extends ConsumerState<NotificationsPanel>
           final newSettings =
               currentSettings.muteProject(notification.projectId, 7);
           await newSettings.save();
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(TranslationHelper.of(context)
-                  .translate('project_muted_7_days')),
-              duration: const Duration(seconds: 2),
-            ),
+          if (!mounted) return;
+          ref.invalidate(notificationSettingsProvider);
+          ref.invalidate(notificationsProvider);
+          ref.invalidate(notificationCountProvider);
+          ref.invalidate(notificationCountByPriorityProvider);
+          showAppFeedback(
+            TranslationHelper.of(context).translate('project_muted_7_days'),
+            type: AppFeedbackType.info,
+            duration: const Duration(seconds: 4),
           );
         }
         break;
@@ -682,12 +698,15 @@ class _NotificationsPanelState extends ConsumerState<NotificationsPanel>
           final newSettings =
               currentSettings.muteProject(notification.projectId, 30);
           await newSettings.save();
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(TranslationHelper.of(context)
-                  .translate('project_muted_30_days')),
-              duration: const Duration(seconds: 2),
-            ),
+          if (!mounted) return;
+          ref.invalidate(notificationSettingsProvider);
+          ref.invalidate(notificationsProvider);
+          ref.invalidate(notificationCountProvider);
+          ref.invalidate(notificationCountByPriorityProvider);
+          showAppFeedback(
+            TranslationHelper.of(context).translate('project_muted_30_days'),
+            type: AppFeedbackType.info,
+            duration: const Duration(seconds: 4),
           );
         }
         break;

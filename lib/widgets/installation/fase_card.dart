@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:as_built/widgets/liquid_glass_overlays.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/theme/app_colors.dart';
 import '../../models/installation/fase_componente.dart';
 import '../../models/installation/tipo_fase.dart';
 import '../../providers/locale_provider.dart';
@@ -18,22 +20,35 @@ class FaseCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final locale = ref.watch(localeStringProvider);
+    final primaryText = AppColors.adaptivePrimaryText(context);
+    final secondaryText = AppColors.adaptiveSecondaryText(context);
+    final cardSurface = AppColors.adaptiveCardSurface(context);
+    final outline = AppColors.adaptiveOutline(context);
+    final progressTrack = AppColors.adaptiveProgressTrack(context);
 
-    Color progressoColor = Colors.grey;
+    Color progressoColor = AppColors.mediumGray;
     if (fase.progresso > 0 && fase.progresso < 100) {
-      progressoColor = Colors.orange;
+      progressoColor = AppColors.warningOrange;
     } else if (fase.progresso == 100) {
-      progressoColor = Colors.green;
+      progressoColor = AppColors.successGreen;
     }
 
     final tipoNome = fase.tipo.getName(locale);
 
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
-      elevation: 1,
+      elevation: 6,
+      shadowColor: AppColors.isDarkContext(context)
+          ? Colors.black.withValues(alpha: 0.42)
+          : const Color(0xFF0F4C81).withValues(alpha: 0.18),
+      color: cardSurface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: outline, width: 1),
+      ),
       child: InkWell(
         onTap: () {
-          showDialog(
+          showLiquidDialog(
             context: context,
             builder: (context) => FaseEditDialog(
               fase: fase,
@@ -50,7 +65,7 @@ class FaseCard extends ConsumerWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: progressoColor.withOpacity(0.2),
+                  color: progressoColor.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
@@ -69,9 +84,10 @@ class FaseCard extends ConsumerWidget {
                   children: [
                     Text(
                       tipoNome,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 14,
+                        color: primaryText,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -81,7 +97,7 @@ class FaseCard extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(3),
                       child: LinearProgressIndicator(
                         value: fase.progresso / 100,
-                        backgroundColor: Colors.grey[200],
+                        backgroundColor: progressTrack,
                         valueColor:
                             AlwaysStoppedAnimation<Color>(progressoColor),
                         minHeight: 4,
@@ -97,7 +113,7 @@ class FaseCard extends ConsumerWidget {
                           '${fase.progresso.toStringAsFixed(0)}%',
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.grey[600],
+                            color: secondaryText,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -109,7 +125,7 @@ class FaseCard extends ConsumerWidget {
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.grey[300],
+                              color: AppColors.lightGray,
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
@@ -117,7 +133,7 @@ class FaseCard extends ConsumerWidget {
                               style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.grey[700],
+                                color: primaryText,
                               ),
                             ),
                           ),
@@ -125,7 +141,7 @@ class FaseCard extends ConsumerWidget {
                         if (_hasData(fase)) ...[
                           const SizedBox(width: 8),
                           const Icon(Icons.check_circle,
-                              size: 14, color: Colors.green),
+                              size: 14, color: AppColors.successGreen),
                         ],
                       ],
                     ),
@@ -133,7 +149,7 @@ class FaseCard extends ConsumerWidget {
                 ),
               ),
 
-              Icon(Icons.edit, size: 18, color: Colors.grey[400]),
+              Icon(Icons.edit, size: 18, color: secondaryText),
             ],
           ),
         ),

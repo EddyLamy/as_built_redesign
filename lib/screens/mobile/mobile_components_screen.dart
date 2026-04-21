@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/localization/translation_helper.dart';
 import '../../core/theme/app_colors.dart';
 import '../../providers/app_providers.dart'; // <--- ESTE É O IMPORT VITAL
+import '../../widgets/app_bar_dashboard_shortcut.dart';
 import 'mobile_installation_screen.dart';
 
 /// Tela de seleção de componentes (Mobile)
@@ -35,56 +37,71 @@ class _MobileComponentsScreenState
   }
 
   Future<void> _loadComponents() async {
+    if (!mounted) return;
     setState(() => _isLoading = true);
 
     try {
       final turbinaService = ref.read(turbinaServiceProvider);
-      final components = await turbinaService.getComponentsGroupedByCategory(
-        widget.turbinaId,
-        numberOfMiddleSections: widget.numberOfMiddleSections,
-      );
+      final components = await turbinaService
+          .getComponentsGroupedByCategory(
+            widget.turbinaId,
+            numberOfMiddleSections: widget.numberOfMiddleSections,
+          )
+          .timeout(const Duration(seconds: 20));
 
-      print('DEBUG components for ${widget.turbinaId}: $components');
+      debugPrint('DEBUG components for ${widget.turbinaId}: $components');
 
+      if (!mounted) return;
       setState(() {
         _componentsByCategory = components;
-        _isLoading = false;
       });
     } catch (e) {
-      setState(() => _isLoading = false);
       if (mounted) {
+        final t = TranslationHelper.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erro ao carregar componentes: $e'),
+            content: Text('${t.translate('error_loading_components')}: $e'),
             backgroundColor: AppColors.errorRed,
           ),
         );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final t = TranslationHelper.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.turbinaNome),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: AppColors.primaryGradient,
+          ),
+        ),
+        title: DashboardShortcutTitle(
+          child: Text(widget.turbinaNome),
+        ),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _componentsByCategory.isEmpty
-              ? const Center(
+              ? Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.inbox,
                         size: 64,
                         color: AppColors.mediumGray,
                       ),
-                      SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       Text(
-                        'Nenhum componente disponível',
-                        style: TextStyle(
+                        t.translate('no_components_available'),
+                        style: const TextStyle(
                           fontSize: 18,
                           color: AppColors.mediumGray,
                         ),
@@ -135,7 +152,7 @@ class _MobileComponentsScreenState
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: AppColors.primaryBlue.withOpacity(0.1),
+            color: AppColors.primaryBlue.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(
@@ -186,7 +203,7 @@ class _MobileComponentsScreenState
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          color: progressColor.withOpacity(0.1),
+          color: progressColor.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Center(

@@ -4,6 +4,7 @@ import '../core/theme/app_colors.dart';
 import '../providers/app_providers.dart';
 import '../providers/auth_providers.dart';
 import '../../core/localization/translation_helper.dart';
+import '../utils/app_feedback.dart';
 
 class AddTurbinaDialog extends ConsumerStatefulWidget {
   final String projectId;
@@ -78,22 +79,18 @@ class _AddTurbinaDialogState extends ConsumerState<AddTurbinaDialog> {
 
       if (mounted) {
         Navigator.of(context).pop(turbinaId);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              '${t.translate('turbina_created_success')}: "${_nomeController.text}" ($_numberOfMiddleSections ${t.translate('middle_sections')})!',
-            ),
-            backgroundColor: AppColors.successGreen,
-          ),
-        );
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          showAppFeedback(
+            '${t.translate('turbine_created_success')}: "${_nomeController.text}" ($_numberOfMiddleSections ${t.translate('middle_sections')})!',
+            type: AppFeedbackType.success,
+          );
+        });
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${t.translate('error')}: ${e.toString()}'),
-            backgroundColor: AppColors.errorRed,
-          ),
+        showAppFeedback(
+          '${t.translate('error')}: ${e.toString()}',
+          type: AppFeedbackType.error,
         );
       }
     } finally {
@@ -111,7 +108,7 @@ class _AddTurbinaDialogState extends ConsumerState<AddTurbinaDialog> {
         children: [
           const Icon(Icons.wind_power, color: AppColors.accentTeal),
           const SizedBox(width: 12),
-          Text(t.translate('add_turbina_title')),
+          Text(t.translate('add_turbine_title')),
         ],
       ),
       content: Form(
@@ -188,7 +185,7 @@ class _AddTurbinaDialogState extends ConsumerState<AddTurbinaDialog> {
                                   return DropdownMenuItem<int>(
                                     value: value,
                                     child: Text(
-                                      '$value ${t.translate('middle_section')}${value > 1 ? 's' : ''}',
+                                      '$value ${value > 1 ? t.translate('middle_sections') : t.translate('middle_section')}',
                                       style: const TextStyle(fontSize: 14),
                                     ),
                                   );
@@ -238,10 +235,10 @@ class _AddTurbinaDialogState extends ConsumerState<AddTurbinaDialog> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppColors.accentTeal.withOpacity(0.1),
+                    color: AppColors.accentTeal.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: AppColors.accentTeal.withOpacity(0.3),
+                      color: AppColors.accentTeal.withValues(alpha: 0.3),
                     ),
                   ),
                   child: Row(

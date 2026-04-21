@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/localization/translation_helper.dart';
+import '../../widgets/app_bar_dashboard_shortcut.dart';
 import '../../providers/app_providers.dart';
 import '../installation/turbine_installation_details_screen.dart';
 
@@ -18,31 +20,50 @@ class MobileTurbinesScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final turbinasAsync = ref.watch(projectTurbinasProvider);
+    final t = TranslationHelper.of(context);
+    final turbinasAsync =
+        ref.watch(projectTurbinasByProjectProvider(projectId));
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(projectName),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: AppColors.primaryGradient,
+          ),
+        ),
+        title: DashboardShortcutTitle(
+          child: Text(projectName),
+        ),
       ),
       body: turbinasAsync.when(
         data: (turbinas) {
           if (turbinas.isEmpty) {
-            return const Center(
+            return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.wind_power_outlined,
                     size: 64,
                     color: AppColors.mediumGray,
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   Text(
-                    'Nenhuma turbina disponível',
-                    style: TextStyle(
+                    t.translate('no_turbines_found'),
+                    style: const TextStyle(
                       fontSize: 18,
                       color: AppColors.mediumGray,
                     ),
+                  ),
+                  const SizedBox(height: 16),
+                  OutlinedButton.icon(
+                    onPressed: () {
+                      ref.invalidate(
+                        projectTurbinasByProjectProvider(projectId),
+                      );
+                    },
+                    icon: const Icon(Icons.refresh),
+                    label: Text(t.translate('try_again')),
                   ),
                 ],
               ),
@@ -54,12 +75,16 @@ class MobileTurbinesScreen extends ConsumerWidget {
             itemCount: turbinas.length,
             itemBuilder: (context, index) {
               final turbina = turbinas[index];
+              final rawStatus = (turbina.status).toString();
+              final normalizedStatus = rawStatus.startsWith('status_')
+                  ? rawStatus.substring(7)
+                  : rawStatus;
 
               // Status color
               Color statusColor;
               IconData statusIcon;
 
-              switch (turbina.status) {
+              switch (normalizedStatus) {
                 case 'Planejada':
                   statusColor = AppColors.mediumGray;
                   statusIcon = Icons.schedule;
@@ -95,7 +120,7 @@ class MobileTurbinesScreen extends ConsumerWidget {
                     width: 56,
                     height: 56,
                     decoration: BoxDecoration(
-                      color: statusColor.withOpacity(0.1),
+                      color: statusColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(
@@ -128,7 +153,7 @@ class MobileTurbinesScreen extends ConsumerWidget {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            turbina.status,
+                            t.translateStatus(rawStatus),
                             style: TextStyle(
                               fontSize: 14,
                               color: statusColor,
@@ -188,26 +213,15 @@ class MobileTurbinesScreen extends ConsumerWidget {
                   ),
 
                   onTap: () {
-                    // ════════════════════════════════════════════════════════
-                    // ✅ CORRIGIDO: NAVEGAR PARA ECRÃ DE INSTALAÇÃO COM FASES
-                    // ════════════════════════════════════════════════════════
-
-                    // Selecionar turbina
-                    ref
-                        .read(selectedTurbinaIdProvider.notifier)
-                        .setValue(turbina.id);
-
-                    // Navegar para o ecrã de instalação (IGUAL AO PC)
+                    // Navegar para o mesmo ecrã de fases usado no PC
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (_) => TurbineInstallationDetailsScreen(
                           turbineId: turbina.id,
                           turbineName: turbina.nome,
-                          turbineModel:
-                              'V150', // ⚠️ TODO: Buscar do Firebase se necessário
-                          turbineSequence:
-                              index + 1, // Sequência baseada na posição
+                          turbineModel: 'V150',
+                          turbineSequence: turbina.sequenceNumber,
                           numberOfMiddleSections:
                               turbina.numberOfMiddleSections,
                         ),
@@ -222,22 +236,32 @@ class MobileTurbinesScreen extends ConsumerWidget {
         loading: () => const Center(
           child: CircularProgressIndicator(),
         ),
-        error: (error, stack) => const Center(
+        error: (error, stack) => Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
+              const Icon(
                 Icons.error_outline,
                 size: 64,
                 color: AppColors.errorRed,
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               Text(
-                'Erro ao carregar turbinas',
-                style: TextStyle(
+                t.translate('error_loading_turbines'),
+                style: const TextStyle(
                   fontSize: 18,
                   color: AppColors.errorRed,
                 ),
+              ),
+              const SizedBox(height: 16),
+              OutlinedButton.icon(
+                onPressed: () {
+                  ref.invalidate(
+                    projectTurbinasByProjectProvider(projectId),
+                  );
+                },
+                icon: const Icon(Icons.refresh),
+                label: Text(t.translate('try_again')),
               ),
             ],
           ),

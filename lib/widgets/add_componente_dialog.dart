@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/theme/app_colors.dart';
+import '../core/localization/translation_helper.dart';
 import '../providers/app_providers.dart';
 
 class AddComponenteDialog extends ConsumerStatefulWidget {
@@ -68,12 +69,13 @@ class _AddComponenteDialogState extends ConsumerState<AddComponenteDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final t = TranslationHelper.of(context);
     return AlertDialog(
-      title: const Row(
+      title: Row(
         children: [
-          Icon(Icons.add_circle_outline, color: AppColors.primaryBlue),
-          SizedBox(width: 12),
-          Text('Add Custom Component'),
+          const Icon(Icons.add_circle_outline, color: AppColors.primaryBlue),
+          const SizedBox(width: 12),
+          Text(t.translate('add_component_dialog_title')),
         ],
       ),
       content: SingleChildScrollView(
@@ -86,10 +88,10 @@ class _AddComponenteDialogState extends ConsumerState<AddComponenteDialog> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppColors.accentTeal.withOpacity(0.1),
+                  color: AppColors.accentTeal.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: AppColors.accentTeal.withOpacity(0.3),
+                    color: AppColors.accentTeal.withValues(alpha: 0.3),
                   ),
                 ),
                 child: Row(
@@ -102,7 +104,7 @@ class _AddComponenteDialogState extends ConsumerState<AddComponenteDialog> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'Category: ${widget.categoria}',
+                        '${t.translate('component_category')}: ${widget.categoria}',
                         style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
@@ -118,10 +120,10 @@ class _AddComponenteDialogState extends ConsumerState<AddComponenteDialog> {
               // Nome do componente *
               TextField(
                 controller: _nomeController,
-                decoration: const InputDecoration(
-                  labelText: 'Component Name *',
-                  hintText: 'e.g., Custom Flange Type X',
-                  prefixIcon: Icon(Icons.widgets),
+                decoration: InputDecoration(
+                  labelText: '${t.translate('component_name')} *',
+                  hintText: t.translate('component_name_hint'),
+                  prefixIcon: const Icon(Icons.widgets),
                 ),
               ),
               const SizedBox(height: 16),
@@ -129,10 +131,10 @@ class _AddComponenteDialogState extends ConsumerState<AddComponenteDialog> {
               // Tipo
               TextField(
                 controller: _tipoController,
-                decoration: const InputDecoration(
-                  labelText: 'Type',
-                  hintText: 'e.g., Foundation, Tower, etc',
-                  prefixIcon: Icon(Icons.category),
+                decoration: InputDecoration(
+                  labelText: t.translate('type'),
+                  hintText: t.translate('type_hint'),
+                  prefixIcon: const Icon(Icons.category),
                 ),
               ),
               const SizedBox(height: 16),
@@ -140,10 +142,10 @@ class _AddComponenteDialogState extends ConsumerState<AddComponenteDialog> {
               // VUI
               TextField(
                 controller: _vuiController,
-                decoration: const InputDecoration(
-                  labelText: 'VUI / Unit ID',
-                  hintText: 'e.g., VES-CUSTOM-001',
-                  prefixIcon: Icon(Icons.qr_code),
+                decoration: InputDecoration(
+                  labelText: t.translate('vui_unit_id'),
+                  hintText: t.translate('vui_hint'),
+                  prefixIcon: const Icon(Icons.qr_code),
                 ),
               ),
               const SizedBox(height: 16),
@@ -153,10 +155,10 @@ class _AddComponenteDialogState extends ConsumerState<AddComponenteDialog> {
                   Expanded(
                     child: TextField(
                       controller: _itemNumberController,
-                      decoration: const InputDecoration(
-                        labelText: 'Item Number',
-                        hintText: 'e.g., ITEM-001',
-                        prefixIcon: Icon(Icons.label),
+                      decoration: InputDecoration(
+                        labelText: t.translate('item_number'),
+                        hintText: t.translate('item_number_hint'),
+                        prefixIcon: const Icon(Icons.label),
                       ),
                     ),
                   ),
@@ -164,10 +166,10 @@ class _AddComponenteDialogState extends ConsumerState<AddComponenteDialog> {
                   Expanded(
                     child: TextField(
                       controller: _serialNumberController,
-                      decoration: const InputDecoration(
-                        labelText: 'Serial Number',
-                        hintText: 'e.g., SN-001',
-                        prefixIcon: Icon(Icons.tag),
+                      decoration: InputDecoration(
+                        labelText: t.translate('serial_number'),
+                        hintText: t.translate('serial_number_hint'),
+                        prefixIcon: const Icon(Icons.tag),
                       ),
                     ),
                   ),
@@ -178,11 +180,11 @@ class _AddComponenteDialogState extends ConsumerState<AddComponenteDialog> {
               // Ordem de instalação
               TextField(
                 controller: _ordemController,
-                decoration: const InputDecoration(
-                  labelText: 'Installation Order *',
-                  hintText: 'e.g., 22',
-                  prefixIcon: Icon(Icons.format_list_numbered),
-                  helperText: 'Order in installation sequence',
+                decoration: InputDecoration(
+                  labelText: '${t.translate('installation_order')} *',
+                  hintText: t.translate('installation_order_hint'),
+                  prefixIcon: const Icon(Icons.format_list_numbered),
+                  helperText: t.translate('installation_order_help'),
                 ),
                 keyboardType: TextInputType.number,
               ),
@@ -193,7 +195,7 @@ class _AddComponenteDialogState extends ConsumerState<AddComponenteDialog> {
       actions: [
         TextButton(
           onPressed: _isLoading ? null : () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(t.translate('cancel')),
         ),
         ElevatedButton(
           onPressed: _isLoading ? null : _handleAdd,
@@ -206,18 +208,19 @@ class _AddComponenteDialogState extends ConsumerState<AddComponenteDialog> {
                     color: Colors.white,
                   ),
                 )
-              : const Text('Add Component'),
+              : Text(t.translate('add_custom_component')),
         ),
       ],
     );
   }
 
   Future<void> _handleAdd() async {
+    final t = TranslationHelper.of(context);
     // Validação
     if (_nomeController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Component name is required'),
+        SnackBar(
+          content: Text(t.translate('component_name_required')),
           backgroundColor: AppColors.errorRed,
         ),
       );
@@ -226,8 +229,8 @@ class _AddComponenteDialogState extends ConsumerState<AddComponenteDialog> {
 
     if (_ordemController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Installation order is required'),
+        SnackBar(
+          content: Text(t.translate('installation_order_required')),
           backgroundColor: AppColors.errorRed,
         ),
       );
@@ -265,7 +268,7 @@ class _AddComponenteDialogState extends ConsumerState<AddComponenteDialog> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Component "${_nomeController.text.trim()}" added successfully',
+              '${t.translate('component_added_success')}: "${_nomeController.text.trim()}"',
             ),
             backgroundColor: AppColors.successGreen,
           ),
@@ -275,7 +278,7 @@ class _AddComponenteDialogState extends ConsumerState<AddComponenteDialog> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: ${e.toString()}'),
+            content: Text('${t.translate('error')}: ${e.toString()}'),
             backgroundColor: AppColors.errorRed,
           ),
         );

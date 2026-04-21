@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../models/installation/fase_componente.dart';
 import '../../models/installation/tipo_fase.dart';
+import 'package:flutter/foundation.dart';
 
 class FaseComponenteService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -12,40 +13,40 @@ class FaseComponenteService {
     String faseId,
     FaseComponente fase,
   ) async {
-    print('\n========================================');
-    print('🔵 INÍCIO updateFaseWithSync');
-    print('========================================');
+    debugPrint('\n========================================');
+    debugPrint('🔵 INÍCIO updateFaseWithSync');
+    debugPrint('========================================');
 
     final user = _auth.currentUser;
-    print('👤 Usuário: ${user?.email ?? "❌ NÃO AUTENTICADO"}');
+    debugPrint('👤 Usuário: ${user?.email ?? "❌ NÃO AUTENTICADO"}');
 
     if (user == null) {
-      print('❌ ERRO: Nenhum usuário autenticado!');
+      debugPrint('❌ ERRO: Nenhum usuário autenticado!');
       throw Exception('Usuário não autenticado');
     }
 
-    print('\n📋 DADOS DA FASE:');
-    print('   Fase ID: $faseId');
-    print('   Turbina ID: ${fase.turbinaId}');
-    print('   Componente ID: ${fase.componenteId}');
-    print('   Tipo: ${fase.tipo}');
-    print('   Progresso: ${fase.progresso}%');
-    print('   VUI: ${fase.vui ?? "VAZIO"}');
-    print('   Serial: ${fase.serialNumber ?? "VAZIO"}');
-    print('   Item: ${fase.itemNumber ?? "VAZIO"}');
+    debugPrint('\n📋 DADOS DA FASE:');
+    debugPrint('   Fase ID: $faseId');
+    debugPrint('   Turbina ID: ${fase.turbinaId}');
+    debugPrint('   Componente ID: ${fase.componenteId}');
+    debugPrint('   Tipo: ${fase.tipo}');
+    debugPrint('   Progresso: ${fase.progresso}%');
+    debugPrint('   VUI: ${fase.vui ?? "VAZIO"}');
+    debugPrint('   Serial: ${fase.serialNumber ?? "VAZIO"}');
+    debugPrint('   Item: ${fase.itemNumber ?? "VAZIO"}');
 
     try {
-      print('\n🔄 Criando batch write...');
+      debugPrint('\n🔄 Criando batch write...');
       final batch = _firestore.batch();
 
       final faseRef = _firestore.collection(_collection).doc(faseId);
-      print('📍 Referência fases_componente: ${faseRef.path}');
+      debugPrint('📍 Referência fases_componente: ${faseRef.path}');
 
       final faseData = fase.copyWith(updatedAt: DateTime.now()).toFirestore();
-      print('📦 Dados fases_componente: ${faseData.keys.length} campos');
+      debugPrint('📦 Dados fases_componente: ${faseData.keys.length} campos');
 
       batch.update(faseRef, faseData);
-      print('✅ Adicionado ao batch: fases_componente');
+      debugPrint('✅ Adicionado ao batch: fases_componente');
 
       final installationRef = _firestore
           .collection('installation_data')
@@ -53,10 +54,10 @@ class FaseComponenteService {
           .collection('components')
           .doc(fase.componenteId);
 
-      print('📍 Referência installation_data: ${installationRef.path}');
+      debugPrint('📍 Referência installation_data: ${installationRef.path}');
 
       final faseKey = _getFaseKey(fase.tipo);
-      print('🔑 Chave da fase: $faseKey');
+      debugPrint('🔑 Chave da fase: $faseKey');
 
       final faseDataSync = {
         faseKey: {
@@ -85,24 +86,28 @@ class FaseComponenteService {
         }
       };
 
-      print(
+      debugPrint(
           '📦 Dados installation_data: $faseKey (${faseDataSync[faseKey]!.keys.length} campos)');
 
       batch.set(installationRef, faseDataSync, SetOptions(merge: true));
-      print('✅ Adicionado ao batch: installation_data');
+      debugPrint('✅ Adicionado ao batch: installation_data');
 
-      print('\n🚀 Executando batch.commit()...');
+      debugPrint('\n🚀 Executando batch.commit()...');
       await batch.commit();
-      print('✅✅✅ BATCH COMMIT SUCESSO! ✅✅✅');
+      debugPrint('✅✅✅ BATCH COMMIT SUCESSO! ✅✅✅');
 
-      print('\n========================================');
-      print('🎉 FIM updateFaseWithSync - SUCESSO');
-      print('========================================\n');
+      // Atualizar progresso do componente e da turbina
+      await _atualizarProgressoComponenteETurbina(
+          fase.componenteId, fase.turbinaId);
+
+      debugPrint('\n========================================');
+      debugPrint('🎉 FIM updateFaseWithSync - SUCESSO');
+      debugPrint('========================================\n');
     } catch (e, stackTrace) {
-      print('\n❌❌❌ ERRO NO BATCH! ❌❌❌');
-      print('Erro: $e');
-      print('StackTrace: $stackTrace');
-      print('========================================\n');
+      debugPrint('\n❌❌❌ ERRO NO BATCH! ❌❌❌');
+      debugPrint('Erro: $e');
+      debugPrint('StackTrace: $stackTrace');
+      debugPrint('========================================\n');
       rethrow;
     }
   }
@@ -143,14 +148,113 @@ class FaseComponenteService {
       final minute = time.minute as int;
       return '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
     } catch (e) {
-      print('⚠️ Erro ao converter time: $e');
+      debugPrint('⚠️ Erro ao converter time: $e');
       return null;
     }
   }
 
   Future<void> updateFase(String faseId, FaseComponente fase) async {
-    print('⚠️ updateFase() chamado - redirecionando para updateFaseWithSync()');
+    debugPrint(
+        '⚠️ updateFase() chamado - redirecionando para updateFaseWithSync()');
     await updateFaseWithSync(faseId, fase);
+  }
+
+  /// Recalcula e grava o progresso do componente (media das suas fases) e
+  /// depois o progresso da turbina (média dos seus componentes).
+  Future<void> _atualizarProgressoComponenteETurbina(
+      String componenteId, String turbinaId) async {
+    try {
+      // 1. Buscar todas as fases do componente
+      final fasesSnap = await _firestore
+          .collection(_collection)
+          .where('componenteId', isEqualTo: componenteId)
+          .get();
+
+      double progressoComponente = 0;
+      if (fasesSnap.docs.isNotEmpty) {
+        double total = 0;
+        for (final doc in fasesSnap.docs) {
+          final fase = FaseComponente.fromFirestore(doc);
+          total += fase.progresso;
+        }
+        progressoComponente = total / fasesSnap.docs.length;
+      }
+
+      // 2. Atualizar componentes/{componenteId}.progresso
+      await _firestore.collection('componentes').doc(componenteId).update({
+        'progresso': progressoComponente,
+        'updatedAt': Timestamp.fromDate(DateTime.now())
+      });
+      debugPrint(
+          '✅ componentes/$componenteId → progresso: ${progressoComponente.toStringAsFixed(1)}%');
+
+      // 3. Buscar todos os componentes da turbina para calcular progresso da turbina
+      final compSnap = await _firestore
+          .collection('componentes')
+          .where('turbinaId', isEqualTo: turbinaId)
+          .get();
+
+      double progressoTurbina = 0;
+      if (compSnap.docs.isNotEmpty) {
+        double total = 0;
+        for (final doc in compSnap.docs) {
+          total += (doc.data()['progresso'] ?? 0).toDouble();
+        }
+        progressoTurbina = total / compSnap.docs.length;
+      }
+
+      // 4. Determinar status
+      String status;
+      if (progressoTurbina == 0) {
+        status = 'Planejada';
+      } else if (progressoTurbina < 100) {
+        status = 'Em Instalação';
+      } else {
+        status = 'Instalada';
+      }
+
+      // 5. Atualizar turbina
+      await _firestore.collection('turbinas').doc(turbinaId).update({
+        'progresso': progressoTurbina,
+        'status': status,
+      });
+      debugPrint(
+          '✅ turbinas/$turbinaId → progresso: ${progressoTurbina.toStringAsFixed(1)}% ($status)');
+    } catch (e) {
+      debugPrint('⚠️ _atualizarProgressoComponenteETurbina erro: $e');
+    }
+  }
+
+  /// Verifica se o VUI já está registado noutras fases.
+  /// Retorna a primeira [FaseComponente] duplicada encontrada, ou null se OK.
+  Future<FaseComponente?> checkVuiDuplicado(
+      String vui, String currentFaseId) async {
+    if (vui.isEmpty) return null;
+    try {
+      final snap = await _firestore
+          .collection(_collection)
+          .where('vui', isEqualTo: vui)
+          .limit(5)
+          .get();
+      final outros = snap.docs.where((doc) => doc.id != currentFaseId).toList();
+      if (outros.isEmpty) return null;
+      return FaseComponente.fromFirestore(outros.first);
+    } catch (e) {
+      debugPrint('⚠️ checkVuiDuplicado erro: $e');
+      return null;
+    }
+  }
+
+  /// Retorna o nome legível da turbina (ex: "WTG-01") dado o seu Firestore ID.
+  Future<String?> getTurbinaNome(String turbinaId) async {
+    try {
+      final doc = await _firestore.collection('turbinas').doc(turbinaId).get();
+      if (!doc.exists) return null;
+      return (doc.data() as Map<String, dynamic>)['nome'] as String?;
+    } catch (e) {
+      debugPrint('⚠️ getTurbinaNome erro: $e');
+      return null;
+    }
   }
 
   Future<String> createFase(FaseComponente fase) async {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../core/theme/app_colors.dart';
 import '../../i18n/installation_translations.dart';
 import '../../models/installation/fase_componente.dart';
 import 'componente_section.dart';
@@ -153,7 +154,7 @@ class _TrabalhosMecanicosSection extends ConsumerWidget {
           padding: const EdgeInsets.only(bottom: 12),
           child: Row(
             children: [
-              const Icon(Icons.build, color: Colors.orange),
+              const Icon(Icons.build, color: AppColors.warningOrange),
               const SizedBox(width: 8),
               Text(
                 t['trabalhosMecanicos'] ?? 'Trabalhos Mecânicos',
@@ -238,7 +239,7 @@ class _CheckpointsSection extends ConsumerWidget {
           padding: const EdgeInsets.only(bottom: 12),
           child: Row(
             children: [
-              const Icon(Icons.check_circle, color: Colors.green),
+              const Icon(Icons.check_circle, color: AppColors.successGreen),
               const SizedBox(width: 8),
               Text(
                 t['checkpointsGerais'] ?? 'Checkpoints Gerais',

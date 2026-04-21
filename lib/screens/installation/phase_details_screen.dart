@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:as_built/widgets/liquid_glass_overlays.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/localization/translation_helper.dart';
+import '../../widgets/app_bar_dashboard_shortcut.dart';
 
 // ============================================================================
 // 📋 TELA DE DETALHES DA FASE (Quando clica num card de turbina)
@@ -30,16 +32,23 @@ class _PhaseDetailsScreenState extends ConsumerState<PhaseDetailsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(widget.turbineName, style: const TextStyle(fontSize: 18)),
-            Text(
-              t.translate('phase_${widget.phase}'),
-              style:
-                  const TextStyle(fontSize: 14, fontWeight: FontWeight.normal),
-            ),
-          ],
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: AppColors.primaryGradient,
+          ),
+        ),
+        title: DashboardShortcutTitle(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(widget.turbineName, style: const TextStyle(fontSize: 18)),
+              Text(
+                t.translate('phase_${widget.phase}'),
+                style: const TextStyle(
+                    fontSize: 14, fontWeight: FontWeight.normal),
+              ),
+            ],
+          ),
         ),
       ),
       body: _buildPhaseContent(),
@@ -119,7 +128,7 @@ class _PhaseDetailsScreenState extends ConsumerState<PhaseDetailsScreen> {
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             color: (received ? AppColors.successGreen : AppColors.mediumGray)
-                .withOpacity(0.1),
+                .withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(
@@ -336,7 +345,7 @@ class _PhaseDetailsScreenState extends ConsumerState<PhaseDetailsScreen> {
                     t.translate('status_$status'),
                     style: const TextStyle(fontSize: 11),
                   ),
-                  backgroundColor: color.withOpacity(0.2),
+                  backgroundColor: color.withValues(alpha: 0.2),
                   labelStyle: TextStyle(color: color),
                 ),
               ],
@@ -379,7 +388,7 @@ class _PhaseDetailsScreenState extends ConsumerState<PhaseDetailsScreen> {
     // TODO: Abrir dialog ou tela com formulário de receção
     final t = TranslationHelper.of(context);
 
-    showDialog(
+    showLiquidDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(t.translate(task['nameKey'])),

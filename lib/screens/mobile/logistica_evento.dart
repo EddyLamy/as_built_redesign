@@ -2,6 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../core/localization/translation_helper.dart';
+import '../../core/theme/app_colors.dart';
+import '../../widgets/app_bar_dashboard_shortcut.dart';
 
 class LogisticaFormScreen extends StatefulWidget {
   final String turbineId;
@@ -28,12 +30,14 @@ class _LogisticaFormScreenState extends State<LogisticaFormScreen> {
       lastDate: DateTime(2030),
     );
     if (date == null) return;
+    if (!mounted) return;
 
     final time = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.now(),
     );
     if (time == null) return;
+    if (!mounted) return;
 
     setState(() {
       final finalDate =
@@ -60,6 +64,7 @@ class _LogisticaFormScreenState extends State<LogisticaFormScreen> {
       'destino': _destinoController.text,
       'observacoes': _obsController.text,
     });
+    if (!mounted) return;
     Navigator.pop(context);
   }
 
@@ -67,7 +72,16 @@ class _LogisticaFormScreenState extends State<LogisticaFormScreen> {
   Widget build(BuildContext context) {
     final t = TranslationHelper.of(context);
     return Scaffold(
-      appBar: AppBar(title: Text(t.translate('register_activity'))),
+      appBar: AppBar(
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: AppColors.primaryGradient,
+          ),
+        ),
+        title: DashboardShortcutTitle(
+          child: Text(t.translate('register_activity')),
+        ),
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [

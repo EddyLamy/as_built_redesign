@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:as_built/widgets/liquid_glass_overlays.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../core/localization/translation_helper.dart';
 import '../../core/theme/app_colors.dart';
+import '../../widgets/app_bar_dashboard_shortcut.dart';
 
 class LogisticaFormScreen extends StatefulWidget {
   final String turbineId;
@@ -44,6 +46,14 @@ class _LogisticaFormScreenState extends State<LogisticaFormScreen> {
     }
   }
 
+  @override
+  void dispose() {
+    _origemController.dispose();
+    _destinoController.dispose();
+    _obsController.dispose();
+    super.dispose();
+  }
+
   Future<void> _pickDateTime(bool isStart) async {
     final date = await showDatePicker(
       context: context,
@@ -52,12 +62,14 @@ class _LogisticaFormScreenState extends State<LogisticaFormScreen> {
       lastDate: DateTime(2030),
     );
     if (date == null) return;
+    if (!mounted) return;
 
     final time = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.fromDateTime(isStart ? _inicio : _fim),
     );
     if (time == null) return;
+    if (!mounted) return;
 
     setState(() {
       final dt =
@@ -71,7 +83,18 @@ class _LogisticaFormScreenState extends State<LogisticaFormScreen> {
   }
 
   void _save() async {
-    showDialog(
+    final t = TranslationHelper.of(context);
+    if (_fim.isBefore(_inicio) || _fim.isAtSameMomentAs(_inicio)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(t.translate('end_must_be_after_start')),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    showLiquidDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) => const Center(child: CircularProgressIndicator()),
@@ -100,22 +123,24 @@ class _LogisticaFormScreenState extends State<LogisticaFormScreen> {
         await collection.add(data);
       }
 
-      if (mounted) {
-        Navigator.pop(context); // Fecha o loading
-        Navigator.pop(context); // Volta para a lista
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(widget.docId != null
-                ? "Registo atualizado"
-                : "Registo guardado"),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) Navigator.pop(context);
+      if (!mounted) return;
+      Navigator.pop(context); // Fecha o loading
+      Navigator.pop(context); // Volta para a lista
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro: $e'), backgroundColor: Colors.red),
+        SnackBar(
+          content: Text(widget.docId != null
+              ? t.translate('record_updated')
+              : t.translate('record_saved')),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text('${t.translate('error')}: $e'),
+            backgroundColor: Colors.red),
       );
     }
   }
@@ -125,9 +150,16 @@ class _LogisticaFormScreenState extends State<LogisticaFormScreen> {
     final t = TranslationHelper.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.docId != null
-            ? '${t.translate('edit')} - ${widget.turbineName}'
-            : '${t.translate('logistics_crane')} - ${widget.turbineName}'),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: AppColors.primaryGradient,
+          ),
+        ),
+        title: DashboardShortcutTitle(
+          child: Text(widget.docId != null
+              ? '${t.translate('edit')} - ${widget.turbineName}'
+              : '${t.translate('logistics_crane')} - ${widget.turbineName}'),
+        ),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),

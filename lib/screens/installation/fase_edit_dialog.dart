@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:as_built/widgets/liquid_glass_overlays.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../i18n/installation_translations.dart';
@@ -7,6 +9,7 @@ import '../../models/installation/tipo_fase.dart';
 import '../../services/installation/fase_componente_service.dart';
 import '../../providers/locale_provider.dart';
 import '../../core/theme/app_colors.dart';
+import '../../utils/component_mapping.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:io' show Platform;
@@ -62,11 +65,11 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
   void initState() {
     super.initState();
 
-    print('\n🔵 FASE EDIT DIALOG - INIT');
-    print('   Fase ID: ${widget.fase.id}');
-    print('   Turbina ID: ${widget.turbinaId}');
-    print('   Componente ID: ${widget.fase.componenteId}');
-    print('   Tipo: ${widget.fase.tipo}');
+    debugPrint('\n🔵 FASE EDIT DIALOG - INIT');
+    debugPrint('   Fase ID: ${widget.fase.id}');
+    debugPrint('   Turbina ID: ${widget.turbinaId}');
+    debugPrint('   Componente ID: ${widget.fase.componenteId}');
+    debugPrint('   Tipo: ${widget.fase.tipo}');
 
     _dataInicio = widget.fase.dataInicio;
     _dataFim = widget.fase.dataFim;
@@ -110,8 +113,35 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
     return translations[key] ?? fallback;
   }
 
+  String _buildComponentDisplayName(Map<String, String> translations) {
+    final fullId = widget.fase.componenteId;
+    final hardcodedId = ComponentMapping.extractHardcodedId(fullId);
+    final translated = _t(translations, hardcodedId, '');
+
+    if (translated.isNotEmpty && translated != hardcodedId) {
+      return translated;
+    }
+
+    final mappedName = ComponentMapping.getComponentName(fullId);
+    if (mappedName != null && mappedName.isNotEmpty) {
+      return mappedName;
+    }
+
+    return hardcodedId.replaceAll('_', ' ');
+  }
+
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final dialogRadius = BorderRadius.circular(28);
+    final dialogBackground =
+        theme.dialogTheme.backgroundColor ?? theme.colorScheme.surface;
+    final footerBackground = isDark
+        ? AppColors.glassSurfaceStrongDark
+        : AppColors.glassSurfaceStrongLight;
+    final outlineColor = theme.colorScheme.outline;
+
     // ✅ OBTER LOCALE COM FALLBACK COMPLETO
     final String safeLocale = ref.watch(localeStringProvider);
 
@@ -126,7 +156,7 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
     try {
       tipoNome = widget.fase.tipo.getName(safeLocale);
     } catch (e) {
-      print('⚠️ Erro ao obter nome do tipo: $e');
+      debugPrint('⚠️ Erro ao obter nome do tipo: $e');
       switch (widget.fase.tipo) {
         case TipoFase.recepcao:
           tipoNome = _t(t, 'reception', 'Receção');
@@ -147,15 +177,22 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
 
     return Dialog(
       insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      backgroundColor: dialogBackground,
+      surfaceTintColor: Colors.transparent,
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(
+        borderRadius: dialogRadius,
+        side: BorderSide(color: outlineColor, width: 1),
+      ),
       child: LayoutBuilder(
         builder: (context, constraints) {
           final screenHeight = MediaQuery.of(context).size.height;
           final maxDialogHeight =
               screenHeight - 48; // 24 padding top + 24 bottom
 
-          return Container(
-            width: MediaQuery.of(context).size.width * 0.9,
+          return ConstrainedBox(
             constraints: BoxConstraints(
+              maxWidth: MediaQuery.of(context).size.width * 0.9,
               maxHeight: maxDialogHeight,
             ),
             child: Column(
@@ -164,7 +201,13 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
                 // Header
                 Container(
                   padding: const EdgeInsets.all(16),
-                  color: Colors.orange,
+                  decoration: BoxDecoration(
+                    color: AppColors.warningOrange,
+                    borderRadius: BorderRadius.only(
+                      topLeft: dialogRadius.topLeft,
+                      topRight: dialogRadius.topRight,
+                    ),
+                  ),
                   child: Row(
                     children: [
                       Expanded(
@@ -180,7 +223,7 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
                               ),
                             ),
                             Text(
-                              widget.fase.componenteId,
+                              _buildComponentDisplayName(t),
                               style: const TextStyle(
                                 color: Colors.white70,
                                 fontSize: 14,
@@ -192,7 +235,7 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
                       IconButton(
                         icon: const Icon(Icons.close, color: Colors.white),
                         onPressed: () {
-                          print('🔴 Dialog CANCELADO');
+                          debugPrint('🔴 Dialog CANCELADO');
                           Navigator.pop(context);
                         },
                       ),
@@ -217,10 +260,12 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
                               margin: const EdgeInsets.only(bottom: 16),
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
-                                color: Colors.orange.withOpacity(0.1),
+                                color: AppColors.warningOrange
+                                    .withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(8),
                                 border: Border.all(
-                                  color: Colors.orange.withOpacity(0.3),
+                                  color: AppColors.warningOrange
+                                      .withValues(alpha: 0.3),
                                 ),
                               ),
                               child: Row(
@@ -231,7 +276,7 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
                                       valueColor: AlwaysStoppedAnimation(
-                                        Colors.orange,
+                                        AppColors.warningOrange,
                                       ),
                                     ),
                                   ),
@@ -243,8 +288,8 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
                                       children: [
                                         Text(
                                           '🔍 Extraindo texto da foto...',
-                                          style: TextStyle(
-                                            color: Colors.orange[800],
+                                          style: const TextStyle(
+                                            color: AppColors.warningOrange,
                                             fontSize: 14,
                                             fontWeight: FontWeight.w600,
                                           ),
@@ -252,9 +297,9 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
                                         const SizedBox(height: 4),
                                         Text(
                                           'Identificando VUI, Serial e Item',
-                                          style: TextStyle(
+                                          style: const TextStyle(
                                             fontSize: 12,
-                                            color: Colors.grey[600],
+                                            color: AppColors.mediumGray,
                                           ),
                                         ),
                                       ],
@@ -290,8 +335,14 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.grey[100],
-                    border: Border(top: BorderSide(color: Colors.grey[300]!)),
+                    color: footerBackground,
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: dialogRadius.bottomLeft,
+                      bottomRight: dialogRadius.bottomRight,
+                    ),
+                    border: Border(
+                      top: BorderSide(color: outlineColor),
+                    ),
                   ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -332,7 +383,7 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
                           Expanded(
                             child: TextButton(
                               onPressed: () {
-                                print('🔴 Botão CANCELAR clicado');
+                                debugPrint('🔴 Botão CANCELAR clicado');
                                 Navigator.pop(context);
                               },
                               child: Text(
@@ -383,7 +434,7 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
     return SwitchListTile(
       value: _isFaseNA,
       onChanged: (value) {
-        print('🔵 N/A alterado para: $value');
+        debugPrint('🔵 N/A alterado para: $value');
         setState(() {
           _isFaseNA = value;
         });
@@ -697,7 +748,7 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
 
   Future<void> _adicionarFoto() async {
     try {
-      print('📸 _adicionarFoto: Iniciando processo de foto');
+      debugPrint('📸 _adicionarFoto: Iniciando processo de foto');
 
       // ════════════════════════════════════════════════════════════════════
       // 1. ESCOLHER SOURCE BASEADO NA PLATAFORMA
@@ -706,7 +757,7 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
 
       if (Platform.isAndroid || Platform.isIOS) {
         // Mobile: Perguntar se quer câmara ou galeria
-        source = await showDialog<ImageSource>(
+        source = await showLiquidDialog<ImageSource>(
           context: context,
           builder: (context) => AlertDialog(
             title: const Text('Adicionar Foto'),
@@ -731,11 +782,11 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
       } else {
         // Desktop: Apenas galeria (sem câmara)
         source = ImageSource.gallery;
-        print('💻 Desktop detectado: usando apenas galeria');
+        debugPrint('💻 Desktop detectado: usando apenas galeria');
       }
 
       if (source == null) {
-        print('⚠️ Utilizador cancelou seleção de source');
+        debugPrint('⚠️ Utilizador cancelou seleção de source');
         return;
       }
 
@@ -751,11 +802,11 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
       );
 
       if (image == null) {
-        print('⚠️ Nenhuma imagem selecionada');
+        debugPrint('⚠️ Nenhuma imagem selecionada');
         return;
       }
 
-      print('✅ Foto capturada: ${image.path}');
+      debugPrint('✅ Foto capturada: ${image.path}');
 
       // ════════════════════════════════════════════════════════════════════
       // 3. PERGUNTAR SE QUER OCR (APENAS EM MOBILE E SE FOR RECEÇÃO)
@@ -766,10 +817,10 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
         if (shouldExtractText == true) {
           await _extractTextFromImage(image.path);
         } else {
-          print('⏭️ Utilizador optou por não usar OCR');
+          debugPrint('⏭️ Utilizador optou por não usar OCR');
         }
       } else if (!_ocrService.isOCRAvailable) {
-        print(
+        debugPrint(
             '⚠️ OCR não disponível nesta plataforma (${OCRFactory.platformName})');
       }
 
@@ -789,7 +840,7 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
         _fotos.add(url);
       });
 
-      print('✅ Foto adicionada à lista. URL: $url');
+      debugPrint('✅ Foto adicionada à lista. URL: $url');
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -800,8 +851,8 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
         ),
       );
     } catch (e, stackTrace) {
-      print('❌ Erro ao adicionar foto: $e');
-      print('StackTrace: $stackTrace');
+      debugPrint('❌ Erro ao adicionar foto: $e');
+      debugPrint('StackTrace: $stackTrace');
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -819,7 +870,7 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
   // ══════════════════════════════════════════════════════════════════════════
 
   Future<bool?> _showOCRConfirmDialog() {
-    return showDialog<bool>(
+    return showLiquidDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Row(
@@ -841,10 +892,10 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.orange.withOpacity(0.1),
+                color: Colors.orange.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: Colors.orange.withOpacity(0.3),
+                  color: Colors.orange.withValues(alpha: 0.3),
                 ),
               ),
               child: Row(
@@ -892,17 +943,21 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
     setState(() => _isProcessingOCR = true);
 
     try {
-      print('🔍 Iniciando OCR na imagem: $imagePath');
+      debugPrint('🔍 Iniciando OCR na imagem: $imagePath');
 
       // ════════════════════════════════════════════════════════════════════
       // 1. EXTRAIR CAMPOS
       // ════════════════════════════════════════════════════════════════════
       final dados = await _ocrService.extrairDadosComponente(imagePath);
 
-      print('📊 Dados extraídos:');
-      print('   VUI: ${dados['vui']}');
-      print('   Serial: ${dados['serial']}');
-      print('   Item: ${dados['item']}');
+      if (kDebugMode && mounted) {
+        await _showOCRDebugDialog(dados);
+      }
+
+      debugPrint('📊 Dados extraídos:');
+      debugPrint('   VUI: ${dados['vui']}');
+      debugPrint('   Serial: ${dados['serial']}');
+      debugPrint('   Item: ${dados['item']}');
 
       // ════════════════════════════════════════════════════════════════════
       // 2. PREENCHER CAMPOS
@@ -910,17 +965,17 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
       setState(() {
         if (dados['vui']!.isNotEmpty) {
           _vuiController.text = dados['vui']!;
-          print('   ✅ VUI preenchido: ${dados['vui']}');
+          debugPrint('   ✅ VUI preenchido: ${dados['vui']}');
         }
 
         if (dados['serial']!.isNotEmpty) {
           _serialNumberController.text = dados['serial']!;
-          print('   ✅ Serial preenchido: ${dados['serial']}');
+          debugPrint('   ✅ Serial preenchido: ${dados['serial']}');
         }
 
         if (dados['item']!.isNotEmpty) {
           _itemNumberController.text = dados['item']!;
-          print('   ✅ Item preenchido: ${dados['item']}');
+          debugPrint('   ✅ Item preenchido: ${dados['item']}');
         }
       });
 
@@ -955,8 +1010,8 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
         }
       }
     } catch (e, stackTrace) {
-      print('❌ Erro no OCR: $e');
-      print('StackTrace: $stackTrace');
+      debugPrint('❌ Erro no OCR: $e');
+      debugPrint('StackTrace: $stackTrace');
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -972,6 +1027,64 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
         setState(() => _isProcessingOCR = false);
       }
     }
+  }
+
+  Future<void> _showOCRDebugDialog(Map<String, String> dados) {
+    final source = dados['debug_source'] ?? 'N/A';
+    final rawText = dados['debug_rawText'] ?? '';
+    final layoutVui = dados['debug_layout_vui'] ?? '';
+    final layoutSerial = dados['debug_layout_serial'] ?? '';
+    final layoutItem = dados['debug_layout_item'] ?? '';
+    final sectionVui = dados['debug_sections_vui'] ?? '';
+    final sectionSerial = dados['debug_sections_serial'] ?? '';
+    final sectionItem = dados['debug_sections_item'] ?? '';
+    final heuristicVui = dados['debug_heuristic_vui'] ?? '';
+    final heuristicSerial = dados['debug_heuristic_serial'] ?? '';
+    final heuristicItem = dados['debug_heuristic_item'] ?? '';
+
+    return showLiquidDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('OCR Debug (dev)'),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Fonte: $source'),
+                const SizedBox(height: 8),
+                Text(
+                    'Layout → VUI: $layoutVui | Serial: $layoutSerial | Item: $layoutItem'),
+                const SizedBox(height: 4),
+                Text(
+                    'Secções → VUI: $sectionVui | Serial: $sectionSerial | Item: $sectionItem'),
+                const SizedBox(height: 4),
+                Text(
+                    'Heurística → VUI: $heuristicVui | Serial: $heuristicSerial | Item: $heuristicItem'),
+                const SizedBox(height: 8),
+                Text(
+                    'Final → VUI: ${dados['vui']} | Serial: ${dados['serial']} | Item: ${dados['item']}'),
+                const SizedBox(height: 12),
+                const Text('Texto OCR bruto:'),
+                const SizedBox(height: 6),
+                SelectableText(
+                  rawText.isEmpty ? '(vazio)' : rawText,
+                  style: const TextStyle(fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Fechar'),
+          ),
+        ],
+      ),
+    );
   }
 
   int _calcularProgresso() {
@@ -1009,7 +1122,7 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
   }
 
   void _limparCampos() {
-    showDialog(
+    showLiquidDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Row(
@@ -1040,7 +1153,7 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
               });
 
               try {
-                print('\n🗑️ Limpando dados da fase no Firebase...');
+                debugPrint('\n🗑️ Limpando dados da fase no Firebase...');
 
                 final batch = FirebaseFirestore.instance.batch();
 
@@ -1090,7 +1203,7 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
                     SetOptions(merge: true));
 
                 await batch.commit();
-                print('✅ Dados limpos com sucesso!\n');
+                debugPrint('✅ Dados limpos com sucesso!\n');
 
                 if (mounted) {
                   setState(() {
@@ -1117,7 +1230,7 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
 
                 navigator.pop(true);
               } catch (e) {
-                print('❌ Erro ao limpar campos: $e');
+                debugPrint('❌ Erro ao limpar campos: $e');
 
                 scaffoldMessenger.showSnackBar(
                   SnackBar(
@@ -1145,11 +1258,11 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
   }
 
   void _guardar() async {
-    print('\n🟢🟢🟢 MÉTODO _guardar() CHAMADO! 🟢🟢🟢');
-    print('   Fase ID: ${widget.fase.id}');
+    debugPrint('\n🟢🟢🟢 MÉTODO _guardar() CHAMADO! 🟢🟢🟢');
+    debugPrint('   Fase ID: ${widget.fase.id}');
 
     if (widget.fase.id.isEmpty) {
-      print('❌❌❌ ERRO CRÍTICO: Fase ID está VAZIO!');
+      debugPrint('❌❌❌ ERRO CRÍTICO: Fase ID está VAZIO!');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -1163,8 +1276,68 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
     }
 
     if (!_formKey.currentState!.validate()) {
-      print('⚠️ Formulário não validou');
+      debugPrint('⚠️ Formulário não validou');
       return;
+    }
+
+    // ── Verificar VUI duplicado ──
+    final vuiNovo = _vuiController.text.trim();
+    if (vuiNovo.isNotEmpty && vuiNovo != (widget.fase.vui ?? '')) {
+      final duplicado =
+          await _service.checkVuiDuplicado(vuiNovo, widget.fase.id);
+      if (duplicado != null && mounted) {
+        // Buscar nome legível da turbina
+        final turbinaNome =
+            await _service.getTurbinaNome(duplicado.turbinaId) ??
+                duplicado.turbinaId;
+        if (!mounted) return;
+
+        // Derivar nome do componente: remover sufixo "_turbinaId" e capitalizar
+        String componenteNome = duplicado.componenteId;
+        final suffix = '_${duplicado.turbinaId}';
+        if (componenteNome.endsWith(suffix)) {
+          componenteNome = componenteNome.substring(
+              0, componenteNome.length - suffix.length);
+        }
+        componenteNome = componenteNome
+            .split('_')
+            .map((w) =>
+                w.isEmpty ? '' : '${w[0].toUpperCase()}${w.substring(1)}')
+            .join(' ');
+
+        final continuar = await showLiquidDialog<bool>(
+          context: context,
+          barrierDismissible: false,
+          builder: (ctx) => AlertDialog(
+            title: const Row(
+              children: [
+                Icon(Icons.warning_amber_rounded,
+                    color: Colors.orange, size: 28),
+                SizedBox(width: 8),
+                Text('VUI Duplicado'),
+              ],
+            ),
+            content: Text(
+              'O VUI "$vuiNovo" já está registado:\n\n'
+              '• Turbina: $turbinaNome\n'
+              '• Componente: $componenteNome\n\n'
+              'Deseja continuar mesmo assim?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Cancelar'),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+                onPressed: () => Navigator.pop(ctx, true),
+                child: const Text('Continuar'),
+              ),
+            ],
+          ),
+        );
+        if (continuar != true) return;
+      }
     }
 
     setState(() {
@@ -1173,7 +1346,7 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
 
     try {
       final progresso = _calcularProgresso();
-      print('   Progresso calculado: $progresso%');
+      debugPrint('   Progresso calculado: $progresso%');
 
       final faseAtualizada = widget.fase.copyWith(
         dataInicio: _dataInicio,
@@ -1200,7 +1373,7 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
 
       await _service.updateFase(widget.fase.id, faseAtualizada);
 
-      print('✅ updateFase() completou sem erros!');
+      debugPrint('✅ updateFase() completou sem erros!');
 
       if (mounted) {
         Navigator.pop(context, true);
@@ -1212,8 +1385,8 @@ class _FaseEditDialogState extends ConsumerState<FaseEditDialog> {
         );
       }
     } catch (e, stackTrace) {
-      print('❌❌❌ ERRO em _guardar(): $e');
-      print('StackTrace: $stackTrace');
+      debugPrint('❌❌❌ ERRO em _guardar(): $e');
+      debugPrint('StackTrace: $stackTrace');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

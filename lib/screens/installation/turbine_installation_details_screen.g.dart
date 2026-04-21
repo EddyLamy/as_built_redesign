@@ -13,7 +13,7 @@ part of 'turbine_installation_details_screen.dart';
 final selectedInstallationPhaseProvider = SelectedInstallationPhaseProvider._();
 
 final class SelectedInstallationPhaseProvider
-    extends $NotifierProvider<SelectedInstallationPhase, String> {
+    extends $NotifierProvider<SelectedInstallationPhase, String?> {
   SelectedInstallationPhaseProvider._()
       : super(
           from: null,
@@ -33,10 +33,10 @@ final class SelectedInstallationPhaseProvider
   SelectedInstallationPhase create() => SelectedInstallationPhase();
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(String value) {
+  Override overrideWithValue(String? value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<String>(value),
+      providerOverride: $SyncValueProvider<String?>(value),
     );
   }
 }
@@ -44,14 +44,14 @@ final class SelectedInstallationPhaseProvider
 String _$selectedInstallationPhaseHash() =>
     r'88107f74f4a7c9460d83d89339c7caeaf9302b9b';
 
-abstract class _$SelectedInstallationPhase extends $Notifier<String> {
-  String build();
+abstract class _$SelectedInstallationPhase extends $Notifier<String?> {
+  String? build();
   @$mustCallSuper
   @override
   void runBuild() {
-    final ref = this.ref as $Ref<String, String>;
+    final ref = this.ref as $Ref<String?, String?>;
     final element = ref.element as $ClassProviderElement<
-        AnyNotifier<String, String>, String, Object?, Object?>;
+        AnyNotifier<String?, String?>, String?, Object?, Object?>;
     element.handleCreate(ref, build);
   }
 }

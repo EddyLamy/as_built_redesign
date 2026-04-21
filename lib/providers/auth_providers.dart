@@ -8,13 +8,20 @@ part 'auth_providers.g.dart';
 // AUTH PROVIDERS - Firebase Authentication
 // ══════════════════════════════════════════════════════════════════════════
 
-/// Stream do estado de autenticação (recomendado)
-final authStateProvider = StreamProvider<User?>((ref) {
+/// Stream do estado de autenticação (padrão recomendado)
+final authProvider = StreamProvider<User?>((ref) {
   return FirebaseAuth.instance.authStateChanges();
 });
 
-/// User atual (síncrono)
+/// Alias para compatibilidade com código existente
+final authStateProvider = authProvider;
+
+/// User atual (SÍNCRONO - acesso direto ao FirebaseAuth)
+/// IMPORTANTE: Este provider retorna SEMPRE o estado atual sem depender de streams
 final currentUserProvider = Provider<User?>((ref) {
+  // Força refresh quando authProvider muda
+  ref.watch(authProvider);
+  // Retorna SEMPRE o valor atual (síncrono)
   return FirebaseAuth.instance.currentUser;
 });
 
@@ -29,9 +36,17 @@ class UserSession extends _$UserSession {
 
 /// User ID atual
 final currentUserIdProvider = Provider<String?>((ref) {
+  final authUser = ref.watch(authProvider).maybeWhen(
+        data: (user) => user,
+        orElse: () => null,
+      );
   final restUserId = ref.watch(userSessionProvider);
-  final firebaseUser = FirebaseAuth.instance.currentUser;
-  return restUserId ?? firebaseUser?.uid;
+
+  if (authUser != null) {
+    return authUser.uid;
+  }
+
+  return restUserId;
 });
 
 /// User está autenticado?

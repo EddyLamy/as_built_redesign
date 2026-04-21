@@ -29,7 +29,7 @@ class MobileApp extends ConsumerWidget {
       // LOADING
       // ────────────────────────────────────────────────────────────────────────
       loading: () => const Scaffold(
-        backgroundColor: AppColors.backgroundGray,
+        backgroundColor: Colors.transparent,
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,

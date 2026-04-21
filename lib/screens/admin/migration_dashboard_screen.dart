@@ -1,9 +1,11 @@
 // lib/screens/admin/migration_dashboard_screen.dart
 
 import 'package:flutter/material.dart';
+import 'package:as_built/widgets/liquid_glass_overlays.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../core/theme/app_colors.dart';
+import '../../widgets/app_bar_dashboard_shortcut.dart';
 import '../../providers/app_providers.dart';
 
 /// Dashboard de Migração - Para Admin e Site Managers
@@ -71,7 +73,7 @@ class _MigrationDashboardScreenState
         _isLoading = false;
       });
     } catch (e) {
-      print('❌ Erro ao carregar status: $e');
+      debugPrint('❌ Erro ao carregar status: $e');
       setState(() => _isLoading = false);
     }
   }
@@ -80,7 +82,14 @@ class _MigrationDashboardScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('📊 Migration Dashboard'),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: AppColors.primaryGradient,
+          ),
+        ),
+        title: const DashboardShortcutTitle(
+          child: Text('📊 Migration Dashboard'),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -218,10 +227,11 @@ class _MigrationDashboardScreenState
       ),
     );
 
+    if (!mounted) return;
     if (confirm != true) return;
 
     // Mostrar progresso
-    showDialog(
+    showLiquidDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) => const AlertDialog(
@@ -240,6 +250,8 @@ class _MigrationDashboardScreenState
       final componenteService = ref.read(componenteServiceProvider);
       await componenteService.migrateComponentesForProject(projectId);
 
+      if (!mounted) return;
+
       Navigator.pop(context); // Fechar progresso
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -251,6 +263,7 @@ class _MigrationDashboardScreenState
 
       _loadProjectsStatus(); // Recarregar
     } catch (e) {
+      if (!mounted) return;
       Navigator.pop(context); // Fechar progresso
 
       ScaffoldMessenger.of(context).showSnackBar(

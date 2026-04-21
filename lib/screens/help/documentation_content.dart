@@ -13,546 +13,440 @@ class DocumentationContent {
     'quick_start': '''
 # 🚀 Guia de Início Rápido
 
-Bem-vindo ao **As-Built**! Esta aplicação foi desenvolvida para facilitar a gestão e documentação de instalações de turbinas eólicas.
+  Bem-vindo ao **As-Built**. A aplicação concentra o acompanhamento da instalação, documentação, NCRs, equipas e relatórios do projeto num único fluxo.
 
 ## 📋 Primeiros Passos
 
-### 1. Criar um Projeto
-• Clique no menu lateral (☰)
-• Selecione "Novo Projeto"
-• Preencha os dados:
-  - Nome do projeto
-  - Tipo de turbina
-  - Localização
-  - Cliente
+  ### 1. Entrar e selecionar um projeto
+  • Faça login com a sua conta
+  • No dashboard, selecione o projeto no topo
+  • Se ainda não existir projeto, use **Novo Projeto** no menu lateral
 
 ### 2. Adicionar Turbinas
-• No dashboard, clique no botão + (canto inferior direito)
-• Insira o nome da turbina (ex: WTG-01)
-• Selecione o número de secções médias da torre
-• A turbina será criada com todos os componentes automaticamente
+  • No dashboard, use o botão flutuante com o ícone de turbina
+  • Confirme o nome sugerido, a sequência e o número de middle sections
+  • A turbina é criada com componentes e fases base automaticamente
 
-### 3. Registar Fases
-• Aceda aos detalhes da turbina
-• Navegue pelas diferentes fases:
-  - 📦 Receção
-  - 📋 Preparação
-  - 🔧 Pré-Assemblagem
-  - 🏗️ Assemblagem
-  - 🔩 Torque & Tensionamento
-  - ✅ Fases Finais
+  ### 3. Registar progresso da instalação
+  • Abra os detalhes da turbina a partir da lista do dashboard
+  • Registe dados nas fases de Receção, Preparação, Pré-Assemblagem, Assemblagem, Torque & Tensionamento e Fases Finais
+  • Use observações, datas, fotografias e checkpoints para manter o histórico completo
 
-### 4. Gerar Relatórios
-• Use o botão de relatórios no dashboard
-• Selecione as fases desejadas
-• Gere o relatório em Excel
-• Download automático
+  ### 4. Complementar com módulos de apoio
+  • **Daily Journal** para o resumo diário do site
+  • **NCRs** para não conformidades e ações corretivas
+  • **Documentation** para ficheiros, tags e categorias
+  • **Team** para empresas, membros e permissões
+
+  ### 5. Gerar relatórios
+  • Use o botão de relatórios disponível nos ecrãs com projeto selecionado
+  • Escolha fases, NCRs, equipamentos, gruas e Daily Journal
+  • Gere o ficheiro e valide o resultado antes de partilhar
 
 ## 💡 Dicas Úteis
 
-✓ Use atalhos de teclado para maior produtividade
-✓ Configure notificações para não perder prazos
-✓ Exporte dados regularmente como backup
-✓ Consulte a documentação detalhada quando necessário
-
-## 🎥 Vídeos Recomendados
-• Visão Geral (5 min)
-• Adicionar Componentes (3 min)
+  ✓ Selecione sempre o projeto correto antes de editar dados
+  ✓ Registe a informação logo após a atividade em campo
+  ✓ Reveja permissões do projeto antes de adicionar novos utilizadores
+  ✓ Use a Central de Ajuda como referência rápida para os módulos principais
     ''',
     'add_turbines': '''
 # 🌪️ Como Adicionar Turbinas
 
-## Método Rápido
+  ## Fluxo recomendado
 
-### Passo 1: Aceder ao Botão
-No dashboard principal, localize o **botão flutuante azul** no canto inferior direito com o ícone de turbina (🌪️).
+  ### Passo 1: Selecionar o projeto
+  • No dashboard, confirme que o projeto certo está selecionado no topo
+  • O botão de adicionar turbina só aparece para quem tem permissões de gestão
 
 ### Passo 2: Preencher Dados
-Será apresentado um diálogo com os seguintes campos:
+  Ao abrir o diálogo, valide os campos disponíveis:
 
-**Campos Obrigatórios:**
-• **Nome da Turbina** - Ex: WTG-01, WTG-02
-• **Tipo de Turbina** - Selecione da lista
-
-**Campos Opcionais:**
-• **Número de Secções Médias** - Define quantas middle sections a torre tem (0-5)
-• **Status Inicial** - Normalmente "Planejada"
+  • **Nome da turbina** - o sistema sugere um código com base na sequência
+  • **Sequência de instalação** - preenchida automaticamente
+  • **Número de middle sections** - entre 1 e 6, conforme a torre real
+  • **Localização** - opcional, útil para pad/setor
 
 ### Passo 3: Confirmar
-Clique em **"Criar Turbina"** e o sistema irá:
-✓ Criar a turbina no projeto
-✓ Gerar todos os componentes automaticamente:
-  - Fundação
-  - Secções de torre (bottom, middle, top)
-  - Nacelle
-  - Hub
-  - Pás (3)
-✓ Inicializar todas as fases de instalação
+  Clique em **Criar Turbina**. O sistema irá:
+  ✓ Guardar a turbina no projeto selecionado
+  ✓ Gerar automaticamente os componentes base
+  ✓ Preparar as fases e estruturas necessárias para o acompanhamento
 
-## 📊 Componentes Gerados
+  ### Passo 4: Rever a estrutura criada
+  • Abra a turbina recém-criada
+  • Confirme os componentes, secções de torre e fases disponíveis
+  • Ajuste localização e observações iniciais se necessário
 
-Cada turbina inclui automaticamente:
-
-### Torre:
-• Bottom Section
-• Middle Section 1, 2, 3, 4, 5 (conforme configurado)
-• Top Section
-
-### Nacelle:
-• Nacelle
-• Hub
-• Blade 1, 2, 3
-
-### Outros:
-• Top Cooler
-• Drive Train
-• MV Cable
-• SWG
-• Transformador
-• Gerador
-• Ground Control
-
-## ⚙️ Configurações Avançadas
-
-Se precisar de personalizar os componentes, pode:
-1. Editar cada componente individualmente
-2. Adicionar novos componentes customizados
-3. Remover componentes não aplicáveis
-
-## 🎯 Boas Práticas
+  ## 🎯 Boas Práticas
 
 ✓ Use nomenclatura consistente (WTG-01, WTG-02, etc.)
-✓ Configure todas as turbinas antes de iniciar registos
-✓ Verifique os componentes gerados
-✓ Mantenha backups regulares
+  ✓ Defina corretamente o número de middle sections antes de começar os registos
+  ✓ Crie as turbinas do projeto antes do arranque da instalação em campo
+  ✓ Verifique os componentes automáticos logo após a criação
+  ✓ Use a localização para facilitar filtros e navegação
     ''',
     'phases': '''
 # 📊 Gestão de Fases de Instalação
 
-## Visão Geral
+  ## Visão Geral
 
-O As-Built organiza a instalação em **6 fases principais**:
+  Cada turbina centraliza o progresso em fases operacionais. Entre nos detalhes da turbina para atualizar estado, datas, observações, imagens e controlos de qualidade.
 
 ## 1. 📦 Receção / Descarga
-
-**Objetivo:** Registar chegada de componentes ao site
-
-**Dados a Registar:**
-• Data e hora de descarga
-• VUI (Vendor Unique Identifier)
-• Número de série
-• Item number
-• Condição do componente
-• Observações de transporte
-
-**Quando registar:** Assim que o componente chega ao parque
-
----
+  Registe chegada de componentes, data, VUI, número de série e condição à receção.
 
 ## 2. 📋 Preparação
-
-**Objetivo:** Documentar preparação para montagem
-
-**Dados a Registar:**
-• Data/hora início
-• Data/hora fim
-• Atividades realizadas
-• Equipamentos utilizados
-• Responsável
-
-**Atividades Típicas:**
-• Limpeza de componentes
-• Inspeção visual
-• Preparação de área
-• Movimentação para local de montagem
-
----
+  Documente preparação, recursos envolvidos e pré-requisitos antes da montagem.
 
 ## 3. 🔧 Pré-Assemblagem
-
-**Objetivo:** Registar montagens preliminares
-
-**Dados a Registar:**
-• Data/hora início e fim
-• Componentes envolvidos
-• Equipa responsável
-• QC checks realizados
-
-**Exemplos:**
-• Montagem de internals na nacelle
-• Pré-assemblagem de hub
-• Preparação de secções de torre
-
----
+  Registe montagens preliminares, checkpoints e validações intermédias.
 
 ## 4. 🏗️ Assemblagem
-
-**Objetivo:** Documentar montagem principal
-
-**Dados a Registar:**
-• Data/hora início e fim por componente
-• Gruas utilizadas
-• Condições meteorológicas
-• Status de conclusão
-• Issues encontrados
-
-**Componentes:**
-• Instalação de fundação
-• Elevação de secções de torre
-• Montagem de nacelle
-• Instalação de hub
-• Montagem de pás
-
----
+  Documente a montagem principal, incluindo gruas, condições meteorológicas e conclusão por componente.
 
 ## 5. 🔩 Torque & Tensionamento
-
-**Objetivo:** Registar valores de torque e tensionamento
-
-**Dados a Registar:**
-• Conexão (Tower Bottom, Tower Middle 1, etc.)
-• Torque Value e Unit (Nm, ft-lb)
-• Tensioning Value e Unit (bar, kN)
-• Data e hora de execução
-• Responsável técnico
-
-**Conexões Típicas:**
-• Tower Bottom
-• Tower Middle (1 a 5)
-• Tower Top
-• Yaw Bearing
-• Hub
-
----
+  Registe valores por ligação, equipamento utilizado, lotes e evidências associadas.
 
 ## 6. ✅ Fases Finais
+  Feche trabalhos finais, inspeções, commissioning e entrega.
 
-**Objetivo:** Documentar fases de conclusão
+  ## 📌 O que manter atualizado
 
-**Fases Incluídas:**
-• Electrical Works
-• Inspections
-• Client Inspection
-• Pre-Commissioning
-• Commissioning
-• Turbine Tests
-• Handover
-• Final Observations
-
-**Para cada fase:**
-• Data/hora início e fim
-• Status (Pending, In Progress, Complete)
-• Documentos associados
-• Sign-offs
-
----
-
-## 📈 Timeline Visual
-
-O sistema apresenta uma **timeline interactiva** que mostra:
-• Progresso de cada fase (%)
-• Status (Complete, In Progress, Pending)
-• Alertas de atrasos
-• Próximos milestones
-
----
+  • Datas de início e fim
+  • Observações operacionais e bloqueios
+  • Fotografias e evidências
+  • Estado dos componentes e checkpoints
 
 ## 🎯 Boas Práticas
 
 ✓ Registe dados imediatamente após conclusão
-✓ Use observações para documentar issues
-✓ Tire fotos como evidência
-✓ Mantenha QC checks atualizados
-✓ Exporte relatórios regularmente
+  ✓ Use observações para explicar desvios ou bloqueios
+  ✓ Mantenha QC checks e evidências coerentes com o estado final
+  ✓ Revise a turbina no dashboard para confirmar progresso global
+    ''',
+    'daily_journal': '''
+  # 📘 Daily Journal
+
+  ## Quando usar
+
+  Use o **Daily Journal** para consolidar o que aconteceu no dia por projeto: progresso, equipas, remarks, tempos de espera e medições de vento.
+
+  ## Como aceder
+
+  • Selecione um projeto
+  • Abra o menu lateral
+  • Entre em **Daily Journal**
+
+  ## Estrutura do formulário
+
+  O ecrã segue o template Excel original e inclui:
+
+  • **Cabeçalho** com identificação do projeto e controlo do documento
+  • **Equipa em obra** e contagens por função/empresa
+  • **Progress / Daily Remarks** para descrever atividade executada
+  • **Pessoas / Horas** para lançar mão de obra e horas
+  • **Waiting Time** para tempos improdutivos
+  • **Wind Measurements** para registo das condições de vento
+
+  ## Guardar e reutilizar
+
+  • Guarde o diário pelo ícone ou botão **Guardar Daily Journal**
+  • Pode reabrir registos guardados do mesmo projeto e dia para edição
+  • O módulo integra-se no gerador de relatórios quando essa opção é selecionada
+
+  ## 🎯 Boas Práticas
+
+  ✓ Preencha o diário no próprio dia
+  ✓ Mantenha remarks objetivos e auditáveis
+  ✓ Registe tempos de espera com motivo claro
+  ✓ Revise vento e horas antes de guardar
+    ''',
+    'ncrs': '''
+  # 📋 NCRs e Não Conformidades
+
+  ## Objetivo
+
+  O módulo de **NCRs** permite registar desvios de qualidade, segurança, logística, documentação ou instalação e acompanhar o fecho até à resolução.
+
+  ## Como aceder
+
+  • Selecione um projeto
+  • Abra o menu lateral
+  • Entre em **NCRs**
+
+  ## O que pode fazer
+
+  • Pesquisar NCRs por código, título, turbina ou responsável
+  • Filtrar por estado, severidade, categoria ou atrasos
+  • Alternar entre vista em lista e grelha
+  • Criar ou editar NCRs com histórico de estado
+
+  ## Dados principais de uma NCR
+
+  • **Título** e **descrição** do desvio
+  • **Turbina associada**
+  • **Categoria** e **severidade**
+  • **Data limite**
+  • **Responsável**
+  • **Evidências** e notas de alteração de estado
+
+  ## Fluxo de acompanhamento
+
+  1. Criar a NCR com informação mínima completa
+  2. Atribuir responsável e prazo
+  3. Atualizar o estado à medida que a ação avança
+  4. Anexar evidências e nota de fecho quando estiver resolvida
+
+  ## 🎯 Boas Práticas
+
+  ✓ Use títulos curtos e específicos
+  ✓ Associe sempre a NCR à turbina correta
+  ✓ Não altere o estado sem justificar a mudança
+  ✓ Revise NCRs em atraso antes de emitir relatórios
     ''',
     'reports': '''
 # 📈 Relatórios - Guia Completo
 
-## Tipos de Relatorios
-
-O As-Built permite gerar relatórios em Excel:
-
-### 📊 Excel (.xlsx)
-• Múltiplas sheets por fase
-• Formatação profissional
-• Filtros e ordenação
-• Fácil de manipular dados
-• **Recomendado para:** Análise de dados
-
 ## Como Gerar Relatórios
 
-### Passo 1: Aceder ao Botão
-No dashboard, clique no **botão de relatórios** (📊) ao lado do nome do projeto.
+  ### Passo 1: Aceder ao botão
+  Abra um ecrã com projeto selecionado e clique no **botão de relatórios**.
 
 ### Passo 2: Selecionar Fases
-Marque as fases que deseja incluir no relatório:
-
-**Fases de Instalação:**
+  No diálogo pode selecionar, conforme necessário:
 ☐ Receção / Descarga
 ☐ Preparação
 ☐ Pré-Assemblagem
 ☐ Assemblagem
 ☐ Torque & Tensionamento
 ☐ Fases Finais
+  ☐ Equipamentos
+  ☐ NCRs
+☐ Gruas (Pads)
+☐ Gruas Gerais
+  ☐ Daily Journal
 
-**Logística:**
-☐ Gruas (Pads) - Gruas atribuídas a turbinas
-☐ Gruas Gerais - Gruas não atribuídas
-
-**Atalhos:**
-• **Todos** - Seleciona todas as fases
-• **Limpar** - Desmarca tudo
+  Também pode ativar **Relatório Completo** para incluir tudo de uma só vez.
 
 ### Passo 3: Gerar
-Clique em **"Gerar Relatório"** e aguarde:
-• Recolha de dados (~5-10s)
-• Processamento (~5-15s)
-• Download automático
+  Clique em **Gerar e enviar** e aguarde a criação do ficheiro.
 
----
+  ## 📍 Resultado esperado
 
-## Conteúdo dos Relatórios
-
-### 📦 Receção
-**Colunas:**
-• Turbina
-• Componente
-• VUI
-• Serial Number
-• Item Number
-• Data Descarga
-• Hora
-
-### 📋 Preparação / 🔧 Pré-Assemblagem / 🏗️ Assemblagem
-**Colunas:**
-• Turbina
-• Componente
-• VUI
-• Serial Number
-• Item Number
-• Data Início / Hora Início
-• Data Fim / Hora Fim
-
-### 🔩 Torque & Tensionamento
-**Colunas:**
-• Turbina
-• Conexão
-• Torque Value
-• Torque Unit
-• Tensioning Value
-• Tensioning Unit
-• Data / Hora
-
-### ✅ Fases Finais
-**Colunas:**
-• Turbina
-• Fase
-• Data Início / Hora Início
-• Data Fim / Hora Fim
-• Status
-
-### 🏗️ Gruas (Pads)
-**Colunas:**
-• Turbina
-• Modelo da Grua
-• Tipo de Atividade
-• Data Início / Hora Início
-• Data Fim / Hora Fim
-• Duração
-• Motivo (se paragem)
-• Origem / Destino
-• Observações
-
-### 🏭 Gruas Gerais
-**Colunas:**
-• Modelo da Grua
-• Descrição
-• Tipo de Atividade
-• Data Início / Hora Início
-• Data Fim / Hora Fim
-• Duração
-• Observações
-
----
-
-## 📍 Localização dos Ficheiros
-
-Os relatórios são salvos automaticamente em:
-**Windows:** `C:Users[YourUser]Documents`
-**Nome:** `report_[timestamp].xlsx`
-
----
-
-## 🎨 Formatação
-
-### Excel:
-• Cores por fase (headers)
-• Borders em todas as células
-• Freeze da primeira linha
-• Larguras otimizadas
-• Múltiplas sheets
-
-## ⚠️ Troubleshooting
-
-**Erro: "Nenhum dado encontrado"**
-→ Verifique se registou dados nas fases selecionadas
-
-**Ficheiro não abre**
-→ Certifique-se que tem Excel instalado
-
-**Dados incompletos**
-→ Alguns campos podem estar vazios se não foram preenchidos
-
-**Demora muito tempo**
-→ Normal para projetos com muitas turbinas (>50)
-
----
+  • O relatório é aberto automaticamente após geração
+  • O conteúdo depende apenas das opções assinaladas
+  • Revise dados vazios ou módulos sem acesso antes de reenviar
 
 ## 🎯 Dicas
 
-✓ Gere relatórios regularmente (semanal)
-✓ Guarde cópias em local seguro
-✓ Use Excel para análise
-✓ Use Excel para apresentações
-✓ Verifique dados antes de gerar
+  ✓ Gere relatórios por módulo quando estiver a validar equipas diferentes
+  ✓ Use NCRs e Daily Journal no mesmo pacote para relatórios diários/semanais
+  ✓ Confirme permissões de relatório para visitantes antes de delegar exportações
     ''',
     'cranes': '''
 # 🏗️ Gestão de Gruas e Logística
 
 ## Dois Tipos de Gruas
 
-O sistema permite gerir dois tipos de gruas:
-
 ### 1. 🌪️ Gruas de Pads (Atribuídas a Turbinas)
-Gruas fixas que ficam num pad específico para instalar uma turbina.
+  Gruas associadas a uma turbina/pad específico.
+  Aceder: Dashboard → abrir turbina → área de gruas/atividades da turbina
 
 ### 2. 🏭 Gruas Gerais
-Gruas móveis que podem ser usadas em várias turbinas ou tarefas gerais.
+  Gruas móveis usadas em várias turbinas ou tarefas de apoio.
+  Aceder: Menu lateral → módulo de gruas gerais / logística
 
----
+## Tipos de Atividades
+• **Mobilização** — Chegada e setup da grua
+• **Trabalho** — Operação normal
+• **Paragem** — Tempo parado (Vento, Mecânico, Componentes, Segurança)
+• **Transferência** — Movimentação entre pads (Origem → Destino)
+• **Desmobilização** — Saída do site
 
-## Gruas de Pads
+  ## O que deve ser registado
 
-### Aceder:
-Dashboard → Turbina → **Aba "Gruas"**
-
-### Tipos de Atividades:
-
-**📍 Mobilização**
-• Chegada da grua ao pad
-• Setup e montagem
-• Testes de funcionamento
-
-**🏗️ Trabalho**
-• Instalação de componentes
-• Içamento de secções
-• Operação normal
-
-**⏸️ Paragem**
-• Tempo parado
-• **Motivos possíveis:**
-  - 💨 Vento
-  - 🔧 Problema Mecânico
-  - 📦 Aguardar Componentes
-  - ⚠️ Segurança
-
-**🔄 Transferência**
-• Movimentação entre pads
-• Origem → Destino
-
-**📤 Desmobilização**
-• Desmontagem
-• Saída do site
-
-### Dados a Registar:
-• Modelo da grua
-• Tipo de atividade
-• Data/hora início
-• Data/hora fim
-• Motivo (se paragem)
-• Origem/destino (se transferência)
-• Observações
-
----
-
-## Gruas Gerais
-
-### Aceder:
-Menu Lateral → **"Gruas Gerais"**
-
-### Gestão:
-
-**Adicionar Grua:**
-1. Clique em "Adicionar Grua Geral"
-2. Preencha modelo
-3. Descrição (opcional)
-4. Clique em "Adicionar"
-
-**Registar Atividades:**
-1. Selecione a grua
-2. Clique em "Adicionar Atividade"
-3. Preencha dados (tipo, datas, etc.)
-4. Salvar
-
-**Tipos de Atividades:** (iguais às gruas de pads)
-• Mobilização
-• Trabalho
-• Paragem
-• Transferência
-• Desmobilização
-
----
-
-## 📊 Relatórios de Gruas
-
-### Incluir em Relatórios:
-Ao gerar relatórios, pode incluir:
-☐ **Gruas (Pads)** - Todas as atividades de gruas atribuídas
-☐ **Gruas Gerais** - Todas as atividades de gruas gerais
-
-### Informação Incluída:
-• Duração automática (calculada)
-• Totais por tipo de atividade
-• Timeline de mobilizações
-• Análise de paragens
-
----
-
-## 📈 Dashboard de Gruas
-
-Visualize métricas como:
-• Total de horas de trabalho
-• Tempo de paragens por motivo
-• Eficiência de utilização
-• Gruas mais utilizadas
-
----
+  • Datas e horas coerentes com a atividade
+  • Motivo correto de paragem
+  • Pad de origem/destino em transferências
+  • Observações para eventos fora do plano
 
 ## 🎯 Boas Práticas
 
 ✓ Registe mobilizações/desmobilizações sempre
 ✓ Documente paragens com motivos corretos
-✓ Mantenha transferências atualizadas
-✓ Use observações para detalhes importantes
-✓ Gere relatórios semanais de gruas
-✓ Valide duração calculada
+  ✓ Use observações para detalhes de segurança e bloqueios
+  ✓ Gere relatórios semanais para validar produtividade e indisponibilidades
+    ''',
+    'users_permissions': '''
+# 👥 Utilizadores e Permissões
+
+## Visão Geral
+
+O As-Built tem um sistema de dois níveis de permissões:
+• **GlobalRole** — quem é a pessoa na empresa
+• **ProjectRole** — o que pode fazer em cada projeto
+
+---
+
+## 🌍 GlobalRole — Roles Globais
+
+Definem o nível de acesso geral na aplicação:
+
+### 👔 Director
+• Vê **todos os projetos** automaticamente
+• Acesso completo a todos os módulos
+• Pode gerir utilizadores (mudar roles)
+• Não precisa de ser adicionado a projetos
+
+### 🦺 Site Manager
+• Vê **todos os projetos** automaticamente
+• Acesso completo a todos os módulos
+• Não precisa de ser adicionado a projetos
+
+### 👤 Utilizador
+• Vê apenas os projetos onde foi adicionado
+• Acesso definido pelo ProjectRole de cada projeto
+
+---
+
+## 🏗️ ProjectRole — Roles por Projeto
+
+Definem o que a pessoa pode fazer num projeto específico:
+
+### 🧑‍💼 Project Manager
+• CRUD completo (criar, editar, apagar)
+• Gerir equipa e permissões do projeto
+• Acesso a todos os módulos do projeto
+
+### 👷 Site Supervisor
+• Editar instalação, equipamento e documentação
+• Não pode gerir equipa ou permissões
+• Acesso operacional completo
+
+### 👁️ Visitante
+• Só leitura — não pode editar nada
+• Pode gerar relatórios (se autorizado)
+
+---
+
+## ➕ Como Adicionar Utilizadores
+
+### Passo 1: Criar conta no Firebase
+O administrador cria a conta em **Firebase Console → Authentication** com email e password.
+
+### Passo 2: Primeiro login
+A pessoa faz login na app — o perfil é criado automaticamente com `globalRole: "user"`.
+
+### Passo 3: Definir GlobalRole (se necessário)
+Menu lateral → **Utilizadores** → seleciona a pessoa → muda o role no dropdown.
+
+### Passo 4: Adicionar ao Projeto
+No projeto → **Team → Permissions → botão "+"** → seleciona a pessoa → escolhe o ProjectRole → define se pode gerar relatórios → Adicionar.
+
+A partir deste momento a pessoa vê o projeto no seu dashboard e pode trabalhar com as permissões atribuídas.
+
+---
+
+## 🔐 Regras de Acesso por Módulo
+
+| Módulo | Project Manager | Site Supervisor | Visitante |
+|--------|:-:|:-:|:-:|
+| Ver Dashboard | ✅ | ✅ | ✅ |
+| Editar Turbinas | ✅ | ✅ | ❌ |
+| Módulo Instalação | ✅ | ✅ | ❌ |
+| Equipamento | ✅ | ✅ | ❌ |
+| Documentação | ✅ | ✅ | ❌ |
+| Gerir Equipa | ✅ | ❌ | ❌ |
+| Gerar Relatórios | ✅ | ✅ | ✅* |
+
+*Se tiver "Pode gerar relatórios" activado
 
 ---
 
 ## 💡 Dicas
 
-**Evitar duplicações:**
-→ Uma grua deve estar OU em pads OU geral, não ambos
+✓ Directors e Site Managers nunca precisam de ser adicionados a projetos
+✓ Um técnico de campo típico tem globalRole "Utilizador" + projectRole "Site Supervisor"
+✓ O ProjectRole pode ser diferente em cada projeto
+✓ Para remover acesso a um projeto, remove o membro em Team → Permissions
+    ''',
+    'team_management': '''
+# 🏢 Gestão de Equipa por Projeto
 
-**Paragens longas:**
-→ Registe o motivo detalhadamente nas observações
+## Aceder à Equipa
 
-**Transferências:**
-→ Sempre preencha origem e destino para rastreabilidade
+No dashboard → selecione o projeto → abra **Equipa**.
 
-**Planeamento:**
-→ Use gruas gerais para tarefas flexíveis
-→ Use gruas de pads para instalação completa de turbinas
+A equipa está dividida em duas tabs:
+
+---
+
+## 🏭 Tab Companies (Empresas)
+
+Organiza a equipa por empresa subcontratada.
+
+### Adicionar Empresa
+1. Clique em **"Adicionar Empresa"**
+2. Insira o nome da empresa
+3. Confirme
+
+### Adicionar Pessoa à Empresa
+1. Clique em **"add_person"** na empresa
+2. Insira nome e cargo
+3. Confirme
+
+> **Nota:** As pessoas em Companies são registos organizacionais — não são necessariamente utilizadores da app.
+
+---
+
+## 🔐 Tab Permissions (Permissões)
+
+Define quem tem acesso à app e com que role no projeto.
+
+### Ver Membros
+Lista todos os utilizadores com acesso ao projeto, mostrando:
+• Nome e email
+• ProjectRole (Project Manager, Site Supervisor, Visitante)
+• Se pode gerar relatórios
+
+### Adicionar Membro
+1. Clique no **botão "+"**
+2. Selecione o utilizador da lista
+3. Escolha o ProjectRole:
+   - **Project Manager** — gestão completa
+   - **Site Supervisor** — trabalho operacional
+   - **Visitante** — só leitura
+4. Active/desactive **Pode gerar relatórios**
+5. Clique **Adicionar**
+
+> A pessoa aparece na lista de utilizadores disponíveis **apenas após ter feito login** na app pela primeira vez.
+
+### Editar Membro
+Clique no membro → mude o role → Guardar
+
+### Remover Membro
+Clique no membro → **Remover do Projeto**
+
+---
+
+## 💡 Diferença entre Companies e Permissions
+
+| | Companies | Permissions |
+|---|---|---|
+| **Para quê** | Organização por empresa | Acesso à app |
+| **Quem aparece** | Qualquer pessoa registada | Utilizadores com conta |
+| **Efeito** | Visual/organizacional | Define o que podem fazer |
+
+---
+
+## 🎯 Boas Práticas
+
+✓ Adicione sempre as pessoas a Permissions antes de começarem a trabalhar
+✓ Use Site Supervisor para técnicos de campo
+✓ Use Visitante para clientes ou auditores
+✓ Reveja as permissões regularmente
+✓ Remova membros quando saírem do projeto
     ''',
   };
 
@@ -563,113 +457,348 @@ Visualize métricas como:
     'quick_start': '''
 # 🚀 Quick Start Guide
 
-Welcome to **As-Built**! This application was developed to facilitate the management and documentation of wind turbine installations.
+  Welcome to **As-Built**. The app brings installation tracking, documentation, NCRs, team access, and reporting into one project workflow.
 
 ## 📋 First Steps
 
-### 1. Create a Project
-• Click on the side menu (☰)
-• Select "New Project"
-• Fill in the data:
-  - Project name
-  - Turbine type
-  - Location
-  - Client
+  ### 1. Sign in and select a project
+  • Log in with your account
+  • On the dashboard, select the active project at the top
+  • If needed, create a new project from the side menu
 
 ### 2. Add Turbines
-• On the dashboard, click the + button (bottom right corner)
-• Enter turbine name (e.g., WTG-01)
-• Select number of tower middle sections
-• The turbine will be created with all components automatically
+  • Use the turbine floating action button on the dashboard
+  • Confirm the suggested name, sequence, and number of middle sections
+  • Base components and installation phases are created automatically
 
-### 3. Register Phases
-• Access turbine details
-• Navigate through different phases:
-  - 📦 Reception
-  - 📋 Preparation
-  - 🔧 Pre-Assembly
-  - 🏗️ Assembly
-  - 🔩 Torque & Tensioning
-  - ✅ Final Phases
+  ### 3. Record installation progress
+  • Open the turbine details from the dashboard list
+  • Update Reception, Preparation, Pre-Assembly, Assembly, Torque & Tensioning, and Final Phases
+  • Keep observations, dates, photos, and checkpoints current
 
-### 4. Generate Reports
-• Use the reports button on the dashboard
-• Select desired phases
-• Automatic download
+  ### 4. Use the support modules
+  • **Daily Journal** for daily site records
+  • **NCRs** for non-conformities and corrective actions
+  • **Documentation** for files, tags, and categories
+  • **Team** for companies, members, and permissions
+
+  ### 5. Generate reports
+  • Open the report dialog from any screen with a selected project
+  • Choose phases, NCRs, equipment, cranes, and Daily Journal
+  • Review the generated file before sharing it
 
 ## 💡 Useful Tips
 
-✓ Use keyboard shortcuts for greater productivity
-✓ Set up notifications to not miss deadlines
-✓ Export data regularly as backup
-✓ Consult detailed documentation when needed
+  ✓ Always confirm the selected project before editing data
+  ✓ Record field information as soon as the work happens
+  ✓ Review project permissions before onboarding new users
+  ✓ Use the Help Center as a fast reference for core modules
+    ''',
+    'add_turbines': '''
+# 🌪️ How to Add Turbines
 
-## Quick Method
+  ## Recommended flow
 
-### Step 1: Access Button
-On the main dashboard, locate the **blue floating button** in the bottom right corner with the turbine icon (🌪️).
+  ### Step 1: Select the project
+  • On the dashboard, confirm the correct project is selected
+  • The add turbine button is only available to users with management permissions
 
 ### Step 2: Fill Data
-A dialog will be presented with the following fields:
+  Validate the fields shown in the dialog:
 
-**Required Fields:**
-• **Turbine Name** - E.g., WTG-01, WTG-02
-• **Turbine Type** - Select from list
-
-**Optional Fields:**
-• **Number of Middle Sections** - Defines how many middle sections the tower has (0-5)
-• **Initial Status** - Usually "Planned"
+  • **Turbine name** - a code is suggested from the installation sequence
+  • **Installation sequence** - filled automatically
+  • **Number of middle sections** - from 1 to 6 based on the actual tower
+  • **Location** - optional, useful for pad/sector identification
 
 ### Step 3: Confirm
-Click **"Create Turbine"** and the system will:
-✓ Create the turbine in the project
-✓ Generate all components automatically:
-  - Foundation
-  - Tower sections (bottom, middle, top)
-  - Nacelle
-  - Hub
-  - Blades (3)
-✓ Initialize all installation phases
+  Click **Create Turbine**. The app will:
+  ✓ Save the turbine in the selected project
+  ✓ Generate the base components automatically
+  ✓ Prepare the structure needed for installation tracking
 
-## 📊 Generated Components
-
-Each turbine automatically includes:
-
-### Tower:
-• Bottom Section
-• Middle Section 1, 2, 3, 4, 5 (as configured)
-• Top Section
-
-### Nacelle:
-• Nacelle
-• Hub
-• Blade 1, 2, 3
-
-### Others:
-• Top Cooler
-• Drive Train
-• MV Cable
-• SWG
-• Transformer
-• Generator
-• Ground Control
-
-## ⚙️ Advanced Settings
-
-If you need to customize components, you can:
-1. Edit each component individually
-2. Add new custom components
-3. Remove non-applicable components
+  ### Step 4: Review the generated structure
+  • Open the new turbine
+  • Confirm sections, components, and phases
+  • Adjust initial notes or location if required
 
 ## 🎯 Best Practices
 
 ✓ Use consistent nomenclature (WTG-01, WTG-02, etc.)
-✓ Configure all turbines before starting records
-✓ Verify generated components
-✓ Maintain regular backups
+  ✓ Set the middle-section count correctly before field records start
+  ✓ Create the project turbines before installation begins on site
+  ✓ Review generated components right after creation
+  ✓ Use location values to improve filtering and navigation
     ''',
+    'phases': '''
+# 📊 Installation Phase Management
 
-    // ... (Similar structure for other topics in English)
-    // Truncating for brevity - full content would be similar to PT but in English
+  Each turbine detail view centralises operational progress. Use it to update statuses, dates, observations, photos, and quality checkpoints.
+
+  1. 📦 **Reception** — Log arrival, VUI, serial number, and condition
+  2. 📋 **Preparation** — Register preparation tasks and prerequisites
+  3. 🔧 **Pre-Assembly** — Record preliminary assemblies and checks
+  4. 🏗️ **Assembly** — Document main erection, cranes, and weather
+  5. 🔩 **Torque & Tensioning** — Register values, tools, lots, and evidence
+  6. ✅ **Final Phases** — Close inspections, commissioning, and handover
+
+  ## Keep these items updated
+
+  • Start and finish dates
+  • Operational remarks and blockers
+  • Photos and supporting evidence
+  • Component state and checkpoints
+
+## 🎯 Best Practices
+
+✓ Record data immediately after completion
+  ✓ Use observations to explain deviations and blockers
+  ✓ Keep QC checks and evidence aligned with the final status
+  ✓ Review the dashboard to confirm overall turbine progress
+    ''',
+    'daily_journal': '''
+  # 📘 Daily Journal
+
+  ## When to use it
+
+  Use **Daily Journal** to consolidate the daily project record: progress, crews, remarks, waiting time, and wind measurements.
+
+  ## How to access it
+
+  • Select a project
+  • Open the side menu
+  • Enter **Daily Journal**
+
+  ## Form structure
+
+  The screen follows the original Excel template and includes:
+
+  • **Header** with project and document identification
+  • **Site Team** counts by role/company
+  • **Progress / Daily Remarks** for executed work
+  • **People / Hours** for manpower and hours
+  • **Waiting Time** for idle time entries
+  • **Wind Measurements** for site conditions
+
+  ## Save and reuse
+
+  • Save with the toolbar icon or **Save Daily Journal** button
+  • Reopen saved entries for the same project/day when editing is required
+  • The module can be included in the report generator
+
+  ## 🎯 Best Practices
+
+  ✓ Fill the journal on the same day
+  ✓ Keep remarks objective and audit-friendly
+  ✓ Register waiting time with a clear reason
+  ✓ Review wind data and hours before saving
+    ''',
+    'ncrs': '''
+  # 📋 NCRs & Non-Conformities
+
+  ## Purpose
+
+  The **NCR** module is used to record deviations related to quality, safety, logistics, documentation, or installation and to follow them through closure.
+
+  ## How to access it
+
+  • Select a project
+  • Open the side menu
+  • Enter **NCRs**
+
+  ## What you can do
+
+  • Search NCRs by code, title, turbine, or owner
+  • Filter by status, severity, category, or overdue items
+  • Switch between list and grid views
+  • Create or edit NCRs with status history
+
+  ## Key NCR fields
+
+  • **Title** and **description**
+  • **Linked turbine**
+  • **Category** and **severity**
+  • **Due date**
+  • **Assigned owner**
+  • **Evidence** and status change notes
+
+  ## Tracking workflow
+
+  1. Create the NCR with complete minimum data
+  2. Assign an owner and due date
+  3. Update the status as actions progress
+  4. Attach evidence and a closure note when resolved
+
+  ## 🎯 Best Practices
+
+  ✓ Keep titles short and specific
+  ✓ Always link the NCR to the correct turbine
+  ✓ Do not change status without a reason
+  ✓ Review overdue NCRs before issuing reports
+    ''',
+    'reports': '''
+# 📈 Reports - Complete Guide
+
+  ### Step 1: Access
+  Open a screen with a selected project and click the **reports** button.
+
+### Step 2: Select Phases
+  In the dialog you can include:
+
+  ☐ Reception
+  ☐ Preparation
+  ☐ Pre-Assembly
+  ☐ Assembly
+  ☐ Torque & Tensioning
+  ☐ Final Phases
+  ☐ Equipment
+  ☐ NCRs
+  ☐ Pad Cranes
+  ☐ General Cranes
+  ☐ Daily Journal
+
+  You can also enable **Complete Report** to include everything at once.
+
+### Step 3: Generate
+  Click **Generate and send** and wait for the file to be created.
+
+  ## Expected result
+
+  • The report opens automatically after generation
+  • The final content depends on the selected options
+  • Empty sections usually mean no data was available or the user had no access
+    ''',
+    'cranes': '''
+# 🏗️ Crane & Logistics Management
+
+## Two Types of Cranes
+
+### 1. 🌪️ Pad Cranes (Assigned to Turbines)
+  Access: Dashboard → open turbine → turbine crane/activity area
+
+### 2. 🏭 General Cranes
+  Access: Side menu → general crane / logistics module
+
+## Activity Types
+• **Mobilisation** — Crane arrival and setup
+• **Work** — Normal operation
+• **Stoppage** — Downtime (Wind, Mechanical, Components, Safety)
+• **Transfer** — Movement between pads
+• **Demobilisation** — Site departure
+
+  ## What to record
+
+  • Consistent dates and times
+  • Correct stoppage reason
+  • Origin/destination pad during transfers
+  • Remarks for out-of-plan events
+
+## 🎯 Best Practices
+
+✓ Always log mobilisations/demobilisations
+✓ Document stoppages with correct reasons
+  ✓ Use remarks for safety and blockage details
+  ✓ Generate weekly crane reports to validate productivity and downtime
+    ''',
+    'users_permissions': '''
+# 👥 Users & Permissions
+
+## Two-Level Permission System
+
+• **GlobalRole** — who the person is in the company
+• **ProjectRole** — what they can do in each project
+
+---
+
+## 🌍 GlobalRole — Global Roles
+
+### 👔 Director
+• Sees **all projects** automatically
+• Full access to all modules
+• Can manage users
+
+### 🦺 Site Manager
+• Sees **all projects** automatically
+• Full access to all modules
+
+### 👤 User
+• Sees only projects they were added to
+• Access defined by ProjectRole per project
+
+---
+
+## 🏗️ ProjectRole — Per-Project Roles
+
+### 🧑‍💼 Project Manager
+• Full CRUD access
+• Manage team and permissions
+
+### 👷 Site Supervisor
+• Edit installation, equipment and documentation
+• Cannot manage team
+
+### 👁️ Visitor
+• Read-only access
+• Can generate reports (if authorised)
+
+---
+
+## ➕ How to Add Users
+
+1. **Create account** in Firebase Console → Authentication
+2. **Person logs in** → profile created automatically
+3. **Set GlobalRole** if needed: Side menu → Users → change role
+4. **Add to project**: Project → Team → Permissions → "+" → select person → choose ProjectRole → define whether they can generate reports
+
+---
+
+## 💡 Tips
+
+✓ Directors and Site Managers never need to be added to projects
+✓ A typical field technician has globalRole "User" + projectRole "Site Supervisor"
+✓ ProjectRole can differ per project
+    ''',
+    'team_management': '''
+# 🏢 Project Team Management
+
+## Access Team
+  Dashboard → select project → open **Team**.
+
+---
+
+## 🏭 Companies Tab
+
+Organises team by subcontracted company.
+
+• Add companies and people per company
+• People here are organisational records — not necessarily app users
+
+---
+
+## 🔐 Permissions Tab
+
+Defines who has app access and their role in the project.
+
+### Add Member
+1. Click **"+"** button
+2. Select user from list
+3. Choose ProjectRole
+4. Toggle "Can generate reports"
+5. Click **Add**
+
+> The person appears in the available users list **only after logging in** to the app for the first time.
+
+### Edit / Remove Member
+Click on the member → change role or remove.
+
+---
+
+## 💡 Best Practices
+
+✓ Always add people to Permissions before they start working
+✓ Use Site Supervisor for field technicians
+✓ Use Visitor for clients or auditors
+✓ Review permissions regularly
+    ''',
   };
 }

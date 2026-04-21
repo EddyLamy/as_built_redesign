@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../../core/localization/translation_helper.dart';
 import '../../core/theme/app_colors.dart';
 import '../../providers/app_providers.dart';
 import 'mobile_turbines_screen.dart';
@@ -11,11 +12,17 @@ class MobileProjectsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = TranslationHelper.of(context);
     final projectsAsync = ref.watch(userProjectsProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Projetos'),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: AppColors.primaryGradient,
+          ),
+        ),
+        title: Text(t.translate('projects')),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
@@ -28,27 +35,27 @@ class MobileProjectsScreen extends ConsumerWidget {
       body: projectsAsync.when(
         data: (projects) {
           if (projects.isEmpty) {
-            return const Center(
+            return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.folder_off,
                     size: 64,
                     color: AppColors.mediumGray,
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   Text(
-                    'Nenhum projeto disponível',
-                    style: TextStyle(
+                    t.translate('no_projects_yet'),
+                    style: const TextStyle(
                       fontSize: 18,
                       color: AppColors.mediumGray,
                     ),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Text(
-                    'Contacte o administrador',
-                    style: TextStyle(
+                    t.translate('contact_admin'),
+                    style: const TextStyle(
                       fontSize: 14,
                       color: AppColors.lightGray,
                     ),
@@ -76,7 +83,7 @@ class MobileProjectsScreen extends ConsumerWidget {
                     width: 56,
                     height: 56,
                     decoration: BoxDecoration(
-                      color: AppColors.primaryBlue.withOpacity(0.1),
+                      color: AppColors.primaryBlue.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: const Icon(
@@ -105,7 +112,7 @@ class MobileProjectsScreen extends ConsumerWidget {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            '${project.numeroTurbinas} Turbinas',
+                            '${project.numeroTurbinas} ${t.translate('turbines')}',
                             style: const TextStyle(
                               fontSize: 14,
                               color: AppColors.mediumGray,
@@ -124,7 +131,8 @@ class MobileProjectsScreen extends ConsumerWidget {
                           const SizedBox(width: 4),
                           Expanded(
                             child: Text(
-                              project.localizacao ?? 'Sem localização',
+                              project.localizacao ??
+                                  t.translate('no_location_available'),
                               style: const TextStyle(
                                 fontSize: 14,
                                 color: AppColors.mediumGray,
@@ -141,11 +149,6 @@ class MobileProjectsScreen extends ConsumerWidget {
                     color: AppColors.mediumGray,
                   ),
                   onTap: () {
-                    // Selecionar projeto
-                    ref
-                        .read(selectedProjectIdProvider.notifier)
-                        .setValue(project.id);
-
                     // Navegar para turbinas
                     Navigator.push(
                       context,
@@ -175,8 +178,8 @@ class MobileProjectsScreen extends ConsumerWidget {
                 color: AppColors.errorRed,
               ),
               const SizedBox(height: 16),
-              const Text(
-                'Erro ao carregar projetos',
+              Text(
+                t.translate('error_loading_projects'),
                 style: TextStyle(
                   fontSize: 18,
                   color: AppColors.errorRed,

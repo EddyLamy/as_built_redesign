@@ -44,7 +44,7 @@ final class LocaleNotifierProvider
   }
 }
 
-String _$localeNotifierHash() => r'8332cb018fad53a0d986bb769cf3f9fc8d51b416';
+String _$localeNotifierHash() => r'6d246980086efa3829885bb7d398eaaee3910de5';
 
 /// Provider que controla o locale atual - Riverpod 3.x annotation-based
 

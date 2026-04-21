@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:as_built/widgets/liquid_glass_overlays.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/localization/translation_helper.dart';
 import '../../models/project_phase.dart';
 import '../../providers/app_providers.dart';
 import '../../widgets/edit_phase_dialog.dart';
+import '../../widgets/app_bar_dashboard_shortcut.dart';
 
 class ProjectPhasesScreen extends ConsumerWidget {
   final String projectId;
@@ -25,16 +27,23 @@ class ProjectPhasesScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(projectName, style: const TextStyle(fontSize: 18)),
-            Text(
-              t.translate('project_phases'),
-              style:
-                  const TextStyle(fontSize: 14, fontWeight: FontWeight.normal),
-            ),
-          ],
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: AppColors.primaryGradient,
+          ),
+        ),
+        title: DashboardShortcutTitle(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(projectName, style: const TextStyle(fontSize: 18)),
+              Text(
+                t.translate('project_phases'),
+                style: const TextStyle(
+                    fontSize: 14, fontWeight: FontWeight.normal),
+              ),
+            ],
+          ),
         ),
       ),
       body: phasesAsync.when(
@@ -78,18 +87,33 @@ class ProjectPhasesScreen extends ConsumerWidget {
     final t = TranslationHelper.of(context);
     final completas = phases.where((p) => p.isCompleta).length;
     final total = phases.length;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryText = AppColors.adaptivePrimaryText(context);
+    final secondaryText = AppColors.adaptiveSecondaryText(context);
+    final outlineColor = AppColors.adaptiveOutline(context);
+    final trackColor = AppColors.adaptiveProgressTrack(context);
+    final headerColors = isDark
+        ? <Color>[
+            AppColors.glassSurfaceStrongDark,
+            AppColors.primaryBlue.withValues(alpha: 0.22),
+            AppColors.glassCanvasDark,
+          ]
+        : <Color>[
+            AppColors.primaryBlue.withValues(alpha: 0.10),
+            AppColors.glassSurfaceStrongLight,
+          ];
 
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            AppColors.primaryBlue.withOpacity(0.1),
-            Colors.white,
-          ],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
+          colors: headerColors,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        border: Border(
+          bottom: BorderSide(color: outlineColor.withValues(alpha: 0.7)),
         ),
       ),
       child: Column(
@@ -108,7 +132,7 @@ class ProjectPhasesScreen extends ConsumerWidget {
                     child: CircularProgressIndicator(
                       value: progress / 100,
                       strokeWidth: 8,
-                      backgroundColor: AppColors.borderGray,
+                      backgroundColor: trackColor,
                       valueColor:
                           const AlwaysStoppedAnimation(AppColors.primaryBlue),
                     ),
@@ -126,9 +150,10 @@ class ProjectPhasesScreen extends ConsumerWidget {
                       ),
                       Text(
                         t.translate('complete'),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 11,
-                          color: AppColors.mediumGray,
+                          fontWeight: FontWeight.w600,
+                          color: secondaryText,
                         ),
                       ),
                     ],
@@ -142,9 +167,10 @@ class ProjectPhasesScreen extends ConsumerWidget {
           const SizedBox(height: 12),
           Text(
             '$completas / $total ${t.translate('phases_completed')}',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
+              color: primaryText,
             ),
           ),
         ],
@@ -174,7 +200,7 @@ class ProjectPhasesScreen extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(icon, color: color, size: 20),
@@ -204,7 +230,7 @@ class ProjectPhasesScreen extends ConsumerWidget {
                                 style: const TextStyle(fontSize: 9),
                               ),
                               backgroundColor:
-                                  AppColors.mediumGray.withOpacity(0.2),
+                                  AppColors.mediumGray.withValues(alpha: 0.2),
                               padding: EdgeInsets.zero,
                               materialTapTargetSize:
                                   MaterialTapTargetSize.shrinkWrap,
@@ -286,7 +312,7 @@ class ProjectPhasesScreen extends ConsumerWidget {
     WidgetRef ref,
     ProjectPhase phase,
   ) {
-    showDialog(
+    showLiquidDialog(
       context: context,
       builder: (context) => EditPhaseDialog(
         projectId: projectId,

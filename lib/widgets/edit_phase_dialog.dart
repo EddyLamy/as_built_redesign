@@ -52,7 +52,7 @@ class _EditPhaseDialogState extends ConsumerState<EditPhaseDialog> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: AppColors.primaryBlue.withOpacity(0.1),
+              color: AppColors.primaryBlue.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: const Icon(
@@ -94,8 +94,8 @@ class _EditPhaseDialogState extends ConsumerState<EditPhaseDialog> {
               if (!widget.phase.obrigatorio) ...[
                 Card(
                   color: isNA
-                      ? AppColors.mediumGray.withOpacity(0.1)
-                      : AppColors.primaryBlue.withOpacity(0.05),
+                      ? AppColors.mediumGray.withValues(alpha: 0.1)
+                      : AppColors.primaryBlue.withValues(alpha: 0.05),
                   child: SwitchListTile(
                     title: Text(
                       t.translate('not_applicable'),

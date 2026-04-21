@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:as_built/widgets/liquid_glass_overlays.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../core/theme/app_colors.dart';
+import '../../core/localization/translation_helper.dart';
 import '../../models/torque_tensioning.dart';
 import '../../providers/torque_tensioning_providers.dart';
 import '../../widgets/torque_tensioning_edit_dialog.dart';
 import '../../widgets/add_conexao_extra_dialog.dart';
+import '../../widgets/app_bar_dashboard_shortcut.dart';
 
 /// Ecrã de Torque & Tensioning com cards tipo componentes
 class TorqueTensioningScreen extends ConsumerWidget {
@@ -23,23 +27,30 @@ class TorqueTensioningScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = TranslationHelper.of(context);
     final conexoesAsync = ref.watch(conexoesByTurbinaProvider(turbinaId));
     final stats = ref.watch(estatisticasConexoesProvider(turbinaId));
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('🔩 Torque & Tensioning',
-                style: TextStyle(fontSize: 18)),
-            Text(turbinaNome,
-                style: const TextStyle(
-                    fontSize: 14, fontWeight: FontWeight.normal)),
-          ],
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: AppColors.primaryGradient,
+          ),
         ),
-        backgroundColor: const Color(0xFFFF5722),
+        title: DashboardShortcutTitle(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('🔩 ${t.translate('torque_tensioning')}',
+                  style: const TextStyle(fontSize: 18)),
+              Text(turbinaNome,
+                  style: const TextStyle(
+                      fontSize: 14, fontWeight: FontWeight.normal)),
+            ],
+          ),
+        ),
       ),
       body: conexoesAsync.when(
         data: (conexoes) {
@@ -82,8 +93,8 @@ class TorqueTensioningScreen extends ConsumerWidget {
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => Center(
-          child:
-              Text('Erro: $error', style: const TextStyle(color: Colors.red)),
+          child: Text('${t.translate('error')}: $error',
+              style: const TextStyle(color: Colors.red)),
         ),
       ),
     );
@@ -147,6 +158,7 @@ class TorqueTensioningScreen extends ConsumerWidget {
   // ══════════════════════════════════════════════════════════════════════════
 
   Widget _buildProgressHeader(BuildContext context, AsyncValue stats) {
+    final t = TranslationHelper.of(context);
     return stats.when(
       data: (s) {
         final progressoMedio = s['progressoMedio'] ?? 0.0;
@@ -163,7 +175,7 @@ class TorqueTensioningScreen extends ConsumerWidget {
             color: Colors.white,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withValues(alpha: 0.05),
                 blurRadius: 4,
               ),
             ],
@@ -198,10 +210,11 @@ class TorqueTensioningScreen extends ConsumerWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    _buildStatItem('Total', total, Icons.apps, Colors.blue),
-                    _buildStatItem('Concluídas', concluidas, Icons.check_circle,
-                        Colors.green),
-                    _buildStatItem('Pendentes', total - concluidas,
+                    _buildStatItem(
+                        t.translate('total'), total, Icons.apps, Colors.blue),
+                    _buildStatItem(t.translate('completed'), concluidas,
+                        Icons.check_circle, Colors.green),
+                    _buildStatItem(t.translate('pending'), total - concluidas,
                         Icons.pending, Colors.grey),
                   ],
                 ),
@@ -279,7 +292,7 @@ class TorqueTensioningScreen extends ConsumerWidget {
                   width: 56,
                   height: 56,
                   decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.15),
+                    color: statusColor.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
@@ -432,13 +445,14 @@ class TorqueTensioningScreen extends ConsumerWidget {
   // ══════════════════════════════════════════════════════════════════════════
 
   Widget _buildAddButton(BuildContext context, WidgetRef ref) {
+    final t = TranslationHelper.of(context);
     return SizedBox(
       width: double.infinity,
       height: 48,
       child: OutlinedButton.icon(
         onPressed: () => _showAddExtraDialog(context, ref),
         icon: const Icon(Icons.add_circle_outline),
-        label: const Text('Adicionar Conexão Extra'),
+        label: Text(t.translate('add_extra_connection')),
         style: OutlinedButton.styleFrom(
           side: BorderSide(color: Colors.blue[700]!, width: 2),
           shape: RoundedRectangleBorder(
@@ -454,19 +468,20 @@ class TorqueTensioningScreen extends ConsumerWidget {
   // ══════════════════════════════════════════════════════════════════════════
 
   Widget _buildEmptyState(BuildContext context, WidgetRef ref) {
+    final t = TranslationHelper.of(context);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.construction, size: 80, color: Colors.grey[400]),
           const SizedBox(height: 16),
-          Text('Nenhuma conexão',
+          Text(t.translate('no_connections'),
               style: TextStyle(fontSize: 18, color: Colors.grey[600])),
           const SizedBox(height: 24),
           ElevatedButton.icon(
             onPressed: () => _initializeConexoes(context, ref),
             icon: const Icon(Icons.refresh, size: 20),
-            label: const Text('Gerar Conexões Standard'),
+            label: Text(t.translate('generate_standard_connections')),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFFF5722),
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -486,7 +501,7 @@ class TorqueTensioningScreen extends ConsumerWidget {
     WidgetRef ref,
     TorqueTensioning conexao,
   ) {
-    showDialog(
+    showLiquidDialog(
       context: context,
       builder: (context) => TorqueTensioningEditDialog(
         conexao: conexao,
@@ -497,7 +512,7 @@ class TorqueTensioningScreen extends ConsumerWidget {
   }
 
   void _showAddExtraDialog(BuildContext context, WidgetRef ref) {
-    showDialog(
+    showLiquidDialog(
       context: context,
       builder: (context) => AddConexaoExtraDialog(
         turbinaId: turbinaId,
@@ -507,6 +522,7 @@ class TorqueTensioningScreen extends ConsumerWidget {
   }
 
   Future<void> _initializeConexoes(BuildContext context, WidgetRef ref) async {
+    final t = TranslationHelper.of(context);
     try {
       final service = ref.read(torqueTensioningServiceProvider);
       final user =
@@ -522,8 +538,8 @@ class TorqueTensioningScreen extends ConsumerWidget {
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('✅ Conexões geradas com sucesso!'),
+          SnackBar(
+            content: Text('✅ ${t.translate('connections_generated_success')}'),
             backgroundColor: Colors.green,
           ),
         );
@@ -532,7 +548,7 @@ class TorqueTensioningScreen extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('❌ Erro: $e'),
+            content: Text('❌ ${t.translate('error')}: $e'),
             backgroundColor: Colors.red,
           ),
         );

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:as_built/widgets/liquid_glass_overlays.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../core/theme/app_colors.dart';
 import '../../i18n/installation_translations.dart';
 import '../../models/installation/checkpoint_geral.dart';
 import '../../models/installation/tipo_fase.dart'; // ✅ ADICIONAR
@@ -21,18 +23,33 @@ class CheckpointCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final locale = ref.watch(localeStringProvider);
     final t = InstallationTranslations.translations[locale]!;
+    final primaryText = AppColors.adaptivePrimaryText(context);
+    final secondaryText = AppColors.adaptiveSecondaryText(context);
+    final cardSurface = AppColors.adaptiveCardSurface(context);
+    final outline = AppColors.adaptiveOutline(context);
+    final progressTrack = AppColors.adaptiveProgressTrack(context);
     final checkpoint = CheckpointGeral.fromFirestore(checkpointDoc);
 
     Color progressoColor = checkpoint.progresso == 100
-        ? Colors.green
-        : (checkpoint.progresso > 0 ? Colors.orange : Colors.grey);
+        ? AppColors.successGreen
+        : (checkpoint.progresso > 0
+            ? AppColors.warningOrange
+            : AppColors.mediumGray);
     final nomeCheckpoint = _getNomeCheckpoint(checkpoint.tipo, t);
 
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
-      elevation: 1,
+      elevation: 6,
+      shadowColor: AppColors.isDarkContext(context)
+          ? Colors.black.withValues(alpha: 0.42)
+          : const Color(0xFF0F4C81).withValues(alpha: 0.18),
+      color: cardSurface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: outline, width: 1),
+      ),
       child: InkWell(
-        onTap: () => showDialog(
+        onTap: () => showLiquidDialog(
           context: context,
           builder: (context) => CheckpointEditDialog(
             checkpoint: checkpoint,
@@ -47,7 +64,7 @@ class CheckpointCard extends ConsumerWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: progressoColor.withOpacity(0.2),
+                  color: progressoColor.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
@@ -63,9 +80,10 @@ class CheckpointCard extends ConsumerWidget {
                   children: [
                     Text(
                       nomeCheckpoint,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 14,
+                        color: primaryText,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -73,7 +91,7 @@ class CheckpointCard extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(3),
                       child: LinearProgressIndicator(
                         value: checkpoint.progresso / 100,
-                        backgroundColor: Colors.grey[200],
+                        backgroundColor: progressTrack,
                         valueColor:
                             AlwaysStoppedAnimation<Color>(progressoColor),
                         minHeight: 4,
@@ -86,7 +104,7 @@ class CheckpointCard extends ConsumerWidget {
                           '${checkpoint.progresso.toStringAsFixed(0)}%',
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.grey[600],
+                            color: secondaryText,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -98,7 +116,7 @@ class CheckpointCard extends ConsumerWidget {
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.grey[300],
+                              color: AppColors.lightGray,
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
@@ -106,7 +124,7 @@ class CheckpointCard extends ConsumerWidget {
                               style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.grey[700],
+                                color: primaryText,
                               ),
                             ),
                           ),
@@ -116,7 +134,7 @@ class CheckpointCard extends ConsumerWidget {
                   ],
                 ),
               ),
-              Icon(Icons.edit, size: 18, color: Colors.grey[400]),
+              Icon(Icons.edit, size: 18, color: secondaryText),
             ],
           ),
         ),

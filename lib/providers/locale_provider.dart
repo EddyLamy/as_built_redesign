@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/foundation.dart';
 
 part 'locale_provider.g.dart';
 
@@ -21,7 +22,7 @@ class LocaleNotifier extends _$LocaleNotifier {
         state = savedLocale;
       }
     } catch (e) {
-      print('Erro ao carregar locale: $e');
+      debugPrint('Erro ao carregar locale: $e');
     }
   }
 
@@ -31,7 +32,7 @@ class LocaleNotifier extends _$LocaleNotifier {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('locale', locale);
     } catch (e) {
-      print('Erro ao salvar locale: $e');
+      debugPrint('Erro ao salvar locale: $e');
     }
   }
 }

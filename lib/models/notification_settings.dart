@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/foundation.dart';
 
 /// Configurações de Notificações do Utilizador
 class NotificationSettings {
@@ -205,7 +206,7 @@ class NotificationSettings {
     try {
       return NotificationSettings.fromJson(jsonString);
     } catch (e) {
-      print('❌ Erro ao carregar settings: $e');
+      debugPrint('❌ Erro ao carregar settings: $e');
       return NotificationSettings(); // Default em caso de erro
     }
   }

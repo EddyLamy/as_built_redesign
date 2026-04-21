@@ -4,25 +4,26 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/localization/translation_helper.dart';
 import '../../models/turbina.dart';
+import '../../providers/permission_provider.dart';
+import '../../providers/app_providers.dart';
+import '../../widgets/enhanced_drawer.dart';
+import '../../widgets/app_bar_dashboard_shortcut.dart';
 import './turbine_installation_details_screen.dart';
 
 // ============================================================================
 // 🏗️ MÓDULO DE INSTALAÇÃO - CONECTADO AO FIREBASE
 // ============================================================================
 
-// ══════════════════════════════════════════════════════════════════════════
-// 🌪️ PROVIDER TEMPORÁRIO: LISTA DE TURBINAS
-// TODO: Mover para app_providers.dart depois
-// ══════════════════════════════════════════════════════════════════════════
-final turbinasProvider = StreamProvider<List<Turbina>>((ref) {
+// Provider que filtra turbinas pelo projecto seleccionado
+final turbinasInstallationProvider =
+    StreamProvider.family<List<Turbina>, String>((ref, projectId) {
   return FirebaseFirestore.instance
       .collection('turbinas')
+      .where('projectId', isEqualTo: projectId)
       .orderBy('nome', descending: false)
       .snapshots()
       .map((snapshot) {
-    return snapshot.docs.map((doc) {
-      return Turbina.fromFirestore(doc);
-    }).toList();
+    return snapshot.docs.map((doc) => Turbina.fromFirestore(doc)).toList();
   });
 });
 
@@ -46,22 +47,126 @@ class _InstallationScreenState extends ConsumerState<InstallationScreen> {
   @override
   Widget build(BuildContext context) {
     final t = TranslationHelper.of(context);
+    final currentModule = ref.watch(currentModuleProvider);
+    if (currentModule != AppModule.installation) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref
+            .read(currentModuleProvider.notifier)
+            .setModule(AppModule.installation);
+      });
+    }
+
+    // Verificar permissões para o projeto selecionado
+    final projectId = ref.watch(accessibleSelectedProjectIdProvider);
+    final permissions = ref.watch(permissionProvider(projectId));
+    final appUserAsync = ref.watch(currentAppUserProvider); // DEBUG
+
+    // DEBUG — remover depois
+    debugPrint('🔐 INSTALLATION GUARD DEBUG:');
+    debugPrint('   projectId: $projectId');
+    debugPrint('   appUserAsync.isLoading: ${appUserAsync.isLoading}');
+    debugPrint('   appUserAsync.hasValue: ${appUserAsync.hasValue}');
+    debugPrint('   appUser: ${appUserAsync.asData?.value?.name}');
+    debugPrint(
+        '   appUser globalRole: ${appUserAsync.asData?.value?.globalRole}');
+    debugPrint('   permissions.isLoading: ${permissions.isLoading}');
+    debugPrint('   permissions.isGlobalAdmin: ${permissions.isGlobalAdmin}');
+    debugPrint(
+        '   permissions.hasSomeProjectAccess: ${permissions.hasSomeProjectAccess}');
+
+    // Visitor e acima podem ver a instalação, mas só SS+ pode editar
+    // Aguardar carregamento antes de bloquear
+    if (permissions.isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (!permissions.hasSomeProjectAccess && projectId != null) {
+      return Scaffold(
+        appBar: AppBar(
+          flexibleSpace: Container(
+            decoration: const BoxDecoration(
+              gradient: AppColors.primaryGradient,
+            ),
+          ),
+          title: DashboardShortcutTitle(
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 1),
+                  ),
+                  child: const Icon(Icons.construction, color: Colors.white),
+                ),
+                const SizedBox(width: 12),
+                Text(t.translate('installation_module')),
+              ],
+            ),
+          ),
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.lock_outline,
+                size: 72,
+                color: AppColors.lightGray,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Não tens acesso a este projeto.',
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: AppColors.mediumGray,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Contacta o teu Project Manager.',
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: AppColors.mediumGray,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          children: [
-            const Icon(Icons.construction, color: Colors.white),
-            const SizedBox(width: 12),
-            Text(t.translate('installation_module')),
-          ],
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: AppColors.primaryGradient,
+          ),
+        ),
+        title: DashboardShortcutTitle(
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 1),
+                ),
+                child: const Icon(Icons.construction, color: Colors.white),
+              ),
+              const SizedBox(width: 12),
+              Text(t.translate('installation_module')),
+            ],
+          ),
         ),
       ),
       body: Column(
         children: [
-          // ════════════════════════════════════════════════════════════════
+          // ══════════════════════════════════════════════════════════════
           // 🔍 BARRA DE PESQUISA
-          // ════════════════════════════════════════════════════════════════
+          // ══════════════════════════════════════════════════════════════
           Padding(
             padding: const EdgeInsets.all(16),
             child: TextField(
@@ -94,32 +199,23 @@ class _InstallationScreenState extends ConsumerState<InstallationScreen> {
             ),
           ),
 
-          // ════════════════════════════════════════════════════════════════
-          // 🏗️ CARDS DAS TURBINAS (DADOS REAIS DO FIREBASE)
-          // ════════════════════════════════════════════════════════════════
+          // ══════════════════════════════════════════════════════════════
+          // 🏗️ CARDS DAS TURBINAS
+          // ══════════════════════════════════════════════════════════════
           Expanded(
-            child: _buildTurbinesList(),
+            child: _buildTurbinesList(
+                permissions.canManageInstallation, projectId ?? ''),
           ),
         ],
       ),
     );
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // 🏗️ WIDGET: LISTA DE TURBINAS (CONECTADO AO FIREBASE)
-  // ══════════════════════════════════════════════════════════════════════════
-  Widget _buildTurbinesList() {
+  Widget _buildTurbinesList(bool canEdit, String projectId) {
     final t = TranslationHelper.of(context);
-
-    // ════════════════════════════════════════════════════════════════════════
-    // 📊 DADOS REAIS DO FIREBASE
-    // ════════════════════════════════════════════════════════════════════════
-    final turbinasAsync = ref.watch(turbinasProvider);
+    final turbinasAsync = ref.watch(turbinasInstallationProvider(projectId));
 
     return turbinasAsync.when(
-      // ────────────────────────────────────────────────────────────────────
-      // ⏳ LOADING
-      // ────────────────────────────────────────────────────────────────────
       loading: () => Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -133,10 +229,6 @@ class _InstallationScreenState extends ConsumerState<InstallationScreen> {
           ],
         ),
       ),
-
-      // ────────────────────────────────────────────────────────────────────
-      // ❌ ERROR
-      // ────────────────────────────────────────────────────────────────────
       error: (error, stack) => Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -161,7 +253,7 @@ class _InstallationScreenState extends ConsumerState<InstallationScreen> {
             const SizedBox(height: 16),
             ElevatedButton.icon(
               onPressed: () {
-                ref.invalidate(turbinasProvider);
+                ref.invalidate(turbinasInstallationProvider);
               },
               icon: const Icon(Icons.refresh),
               label: Text(t.translate('retry')),
@@ -169,18 +261,12 @@ class _InstallationScreenState extends ConsumerState<InstallationScreen> {
           ],
         ),
       ),
-
-      // ────────────────────────────────────────────────────────────────────
-      // ✅ DATA
-      // ────────────────────────────────────────────────────────────────────
       data: (turbinas) {
-        // Filtrar por pesquisa
         final filteredTurbines = turbinas.where((turbina) {
           final turbineName = turbina.nome.toLowerCase();
           return turbineName.contains(_searchQuery);
         }).toList();
 
-        // Caso vazio
         if (filteredTurbines.isEmpty) {
           return Center(
             child: Column(
@@ -216,20 +302,30 @@ class _InstallationScreenState extends ConsumerState<InstallationScreen> {
           );
         }
 
-        // Grid de turbinas
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: GridView.builder(
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: MediaQuery.of(context).size.width > 600 ? 4 : 2,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-              childAspectRatio: 1.1,
-            ),
-            itemCount: filteredTurbines.length,
-            itemBuilder: (context, index) {
-              final turbina = filteredTurbines[index];
-              return _buildTurbineCard(turbina);
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              const spacing = 8.0;
+              const minCardWidth = 150.0;
+              final crossAxisCount =
+                  ((constraints.maxWidth + spacing) / (minCardWidth + spacing))
+                      .floor()
+                      .clamp(2, 6);
+
+              return GridView.builder(
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: crossAxisCount,
+                  crossAxisSpacing: spacing,
+                  mainAxisSpacing: spacing,
+                  mainAxisExtent: 132,
+                ),
+                itemCount: filteredTurbines.length,
+                itemBuilder: (context, index) {
+                  final turbina = filteredTurbines[index];
+                  return _buildTurbineCard(turbina, canEdit);
+                },
+              );
             },
           ),
         );
@@ -237,17 +333,10 @@ class _InstallationScreenState extends ConsumerState<InstallationScreen> {
     );
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // 🎨 WIDGET: CARD DE TURBINA (COM DADOS REAIS)
-  // ══════════════════════════════════════════════════════════════════════════
-  Widget _buildTurbineCard(dynamic turbina) {
-    final t = TranslationHelper.of(context);
-
-    // Progresso da instalação (pode vir do As-Built ou calcular das fases)
+  Widget _buildTurbineCard(dynamic turbina, bool canEdit) {
     final progress = (turbina.progresso ?? 0.0) / 100.0;
     final progressPercent = (progress * 100).toInt();
 
-    // Cor baseada no progresso
     Color progressColor;
     if (progress >= 0.8) {
       progressColor = AppColors.successGreen;
@@ -258,132 +347,81 @@ class _InstallationScreenState extends ConsumerState<InstallationScreen> {
     }
 
     return Card(
-      elevation: 2,
+      elevation: 1,
+      margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(8),
       ),
       child: InkWell(
-        onTap: () => _openTurbineDetails(turbina),
-        borderRadius: BorderRadius.circular(12),
+        onTap: () => _openTurbineDetails(turbina, canEdit),
+        borderRadius: BorderRadius.circular(8),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(6),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // ────────────────────────────────────────────────────────────
-              // HEADER: Ícone + Nome
-              // ────────────────────────────────────────────────────────────
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(5),
                     decoration: BoxDecoration(
-                      color: progressColor.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
+                      color: progressColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(7),
                     ),
                     child: Icon(
                       Icons.wind_power,
                       color: progressColor,
-                      size: 28,
+                      size: 18,
                     ),
                   ),
-                  const SizedBox(width: 12),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          turbina.nome,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.darkGray,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          _getTurbinaModelo(turbina),
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.mediumGray,
-                          ),
-                        ),
-                      ],
-                    ),
+                    child: const SizedBox.shrink(),
                   ),
-                ],
-              ),
-
-              const Spacer(),
-
-              // ────────────────────────────────────────────────────────────
-              // PROGRESSO
-              // ────────────────────────────────────────────────────────────
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        t.translate('progress'),
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: AppColors.mediumGray,
-                        ),
-                      ),
-                      Text(
-                        '$progressPercent%',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: progressColor,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: LinearProgressIndicator(
-                      value: progress,
-                      backgroundColor: AppColors.borderGray,
-                      valueColor: AlwaysStoppedAnimation(progressColor),
-                      minHeight: 6,
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 8),
-
-              // ────────────────────────────────────────────────────────────
-              // STATUS
-              // ────────────────────────────────────────────────────────────
-              Row(
-                children: [
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: progressColor,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      turbina.status ?? t.translate('pending'),
-                      style: const TextStyle(
-                        fontSize: 11,
+                  if (!canEdit)
+                    Tooltip(
+                      message: 'Modo leitura',
+                      child: const Icon(
+                        Icons.visibility,
+                        size: 12,
                         color: AppColors.mediumGray,
-                        fontWeight: FontWeight.w500,
                       ),
-                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
                 ],
               ),
+              const Spacer(flex: 2),
+              Text(
+                turbina.nome,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: progressColor,
+                ),
+              ),
+              const SizedBox(height: 1),
+              Text(
+                _getTurbinaModelo(turbina),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 9,
+                  color: progressColor.withValues(alpha: 0.9),
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                '$progressPercent%',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: progressColor,
+                ),
+              ),
+              const Spacer(),
             ],
           ),
         ),
@@ -391,41 +429,29 @@ class _InstallationScreenState extends ConsumerState<InstallationScreen> {
     );
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // 🔧 HELPER: OBTER MODELO DA TURBINA (SAFE)
-  // ══════════════════════════════════════════════════════════════════════════
   String _getTurbinaModelo(dynamic turbina) {
-    // Tentar obter modelo de várias formas
     try {
-      // Se tem getter 'modelo'
       if (turbina.modelo != null) return turbina.modelo;
-    } catch (e) {
-      // Ignorar se não tiver
+    } catch (_) {
+      // fallback para shape alternativo
     }
-
     try {
-      // Se tem campo 'model'
       final model = (turbina as dynamic).model;
       if (model != null) return model;
-    } catch (e) {
-      // Ignorar
+    } catch (_) {
+      // fallback para valor default
     }
-
-    // Padrão
     return 'V150';
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // 🚀 NAVEGAÇÃO: ABRIR DETALHES DA TURBINA (COM FASES)
-  // ══════════════════════════════════════════════════════════════════════════
-  void _openTurbineDetails(dynamic turbina) {
+  void _openTurbineDetails(dynamic turbina, bool canEdit) {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => TurbineInstallationDetailsScreen(
           turbineId: turbina.id,
           turbineName: turbina.nome,
           turbineModel: _getTurbinaModelo(turbina),
-          turbineSequence: 1, // TODO: Adicionar campo sequence na Turbina
+          turbineSequence: 1,
           numberOfMiddleSections: turbina.numberOfMiddleSections ?? 3,
         ),
       ),

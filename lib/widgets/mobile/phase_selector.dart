@@ -5,7 +5,7 @@ import '../../core/theme/app_colors.dart';
 /// Permite navegar entre fases com scroll horizontal
 class PhaseSelector extends StatelessWidget {
   final List<Map<String, dynamic>> phases;
-  final int currentIndex;
+  final int? currentIndex;
   final Function(int) onPhaseChanged;
 
   const PhaseSelector({
@@ -27,7 +27,7 @@ class PhaseSelector extends StatelessWidget {
         itemBuilder: (context, index) {
           final phase = phases[index];
           final isSelected = index == currentIndex;
-          final isCompleted = index < currentIndex;
+          final isCompleted = currentIndex != null && index < currentIndex!;
 
           return GestureDetector(
             onTap: () => onPhaseChanged(index),
@@ -38,8 +38,8 @@ class PhaseSelector extends StatelessWidget {
                 color: isSelected
                     ? AppColors.primaryBlue
                     : isCompleted
-                        ? AppColors.successGreen.withOpacity(0.1)
-                        : AppColors.borderGray.withOpacity(0.3),
+                        ? AppColors.successGreen.withValues(alpha: 0.1)
+                        : AppColors.borderGray.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: isSelected

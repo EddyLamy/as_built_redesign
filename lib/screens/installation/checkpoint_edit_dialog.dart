@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/theme/app_colors.dart';
 import '../../i18n/installation_translations.dart';
 import '../../models/installation/checkpoint_geral.dart';
 import '../../models/installation/tipo_fase.dart'; // ✅ Adicionar import
 import '../../services/installation/checkpoint_geral_service.dart';
 import '../../providers/locale_provider.dart';
+import '../../widgets/installation/final_phase_visuals.dart';
 
 class CheckpointEditDialog extends ConsumerStatefulWidget {
   final CheckpointGeral checkpoint;
@@ -51,13 +53,34 @@ class _CheckpointEditDialogState extends ConsumerState<CheckpointEditDialog> {
     super.dispose();
   }
 
+  Color _panelSurface(BuildContext context) {
+    final isDark = AppColors.isDarkContext(context);
+    return AppColors.adaptivePanelSurface(context).withValues(
+      alpha: isDark ? 0.86 : 0.92,
+    );
+  }
+
+  Color _cardSurface(BuildContext context) {
+    final isDark = AppColors.isDarkContext(context);
+    return AppColors.adaptiveCardSurface(context).withValues(
+      alpha: isDark ? 0.82 : 0.96,
+    );
+  }
+
+  Color _outline(BuildContext context) => AppColors.adaptiveOutline(context);
+
+  Color _primaryText(BuildContext context) =>
+      AppColors.adaptivePrimaryText(context);
+
   @override
   Widget build(BuildContext context) {
     final locale = ref.watch(localeStringProvider); // ✅ String
-    final t = InstallationTranslations.translations[locale]!;
-    final nomeCheckpoint = _getNomeCheckpoint(widget.checkpoint.tipo, t);
+    final nomeCheckpoint = widget.checkpoint.tipo.getName(locale);
+    final visuals = FinalPhaseVisuals.of(widget.checkpoint.tipo);
 
     return Dialog(
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       child: Container(
         width: MediaQuery.of(context).size.width * 0.9,
         constraints: BoxConstraints(
@@ -68,10 +91,16 @@ class _CheckpointEditDialogState extends ConsumerState<CheckpointEditDialog> {
           children: [
             Container(
               padding: const EdgeInsets.all(16),
-              color: Colors.green,
+              decoration: BoxDecoration(
+                color: visuals.accentColor,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(24),
+                  topRight: Radius.circular(24),
+                ),
+              ),
               child: Row(
                 children: [
-                  const Icon(Icons.check_circle, color: Colors.white),
+                  Icon(visuals.icon, color: Colors.white),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
@@ -100,14 +129,19 @@ class _CheckpointEditDialogState extends ConsumerState<CheckpointEditDialog> {
                       SwitchListTile(
                         value: _isNA,
                         onChanged: (v) => setState(() => _isNA = v),
-                        title: Text(t['naoAplicavel'] ?? 'Não Aplicável'),
-                        activeThumbColor: Colors.green,
+                        title: Text(
+                          InstallationTranslations.getString(
+                            'naoAplicavel',
+                            locale,
+                          ),
+                        ),
+                        activeThumbColor: visuals.accentColor,
                       ),
                       if (!_isNA) ...[
                         const SizedBox(height: 16),
                         _buildDatePicker(
-                          t,
-                          _dataInicio ?? DateTime.now(), // ✅ Handle null
+                          locale,
+                          _dataInicio,
                           (d) => setState(() {
                             _dataInicio = d;
                             if (_dataFim != null &&
@@ -118,18 +152,20 @@ class _CheckpointEditDialogState extends ConsumerState<CheckpointEditDialog> {
                           true,
                         ),
                         _buildDatePicker(
-                          t,
-                          _dataFim ??
-                              _dataInicio ??
-                              DateTime.now(), // ✅ Handle null
+                          locale,
+                          _dataFim,
                           (d) => setState(() => _dataFim = d),
                           false,
                         ),
                         const SizedBox(height: 16),
                         TextFormField(
                           controller: _observacoesController,
+                          onChanged: (_) => setState(() {}),
                           decoration: InputDecoration(
-                            labelText: t['observacoes'],
+                            labelText: InstallationTranslations.getString(
+                              'observations',
+                              locale,
+                            ),
                             border: const OutlineInputBorder(),
                           ),
                           maxLines: 3,
@@ -138,12 +174,18 @@ class _CheckpointEditDialogState extends ConsumerState<CheckpointEditDialog> {
                         TextFormField(
                           initialValue: _motivoNA ?? '',
                           decoration: InputDecoration(
-                            labelText: t['motivoNA'],
+                            labelText: InstallationTranslations.getString(
+                              'motivoNA',
+                              locale,
+                            ),
                             border: const OutlineInputBorder(),
                           ),
-                          onChanged: (v) => _motivoNA = v,
+                          onChanged: (v) => setState(() => _motivoNA = v),
                           validator: (v) => _isNA && (v == null || v.isEmpty)
-                              ? t['motivoObrigatorio']
+                              ? InstallationTranslations.getString(
+                                  'motivoObrigatorio',
+                                  locale,
+                                )
                               : null,
                         ),
                     ],
@@ -154,20 +196,31 @@ class _CheckpointEditDialogState extends ConsumerState<CheckpointEditDialog> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.grey[100],
-                border: Border(top: BorderSide(color: Colors.grey[300]!)),
+                color: _panelSurface(context),
+                border: Border(
+                  top: BorderSide(
+                    color: visuals.accentColor.withValues(alpha: 0.28),
+                  ),
+                ),
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(24),
+                  bottomRight: Radius.circular(24),
+                ),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    '${t['progresso']}: ${_calcularProgresso()}%',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                    '${InstallationTranslations.getString('progresso', locale)}: ${_calcularProgresso()}%',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: _primaryText(context),
+                    ),
                   ),
                   ElevatedButton(
                     onPressed: _isSaving ? null : _guardar,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
+                      backgroundColor: visuals.accentColor,
                     ),
                     child: _isSaving
                         ? const SizedBox(
@@ -175,7 +228,12 @@ class _CheckpointEditDialogState extends ConsumerState<CheckpointEditDialog> {
                             height: 16,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : Text(t['guardar'] ?? 'Guardar'),
+                        : Text(
+                            InstallationTranslations.getString(
+                              'guardar',
+                              locale,
+                            ),
+                          ),
                   ),
                 ],
               ),
@@ -187,22 +245,31 @@ class _CheckpointEditDialogState extends ConsumerState<CheckpointEditDialog> {
   }
 
   Widget _buildDatePicker(
-    Map<String, String> t,
-    DateTime data,
+    String locale,
+    DateTime? data,
     Function(DateTime) onChanged,
     bool isInicio,
   ) {
+    final initialDate = data ??
+        ((!isInicio && _dataInicio != null) ? _dataInicio! : DateTime.now());
+
     return ListTile(
-      leading: const Icon(Icons.calendar_today, color: Colors.green),
+      tileColor: _cardSurface(context),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: _outline(context)),
+      ),
+      leading: Icon(Icons.calendar_today,
+          color: FinalPhaseVisuals.of(widget.checkpoint.tipo).accentColor),
       title: Text(isInicio
-          ? (t['dataInicio'] ?? 'Data Início')
-          : (t['dataFim'] ?? 'Data Fim')),
+          ? InstallationTranslations.getString('dataInicio', locale)
+          : InstallationTranslations.getString('dataFim', locale)),
       subtitle: Text(_formatDate(data)),
       trailing: const Icon(Icons.edit, size: 20),
       onTap: () async {
         final d = await showDatePicker(
           context: context,
-          initialDate: data,
+          initialDate: initialDate,
           firstDate: DateTime(2020),
           lastDate: DateTime(2030),
         );
@@ -211,29 +278,28 @@ class _CheckpointEditDialogState extends ConsumerState<CheckpointEditDialog> {
     );
   }
 
-  // ✅ Mudado de TipoCheckpoint para TipoFase
-  String _getNomeCheckpoint(TipoFase tipo, Map<String, String> t) {
-    switch (tipo) {
-      case TipoFase.eletricos:
-        return t['checkpointEletricos'] ?? 'Checkpoint Elétricos';
-      case TipoFase.mecanicosGerais:
-        return t['checkpointMecanicos'] ?? 'Checkpoint Mecânicos';
-      case TipoFase.finish:
-        return 'Finish';
-      case TipoFase.inspecaoSupervisor:
-        return t['inspecaoSupervisor'] ?? 'Inspeção Supervisor';
-      case TipoFase.punchlist:
-        return 'Punch-List';
-      case TipoFase.inspecaoCliente:
-        return t['inspecaoCliente'] ?? 'Inspeção Cliente';
-      case TipoFase.punchlistCliente:
-        return 'Punch-List Cliente';
-      default:
-        return tipo.name;
-    }
-  }
+  int _calcularProgresso() {
+    if (_isNA) return 100;
 
-  int _calcularProgresso() => _isNA ? 100 : 100; // Simplificado
+    var total = 2;
+    var preenchidos = 0;
+
+    if (_dataInicio != null) preenchidos++;
+    if (_dataFim != null) preenchidos++;
+
+    if (!widget.checkpoint.fotosNA) {
+      total += 1;
+      if (_fotos.isNotEmpty) preenchidos++;
+    }
+
+    if (!widget.checkpoint.observacoesNA) {
+      total += 1;
+      if (_observacoesController.text.trim().isNotEmpty) preenchidos++;
+    }
+
+    if (total == 0) return 0;
+    return ((preenchidos / total) * 100).round();
+  }
 
   void _guardar() async {
     if (!_formKey.currentState!.validate()) return;
@@ -261,7 +327,7 @@ class _CheckpointEditDialogState extends ConsumerState<CheckpointEditDialog> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Atualizado!'),
-            backgroundColor: Colors.green,
+            backgroundColor: AppColors.successGreen,
           ),
         );
       }
@@ -270,7 +336,7 @@ class _CheckpointEditDialogState extends ConsumerState<CheckpointEditDialog> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Erro: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.errorRed,
           ),
         );
       }
@@ -279,6 +345,8 @@ class _CheckpointEditDialogState extends ConsumerState<CheckpointEditDialog> {
     }
   }
 
-  String _formatDate(DateTime date) =>
-      '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+  String _formatDate(DateTime? date) {
+    if (date == null) return '--/--/----';
+    return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+  }
 }

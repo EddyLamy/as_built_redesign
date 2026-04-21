@@ -26,7 +26,7 @@ switch ($opcao) {
         Write-Host ""
         Write-Host "=== Alterar Ícone Windows ===" -ForegroundColor Cyan
         Write-Host ""
-        & ".\alterar_icone.ps1"
+        & ".\alterar_icone.ps1" -IconPath "C:\Users\Utilizador\OneDrive - 2windservice\Imagens\As-Built.ico"
     }
     "3" {
         Write-Host ""
@@ -38,7 +38,7 @@ switch ($opcao) {
         Write-Host ""
         Write-Host "=== Alterar Ícone Windows ===" -ForegroundColor Cyan
         Write-Host ""
-        & ".\alterar_icone.ps1"
+        & ".\alterar_icone.ps1" -IconPath "C:\Users\Utilizador\OneDrive - 2windservice\Imagens\As-Built.ico"
     }
     "0" {
         Write-Host "Saindo..." -ForegroundColor Gray

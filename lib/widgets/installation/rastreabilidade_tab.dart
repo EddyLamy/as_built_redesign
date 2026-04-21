@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../core/theme/app_colors.dart';
 import '../../i18n/installation_translations.dart';
 import '../../providers/locale_provider.dart';
 
@@ -21,7 +22,7 @@ class RastreabilidadeTab extends ConsumerWidget {
         // Header com botão de exportação
         Container(
           padding: const EdgeInsets.all(16),
-          color: Colors.grey[100],
+          color: AppColors.lightGray,
           child: Row(
             children: [
               Expanded(
@@ -40,7 +41,9 @@ class RastreabilidadeTab extends ConsumerWidget {
                 },
                 icon: const Icon(Icons.download),
                 label: Text(t['exportar'] ?? 'Exportar'),
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.warningOrange,
+                ),
               ),
             ],
           ),
@@ -67,11 +70,11 @@ class RastreabilidadeTab extends ConsumerWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Icon(Icons.table_chart,
-                          size: 64, color: Colors.grey),
+                          size: 64, color: AppColors.mediumGray),
                       const SizedBox(height: 16),
                       Text(
                         t['nenhumDadoEncontrado'] ?? 'Nenhum dado encontrado',
-                        style: TextStyle(color: Colors.grey[600]),
+                        style: const TextStyle(color: AppColors.mediumGray),
                       ),
                     ],
                   ),
@@ -82,8 +85,9 @@ class RastreabilidadeTab extends ConsumerWidget {
                 scrollDirection: Axis.horizontal,
                 child: SingleChildScrollView(
                   child: DataTable(
-                    headingRowColor:
-                        WidgetStateProperty.all(Colors.orange[100]),
+                    headingRowColor: WidgetStateProperty.all(
+                      AppColors.warningOrange.withValues(alpha: 0.2),
+                    ),
                     columns: [
                       DataColumn(
                           label: Text(t['componente'] ?? 'Componente',

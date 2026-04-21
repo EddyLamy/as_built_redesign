@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:as_built/widgets/liquid_glass_overlays.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/localization/translation_helper.dart';
@@ -6,7 +7,7 @@ import '../../models/project_phase.dart';
 import '../../providers/app_providers.dart';
 import '../../widgets/edit_phase_dialog.dart';
 
-class ProjectPhasesTimeline extends ConsumerWidget {
+class ProjectPhasesTimeline extends ConsumerStatefulWidget {
   final String projectId;
 
   const ProjectPhasesTimeline({
@@ -15,9 +16,80 @@ class ProjectPhasesTimeline extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProjectPhasesTimeline> createState() =>
+      _ProjectPhasesTimelineState();
+}
+
+class _ProjectPhasesTimelineState extends ConsumerState<ProjectPhasesTimeline> {
+  final ScrollController _scrollController = ScrollController();
+  bool _canScrollLeft = false;
+  bool _canScrollRight = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_handleScrollChange);
+  }
+
+  @override
+  void dispose() {
+    _scrollController
+      ..removeListener(_handleScrollChange)
+      ..dispose();
+    super.dispose();
+  }
+
+  void _handleScrollChange() {
+    if (!_scrollController.hasClients) return;
+
+    final position = _scrollController.position;
+    final canScrollLeft = position.pixels > 4;
+    final canScrollRight = position.pixels < position.maxScrollExtent - 4;
+
+    if (canScrollLeft != _canScrollLeft || canScrollRight != _canScrollRight) {
+      setState(() {
+        _canScrollLeft = canScrollLeft;
+        _canScrollRight = canScrollRight;
+      });
+    }
+  }
+
+  void _syncArrowState() {
+    if (!_scrollController.hasClients) {
+      if (_canScrollLeft || _canScrollRight) {
+        setState(() {
+          _canScrollLeft = false;
+          _canScrollRight = false;
+        });
+      }
+      return;
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_scrollController.hasClients) return;
+      _handleScrollChange();
+    });
+  }
+
+  Future<void> _scrollTimeline(double direction) async {
+    if (!_scrollController.hasClients) return;
+
+    final target = (_scrollController.offset + (direction * 280)).clamp(
+      0.0,
+      _scrollController.position.maxScrollExtent,
+    );
+
+    await _scrollController.animateTo(
+      target,
+      duration: const Duration(milliseconds: 260),
+      curve: Curves.easeOutCubic,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final t = TranslationHelper.of(context);
-    final phasesAsync = ref.watch(projectPhasesProvider(projectId));
+    final phasesAsync = ref.watch(projectPhasesProvider(widget.projectId));
 
     return Card(
       margin: const EdgeInsets.all(16),
@@ -174,45 +246,112 @@ class ProjectPhasesTimeline extends ConsumerWidget {
     final minDateNonNull = minDate;
     final maxDateNonNull = maxDate;
 
-    const itemWidth = 59.0; // Largura de cada fase
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const minItemWidth = 58.0;
+        const maxItemWidth = 92.0;
+        const timelineHeight = 138.0;
+        const arrowZoneWidth = 44.0;
 
-    return Column(
-      children: [
-        // Timeline horizontal com scroll
-        SizedBox(
-          height: 130, // ✅ AUMENTA para 180
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            clipBehavior: Clip.none, // ✅ Permite overflow
-            child: SizedBox(
-              width: phases.length * itemWidth,
-              child: CustomPaint(
-                painter: _TimelinePainter(
-                  phases: phases,
-                  minDate: minDateNonNull,
-                  maxDate: maxDateNonNull,
-                  itemWidth: itemWidth,
-                  context: context,
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center, // ✅ Centraliza
-                  children: phases.map((phase) {
-                    return _buildPhaseMarker(
-                      context,
-                      t,
-                      phase,
-                      minDateNonNull,
-                      maxDateNonNull,
-                      itemWidth,
-                      ref,
-                    );
-                  }).toList(),
+        final availableWidth = constraints.maxWidth.isFinite
+            ? constraints.maxWidth
+            : MediaQuery.of(context).size.width;
+        final fittedItemWidth =
+            (availableWidth / phases.length).clamp(minItemWidth, maxItemWidth);
+        final contentWidth = phases.length * fittedItemWidth;
+        final needsScroll = contentWidth > availableWidth;
+
+        _syncArrowState();
+
+        return SizedBox(
+          height: timelineHeight,
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: needsScroll ? arrowZoneWidth : 0,
+                  ),
+                  child: SingleChildScrollView(
+                    controller: _scrollController,
+                    scrollDirection: Axis.horizontal,
+                    clipBehavior: Clip.none,
+                    physics: needsScroll
+                        ? const BouncingScrollPhysics()
+                        : const NeverScrollableScrollPhysics(),
+                    child: SizedBox(
+                      width: contentWidth,
+                      child: CustomPaint(
+                        painter: _TimelinePainter(
+                          phases: phases,
+                          minDate: minDateNonNull,
+                          maxDate: maxDateNonNull,
+                          itemWidth: fittedItemWidth,
+                          context: context,
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: phases.map((phase) {
+                            return _buildPhaseMarker(
+                              context,
+                              t,
+                              phase,
+                              minDateNonNull,
+                              maxDateNonNull,
+                              fittedItemWidth,
+                              ref,
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
               ),
-            ),
+              if (needsScroll && _canScrollLeft)
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: _buildScrollArrow(
+                    icon: Icons.chevron_left,
+                    onTap: () => _scrollTimeline(-1),
+                  ),
+                ),
+              if (needsScroll && _canScrollRight)
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: _buildScrollArrow(
+                    icon: Icons.chevron_right,
+                    onTap: () => _scrollTimeline(1),
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildScrollArrow({
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 2),
+      child: Material(
+        color: Colors.white.withValues(alpha: 0.88),
+        shape: const CircleBorder(),
+        elevation: 6,
+        shadowColor: const Color(0xFF0F4C81).withValues(alpha: 0.18),
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: onTap,
+          child: SizedBox(
+            width: 36,
+            height: 36,
+            child: Icon(icon, color: AppColors.primaryBlue, size: 22),
           ),
         ),
-      ],
+      ),
     );
   }
 
@@ -242,7 +381,7 @@ class ProjectPhasesTimeline extends ConsumerWidget {
       onTap: () => _showEditPhaseDialog(context, ref, phase),
       child: SizedBox(
         width: itemWidth,
-        height: 130,
+        height: 138,
         child: Transform.translate(
           offset: Offset(0, verticalOffset),
           child: Center(
@@ -267,8 +406,8 @@ class ProjectPhasesTimeline extends ConsumerWidget {
                   width: itemWidth - 16,
                   child: Text(
                     _abbreviatePhaseName(t.translate('phase_${phase.nome}')),
-                    style: const TextStyle(
-                      fontSize: 10,
+                    style: TextStyle(
+                      fontSize: itemWidth < 64 ? 9 : 10,
                       fontWeight: FontWeight.w600,
                     ),
                     textAlign: TextAlign.center,
@@ -308,10 +447,10 @@ class ProjectPhasesTimeline extends ConsumerWidget {
     WidgetRef ref,
     ProjectPhase phase,
   ) {
-    showDialog(
+    showLiquidDialog(
       context: context,
       builder: (context) => EditPhaseDialog(
-        projectId: projectId,
+        projectId: widget.projectId,
         phase: phase,
       ),
     );

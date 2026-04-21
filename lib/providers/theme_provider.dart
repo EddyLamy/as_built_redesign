@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/foundation.dart';
 
 part 'theme_provider.g.dart';
 
@@ -21,7 +22,7 @@ class ThemeNotifier extends _$ThemeNotifier {
         state = savedTheme;
       }
     } catch (e) {
-      print('Erro ao carregar tema: $e');
+      debugPrint('Erro ao carregar tema: $e');
     }
   }
 
@@ -33,7 +34,7 @@ class ThemeNotifier extends _$ThemeNotifier {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('theme', theme);
     } catch (e) {
-      print('Erro ao salvar tema: $e');
+      debugPrint('Erro ao salvar tema: $e');
     }
   }
 

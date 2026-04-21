@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/componente.dart';
 import '../utils/component_mapping.dart';
+import 'package:flutter/foundation.dart';
 
 class ComponenteService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -222,9 +223,9 @@ class ComponenteService {
       String? hardcodedId = ComponentMapping.getHardcodedId(nome);
 
       if (hardcodedId != null) {
-        print('✅ hardcodedId auto-atribuído: "$hardcodedId" para "$nome"');
+        debugPrint('✅ hardcodedId auto-atribuído: "$hardcodedId" para "$nome"');
       } else {
-        print('ℹ️ Componente customizado sem hardcodedId: "$nome"');
+        debugPrint('ℹ️ Componente customizado sem hardcodedId: "$nome"');
       }
 
       final componente = Componente(
@@ -248,7 +249,7 @@ class ComponenteService {
 
       return componenteRef.id;
     } catch (e) {
-      print('Erro ao criar componente custom: $e');
+      debugPrint('Erro ao criar componente custom: $e');
       rethrow;
     }
   }
@@ -270,7 +271,7 @@ class ComponenteService {
           .map((doc) => Componente.fromMap(doc.id, doc.data()))
           .toList();
     } catch (e) {
-      print('Erro ao buscar componentes por categoria: $e');
+      debugPrint('Erro ao buscar componentes por categoria: $e');
       return [];
     }
   }
@@ -282,7 +283,7 @@ class ComponenteService {
   ///
   /// Útil para migrar um parque completo de uma vez
   Future<void> migrateComponentesForProject(String projectId) async {
-    print('\n🔄 Iniciando migração para projeto: $projectId');
+    debugPrint('\n🔄 Iniciando migração para projeto: $projectId');
 
     try {
       final snapshot = await _firestore
@@ -297,11 +298,11 @@ class ComponenteService {
       }).toList();
 
       if (docsToMigrate.isEmpty) {
-        print('✅ Todos os componentes do projeto já têm hardcodedId');
+        debugPrint('✅ Todos os componentes do projeto já têm hardcodedId');
         return;
       }
 
-      print('📊 Encontrados ${docsToMigrate.length} componentes para migrar');
+      debugPrint('📊 Encontrados ${docsToMigrate.length} componentes para migrar');
 
       // Processar em batches de 500 (limite do Firestore)
       final batches = <WriteBatch>[];
@@ -337,14 +338,14 @@ class ComponenteService {
       }
 
       // Executar todos os batches
-      print('💾 Executando ${batches.length} batches...');
+      debugPrint('💾 Executando ${batches.length} batches...');
       for (var batch in batches) {
         await batch.commit();
       }
 
-      print('✅ Migrados $totalMigrated componentes para projeto $projectId\n');
+      debugPrint('✅ Migrados $totalMigrated componentes para projeto $projectId\n');
     } catch (e) {
-      print('❌ Erro na migração: $e');
+      debugPrint('❌ Erro na migração: $e');
       rethrow;
     }
   }
@@ -354,7 +355,7 @@ class ComponenteService {
   // ══════════════════════════════════════════════════════════════════════════
   /// Migra todos os componentes de uma turbina específica
   Future<void> migrateComponentesForTurbina(String turbinaId) async {
-    print('\n🔄 Iniciando migração para turbina: $turbinaId');
+    debugPrint('\n🔄 Iniciando migração para turbina: $turbinaId');
 
     try {
       // Buscar componentes da turbina SEM hardcodedId
@@ -370,11 +371,11 @@ class ComponenteService {
       }).toList();
 
       if (docsToMigrate.isEmpty) {
-        print('✅ Todos os componentes já têm hardcodedId');
+        debugPrint('✅ Todos os componentes já têm hardcodedId');
         return;
       }
 
-      print('📊 Encontrados ${docsToMigrate.length} componentes para migrar');
+      debugPrint('📊 Encontrados ${docsToMigrate.length} componentes para migrar');
 
       final batch = _firestore.batch();
       int migrated = 0;
@@ -388,20 +389,20 @@ class ComponenteService {
 
           if (hardcodedId != null) {
             batch.update(doc.reference, {'hardcodedId': hardcodedId});
-            print('  ✅ ${doc.id}: "$nome" → "$hardcodedId"');
+            debugPrint('  ✅ ${doc.id}: "$nome" → "$hardcodedId"');
             migrated++;
           } else {
-            print('  ℹ️ ${doc.id}: "$nome" → Componente customizado');
+            debugPrint('  ℹ️ ${doc.id}: "$nome" → Componente customizado');
           }
         }
       }
 
       if (migrated > 0) {
         await batch.commit();
-        print('✅ Migrados $migrated componentes para turbina $turbinaId\n');
+        debugPrint('✅ Migrados $migrated componentes para turbina $turbinaId\n');
       }
     } catch (e) {
-      print('❌ Erro na migração: $e');
+      debugPrint('❌ Erro na migração: $e');
       rethrow;
     }
   }

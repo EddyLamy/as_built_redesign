@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:as_built/widgets/liquid_glass_overlays.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/localization/translation_helper.dart';
+import '../../widgets/app_bar_dashboard_shortcut.dart';
 import 'grua_atividades_screen.dart';
 
 /// Ecrã de gestão de gruas (NÍVEL 1)
@@ -27,18 +29,25 @@ class _GruasManagementScreenState extends State<GruasManagementScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(t.translate('cranes')),
-            Text(
-              widget.turbineName,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.normal,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: AppColors.primaryGradient,
+          ),
+        ),
+        title: DashboardShortcutTitle(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(t.translate('cranes')),
+              Text(
+                widget.turbineName,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.normal,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
       body: Column(
@@ -50,10 +59,10 @@ class _GruasManagementScreenState extends State<GruasManagementScreen> {
             margin: const EdgeInsets.all(16),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.primaryBlue.withOpacity(0.1),
+              color: AppColors.primaryBlue.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: AppColors.primaryBlue.withOpacity(0.3),
+                color: AppColors.primaryBlue.withValues(alpha: 0.3),
               ),
             ),
             child: Row(
@@ -203,7 +212,8 @@ class _GruasManagementScreenState extends State<GruasManagementScreen> {
                               width: 56,
                               height: 56,
                               decoration: BoxDecoration(
-                                color: AppColors.primaryBlue.withOpacity(0.1),
+                                color: AppColors.primaryBlue
+                                    .withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: const Icon(
@@ -301,7 +311,7 @@ class _GruasManagementScreenState extends State<GruasManagementScreen> {
     final t = TranslationHelper.of(context);
     final modeloController = TextEditingController();
 
-    showDialog(
+    showLiquidDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: Row(
@@ -330,10 +340,10 @@ class _GruasManagementScreenState extends State<GruasManagementScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.primaryBlue.withOpacity(0.1),
+                color: AppColors.primaryBlue.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: AppColors.primaryBlue.withOpacity(0.3),
+                  color: AppColors.primaryBlue.withValues(alpha: 0.3),
                 ),
               ),
               child: Row(
@@ -422,7 +432,7 @@ class _GruasManagementScreenState extends State<GruasManagementScreen> {
   void _showDeleteGruaDialog(String gruaId, String modelo) {
     final t = TranslationHelper.of(context);
 
-    showDialog(
+    showLiquidDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: Row(
@@ -441,10 +451,10 @@ class _GruasManagementScreenState extends State<GruasManagementScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.errorRed.withOpacity(0.1),
+                color: AppColors.errorRed.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: AppColors.errorRed.withOpacity(0.3),
+                  color: AppColors.errorRed.withValues(alpha: 0.3),
                 ),
               ),
               child: Row(

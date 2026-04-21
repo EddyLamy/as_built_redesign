@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/services.dart';
 import 'dart:io' show Platform;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/localization/translation_helper.dart';
 import '../../providers/locale_provider.dart';
+import '../../providers/theme_provider.dart';
+import '../../widgets/gradient_button.dart';
 import '../dashboard/dashboard_screen.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -19,8 +23,91 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _emailFocusNode = FocusNode();
+  final _passwordFocusNode = FocusNode();
   bool _isLoading = false;
   bool _obscurePassword = true;
+  bool _emailFocused = false;
+  bool _passwordFocused = false;
+
+  bool _emailExpanded = false;
+  bool _passwordExpanded = false;
+
+  void _moveToEmailField() {
+    setState(() => _emailExpanded = true);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _emailFocusNode.requestFocus();
+      }
+    });
+  }
+
+  void _moveToPasswordField() {
+    setState(() => _passwordExpanded = true);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _passwordFocusNode.requestFocus();
+      }
+    });
+  }
+
+  KeyEventResult _handleEmailFieldKey(FocusNode node, KeyEvent event) {
+    if (event is KeyDownEvent &&
+        event.logicalKey == LogicalKeyboardKey.tab &&
+        !HardwareKeyboard.instance.isShiftPressed) {
+      _moveToPasswordField();
+      return KeyEventResult.handled;
+    }
+
+    return KeyEventResult.ignored;
+  }
+
+  KeyEventResult _handlePasswordFieldKey(FocusNode node, KeyEvent event) {
+    if (event is KeyDownEvent &&
+        event.logicalKey == LogicalKeyboardKey.tab &&
+        HardwareKeyboard.instance.isShiftPressed) {
+      _moveToEmailField();
+      return KeyEventResult.handled;
+    }
+
+    return KeyEventResult.ignored;
+  }
+
+  void _expandEmail() {
+    if (!_emailExpanded) {
+      setState(() => _emailExpanded = true);
+      // Give the field time to appear before requesting focus
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _emailFocusNode.requestFocus();
+      });
+    }
+  }
+
+  void _expandPassword() {
+    if (!_passwordExpanded) {
+      setState(() => _passwordExpanded = true);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _passwordFocusNode.requestFocus();
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _emailFocusNode.addListener(() {
+      setState(() => _emailFocused = _emailFocusNode.hasFocus);
+      if (!_emailFocusNode.hasFocus && _emailController.text.isEmpty) {
+        setState(() => _emailExpanded = false);
+      }
+    });
+    _passwordFocusNode.addListener(() {
+      setState(() => _passwordFocused = _passwordFocusNode.hasFocus);
+      if (!_passwordFocusNode.hasFocus && _passwordController.text.isEmpty) {
+        setState(() => _passwordExpanded = false);
+      }
+    });
+  }
 
   // Helper para verificar se é mobile
   bool get _isMobile {
@@ -32,7 +119,42 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _emailFocusNode.dispose();
+    _passwordFocusNode.dispose();
     super.dispose();
+  }
+
+  /// Garante que o documento users/{uid} existe no Firestore.
+  /// Se não existir, cria-o com globalRole: "user".
+  /// Se já existir, não faz nada.
+  Future<void> _ensureUserProfile(User firebaseUser, String email) async {
+    final docRef =
+        FirebaseFirestore.instance.collection('users').doc(firebaseUser.uid);
+
+    final doc = await docRef.get();
+    final nameFallback = email.contains('@') ? email.split('@')[0] : email;
+
+    if (!doc.exists) {
+      await docRef.set({
+        'uid': firebaseUser.uid,
+        'name': (firebaseUser.displayName != null &&
+                firebaseUser.displayName!.isNotEmpty)
+            ? firebaseUser.displayName!
+            : nameFallback,
+        'email': email,
+        'globalRole': 'user',
+        'isActive': true,
+        'createdAt': FieldValue.serverTimestamp(),
+        'createdBy': null,
+      });
+      debugPrint('✅ Perfil criado com nome: $nameFallback');
+    } else {
+      final data = doc.data() as Map<String, dynamic>;
+      if ((data['name'] as String? ?? '').isEmpty) {
+        await docRef.update({'name': nameFallback, 'email': email});
+        debugPrint('👤 Nome vazio corrigido para: $nameFallback');
+      }
+    }
   }
 
   Future<void> _handleLogin() async {
@@ -41,10 +163,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     setState(() => _isLoading = true);
 
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
+      final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
+
+      // ✅ Garantir que o documento users/{uid} existe
+      if (credential.user != null) {
+        await _ensureUserProfile(
+            credential.user!, _emailController.text.trim());
+      }
 
       if (mounted) {
         Navigator.of(context).pushReplacement(
@@ -52,6 +180,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         );
       }
     } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
       final t = TranslationHelper.of(context);
       String errorMessage = t.translate('login_error');
 
@@ -94,6 +223,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Widget build(BuildContext context) {
     final t = TranslationHelper.of(context);
     final localeString = ref.watch(localeStringProvider);
+    final currentTheme = ref.watch(themeProvider);
 
     // ════════════════════════════════════════════════════════════════════
     // MOBILE: Ecrã completo com botão de idioma proeminente
@@ -106,10 +236,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Color(0xFF0A2540), // Azul muito escuro
+                Color(0xFF0A2540),
                 AppColors.primaryBlueDark,
                 AppColors.accentTeal,
-                AppColors.accentTealLight, // Turquesa
+                AppColors.accentTealLight,
               ],
               stops: [0.0, 0.3, 0.7, 1.0],
             ),
@@ -117,22 +247,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           child: SafeArea(
             child: Column(
               children: [
-                // ══════════════════════════════════════════════════════
-                // HEADER COM BOTÃO DE IDIOMA
-                // ══════════════════════════════════════════════════════
                 Padding(
                   padding: const EdgeInsets.all(16),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
+                      _buildThemeButton(currentTheme, t),
                       _buildLanguageButton(localeString),
                     ],
                   ),
                 ),
-
-                // ══════════════════════════════════════════════════════
-                // FORMULÁRIO DE LOGIN
-                // ══════════════════════════════════════════════════════
                 Expanded(
                   child: Center(
                     child: SingleChildScrollView(
@@ -158,10 +282,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color(0xFF0A2540), // Azul muito escuro
+              Color(0xFF0A2540),
               AppColors.primaryBlueDark,
               AppColors.accentTeal,
-              AppColors.accentTealLight, // Turquesa
+              AppColors.accentTealLight,
             ],
             stops: [0.0, 0.3, 0.7, 1.0],
           ),
@@ -169,6 +293,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         child: Center(
           child: Card(
             elevation: 8,
+            color: Colors.white.withValues(alpha: 0.75),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
             ),
@@ -178,10 +303,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Language Toggle (desktop - canto superior)
-                  Align(
-                    alignment: Alignment.topRight,
-                    child: _buildLanguageButton(localeString),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _buildThemeButton(currentTheme, t),
+                      _buildLanguageButton(localeString),
+                    ],
                   ),
                   _buildLoginForm(t),
                 ],
@@ -193,17 +320,25 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 
-  // ══════════════════════════════════════════════════════════════════════
-  // 🌐 BOTÃO DE IDIOMA (MOBILE E DESKTOP)
-  // ══════════════════════════════════════════════════════════════════════
   Widget _buildLanguageButton(String currentLocale) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryText = AppColors.adaptivePrimaryText(context);
+    final secondaryText = AppColors.adaptiveSecondaryText(context);
+    final outlineColor = AppColors.adaptiveOutline(context);
+    final surfaceColor = _isMobile
+        ? Colors.white.withValues(alpha: 0.18)
+        : (isDark
+            ? AppColors.glassSurfaceDark.withValues(alpha: 0.9)
+            : Colors.white.withValues(alpha: 0.18));
+
     return Container(
       decoration: BoxDecoration(
-        color: _isMobile ? Colors.white.withOpacity(0.2) : Colors.transparent,
+        color: surfaceColor,
         borderRadius: BorderRadius.circular(8),
-        border: _isMobile
-            ? Border.all(color: Colors.white.withOpacity(0.3), width: 1)
-            : null,
+        border: Border.all(
+          color: _isMobile ? Colors.white.withValues(alpha: 0.3) : outlineColor,
+          width: 1,
+        ),
       ),
       child: Material(
         color: Colors.transparent,
@@ -225,7 +360,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 Icon(
                   Icons.language,
                   size: _isMobile ? 24 : 20,
-                  color: _isMobile ? Colors.white : AppColors.primaryBlue,
+                  color: _isMobile ? Colors.white : secondaryText,
                 ),
                 const SizedBox(width: 8),
                 Text(
@@ -233,14 +368,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: _isMobile ? 16 : 12,
-                    color: _isMobile ? Colors.white : AppColors.darkGray,
+                    color: _isMobile ? Colors.white : primaryText,
                   ),
                 ),
                 const SizedBox(width: 4),
                 Icon(
                   Icons.arrow_drop_down,
                   size: _isMobile ? 24 : 20,
-                  color: _isMobile ? Colors.white : AppColors.primaryBlue,
+                  color: _isMobile ? Colors.white : secondaryText,
                 ),
               ],
             ),
@@ -250,24 +385,138 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 
-  // ══════════════════════════════════════════════════════════════════════
-  // 📝 FORMULÁRIO DE LOGIN (REUTILIZÁVEL)
-  // ══════════════════════════════════════════════════════════════════════
+  Widget _buildThemeButton(String currentTheme, TranslationHelper t) {
+    final isDark = currentTheme == 'dark';
+    final buttonIcon =
+        isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined;
+    final iconColor =
+        _isMobile ? Colors.white : AppColors.adaptivePrimaryText(context);
+    final outlineColor = _isMobile
+        ? Colors.white.withValues(alpha: 0.3)
+        : AppColors.adaptiveOutline(context);
+    final surfaceColor = _isMobile
+        ? Colors.white.withValues(alpha: 0.18)
+        : (isDark
+            ? AppColors.glassSurfaceDark.withValues(alpha: 0.9)
+            : Colors.white.withValues(alpha: 0.18));
+
+    return Tooltip(
+      message: t.translate('toggle_theme'),
+      child: Container(
+        decoration: BoxDecoration(
+          color: surfaceColor,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: outlineColor, width: 1),
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () => ref.read(themeProvider.notifier).toggleTheme(),
+            borderRadius: BorderRadius.circular(8),
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: _isMobile ? 14 : 10,
+                vertical: _isMobile ? 12 : 8,
+              ),
+              child: Icon(
+                buttonIcon,
+                size: _isMobile ? 22 : 18,
+                color: iconColor,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCollapsibleField({
+    required String label,
+    required IconData icon,
+    required bool isExpanded,
+    required bool isFocused,
+    required VoidCallback onTap,
+    required Widget field,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final lineColor = isDark ? Colors.white38 : Colors.grey.shade400;
+    final labelColor =
+        isDark ? Colors.white.withValues(alpha: 0.7) : Colors.grey.shade600;
+
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedSize(
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeInOut,
+        alignment: Alignment.topCenter,
+        child: isExpanded
+            ? _buildGlowContainer(isFocused: isFocused, child: field)
+            : Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(icon, size: 18, color: labelColor),
+                        const SizedBox(width: 10),
+                        Text(
+                          label,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: labelColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 28),
+                      child: Divider(
+                        color: lineColor,
+                        thickness: 1,
+                        height: 1,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+      ),
+    );
+  }
+
+  Widget _buildGlowContainer({required bool isFocused, required Widget child}) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: isFocused
+            ? [
+                BoxShadow(
+                  color: const Color(0xFF90CAF9).withValues(alpha: 0.65),
+                  blurRadius: 18,
+                  spreadRadius: 2,
+                ),
+              ]
+            : [],
+      ),
+      child: child,
+    );
+  }
+
   Widget _buildLoginForm(TranslationHelper t) {
     return Form(
       key: _formKey,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Logo/Icon
           Icon(
             Icons.wind_power,
             size: _isMobile ? 80 : 64,
             color: _isMobile ? Colors.white : AppColors.primaryBlue,
           ),
           const SizedBox(height: 16),
-
-          // Title
           Text(
             t.translate('login_title'),
             style: TextStyle(
@@ -278,107 +527,133 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
-
-          // Subtitle
           Text(
             t.translate('login_subtitle'),
             style: TextStyle(
               fontSize: 14,
-              color:
-                  _isMobile ? Colors.white.withOpacity(0.9) : Colors.grey[600],
+              color: _isMobile
+                  ? Colors.white.withValues(alpha: 0.9)
+                  : Colors.grey[600],
             ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 32),
-
-          // Email Field
-          TextFormField(
-            controller: _emailController,
-            decoration: InputDecoration(
-              labelText: t.translate('email'),
-              prefixIcon: const Icon(Icons.email_outlined),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              filled: _isMobile,
-              fillColor: _isMobile ? Colors.white : null,
-            ),
-            style: TextStyle(
-              color: _isMobile ? AppColors.darkGray : null,
-            ),
-            keyboardType: TextInputType.emailAddress,
-            validator: (value) {
-              if (value == null || value.trim().isEmpty) {
-                return t.translate('required_field');
-              }
-              return null;
-            },
-          ),
-          const SizedBox(height: 16),
-
-          // Password Field
-          TextFormField(
-            controller: _passwordController,
-            decoration: InputDecoration(
-              labelText: t.translate('password'),
-              prefixIcon: const Icon(Icons.lock_outlined),
-              suffixIcon: IconButton(
-                icon: Icon(
-                  _obscurePassword ? Icons.visibility_off : Icons.visibility,
+          _buildCollapsibleField(
+            label: t.translate('email'),
+            icon: Icons.email_outlined,
+            isExpanded: _emailExpanded,
+            isFocused: _emailFocused,
+            onTap: _expandEmail,
+            field: Focus(
+              onKeyEvent: _handleEmailFieldKey,
+              child: TextFormField(
+                controller: _emailController,
+                focusNode: _emailFocusNode,
+                textInputAction: TextInputAction.next,
+                onEditingComplete: _moveToPasswordField,
+                decoration: InputDecoration(
+                  labelText: t.translate('email'),
+                  prefixIcon: const Icon(Icons.email_outlined),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(
+                      color: Colors.grey.shade300,
+                      width: 1.0,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(
+                      color: Color(0xFF64B5F6),
+                      width: 1.5,
+                    ),
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  filled: true,
+                  fillColor: Colors.white,
                 ),
-                onPressed: () {
-                  setState(() {
-                    _obscurePassword = !_obscurePassword;
-                  });
+                style: const TextStyle(color: AppColors.darkGray),
+                keyboardType: TextInputType.emailAddress,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return t.translate('required_field');
+                  }
+                  return null;
                 },
               ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+          const SizedBox(height: 16),
+          _buildCollapsibleField(
+            label: t.translate('password'),
+            icon: Icons.lock_outlined,
+            isExpanded: _passwordExpanded,
+            isFocused: _passwordFocused,
+            onTap: _expandPassword,
+            field: Focus(
+              onKeyEvent: _handlePasswordFieldKey,
+              child: TextFormField(
+                controller: _passwordController,
+                focusNode: _passwordFocusNode,
+                textInputAction: TextInputAction.done,
+                decoration: InputDecoration(
+                  labelText: t.translate('password'),
+                  prefixIcon: const Icon(Icons.lock_outlined),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility_off
+                          : Icons.visibility,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _obscurePassword = !_obscurePassword;
+                      });
+                    },
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(
+                      color: Colors.grey.shade300,
+                      width: 1.0,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(
+                      color: Color(0xFF64B5F6),
+                      width: 1.5,
+                    ),
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  filled: true,
+                  fillColor: Colors.white,
+                ),
+                style: const TextStyle(color: AppColors.darkGray),
+                obscureText: _obscurePassword,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return t.translate('required_field');
+                  }
+                  return null;
+                },
               ),
-              filled: _isMobile,
-              fillColor: _isMobile ? Colors.white : null,
             ),
-            style: TextStyle(
-              color: _isMobile ? AppColors.darkGray : null,
-            ),
-            obscureText: _obscurePassword,
-            validator: (value) {
-              if (value == null || value.trim().isEmpty) {
-                return t.translate('required_field');
-              }
-              return null;
-            },
           ),
           const SizedBox(height: 24),
-
-          // Login Button
           SizedBox(
             width: double.infinity,
             height: 48,
-            child: ElevatedButton(
-              onPressed: _isLoading ? null : _handleLogin,
-              style: ElevatedButton.styleFrom(
-                backgroundColor:
-                    _isMobile ? Colors.white : AppColors.primaryBlue,
-                foregroundColor:
-                    _isMobile ? AppColors.primaryBlue : Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: _isLoading
-                  ? SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: _isMobile ? AppColors.primaryBlue : Colors.white,
-                      ),
-                    )
-                  : Text(
-                      t.translate('login_button'),
-                      style: const TextStyle(fontSize: 16),
-                    ),
+            child: GradientButton(
+              label: t.translate('login_button'),
+              onPressed: _handleLogin,
+              isLoading: _isLoading,
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             ),
           ),
         ],

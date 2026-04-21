@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:as_built/widgets/liquid_glass_overlays.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/localization/translation_helper.dart';
+import '../../widgets/app_bar_dashboard_shortcut.dart';
 import 'grua_geral_atividade_form_screen.dart';
 
 /// Ecrã de atividades de uma grua geral específica
@@ -26,18 +28,25 @@ class GruaGeralAtividadesScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(gruaModelo),
-            Text(
-              projectName,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.normal,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: AppColors.primaryGradient,
+          ),
+        ),
+        title: DashboardShortcutTitle(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(gruaModelo),
+              Text(
+                projectName,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.normal,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
       body: Column(
@@ -50,10 +59,10 @@ class GruaGeralAtividadesScreen extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: const Color(0xFFF0F8CD)
-                  .withOpacity(0.1), // ✅ Cor válida (bege claro)
+                  .withValues(alpha: 0.1), // ✅ Cor válida (bege claro)
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: AppColors.accentTeal.withOpacity(0.3),
+                color: AppColors.accentTeal.withValues(alpha: 0.3),
               ),
             ),
             child: Row(
@@ -193,7 +202,7 @@ class GruaGeralAtividadesScreen extends StatelessWidget {
                         contentPadding: const EdgeInsets.all(16),
                         leading: CircleAvatar(
                           backgroundColor:
-                              AppColors.accentTeal.withOpacity(0.1),
+                              AppColors.accentTeal.withValues(alpha: 0.1),
                           child: Icon(
                             _getIconForTipo(tipo),
                             color: AppColors.accentTeal,
@@ -313,7 +322,7 @@ class GruaGeralAtividadesScreen extends StatelessWidget {
       BuildContext context, Map<String, dynamic> data, String docId) {
     final t = TranslationHelper.of(context);
 
-    showModalBottomSheet(
+    showLiquidBottomSheet(
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(

@@ -44,7 +44,7 @@ final class ThemeNotifierProvider
   }
 }
 
-String _$themeNotifierHash() => r'addfc162eb52d97ae175a43fb5d2f4b0226c75f1';
+String _$themeNotifierHash() => r'a6a3097de15761337e687157ab3ec7251b24eb99';
 
 /// Provider que controla o tema atual - Riverpod 3.x annotation-based
 

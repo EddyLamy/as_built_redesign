@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/localization/translation_helper.dart';
 import '../../models/notification_settings.dart';
+import '../../widgets/app_bar_dashboard_shortcut.dart';
 
 /// Ecrã de Configurações de Notificações
 class NotificationSettingsScreen extends ConsumerStatefulWidget {
@@ -31,7 +32,7 @@ class _NotificationSettingsScreenState
         _localSettings = settings;
       });
     } catch (e) {
-      print('Erro ao carregar settings: $e');
+      debugPrint('Erro ao carregar settings: $e');
       setState(() {
         _localSettings = NotificationSettings();
       });
@@ -39,19 +40,20 @@ class _NotificationSettingsScreenState
   }
 
   Future<void> _saveSettings() async {
+    final t = TranslationHelper.of(context);
     setState(() => _isLoading = true);
     try {
       await _localSettings.save();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Configurações guardadas com sucesso')),
+          SnackBar(content: Text(t.translate('save_settings_success'))),
         );
       }
     } catch (e) {
-      print('Erro ao guardar settings: $e');
+      debugPrint('Erro ao guardar settings: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao guardar: $e')),
+          SnackBar(content: Text('${t.translate('save_settings_error')}: $e')),
         );
       }
     } finally {
@@ -146,7 +148,14 @@ class _NotificationSettingsScreenState
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(t.translate('notification_settings')),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: AppColors.primaryGradient,
+          ),
+        ),
+        title: DashboardShortcutTitle(
+          child: Text(t.translate('notification_settings')),
+        ),
         backgroundColor: AppColors.primaryBlue,
         foregroundColor: Colors.white,
       ),

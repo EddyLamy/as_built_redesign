@@ -17,6 +17,7 @@ class Project {
   final String? localizacao;
   final String? morada;
   final String? coordenadasGPS;
+  final String? coordenadasGPSEscritorio;
   final String status;
   final DateTime createdAt;
   final String createdBy;
@@ -38,6 +39,7 @@ class Project {
     this.localizacao,
     this.morada,
     this.coordenadasGPS,
+    this.coordenadasGPSEscritorio,
     this.status = 'Planejado',
     required this.createdAt,
     required this.createdBy,
@@ -65,6 +67,7 @@ class Project {
       'localizacao': localizacao,
       'morada': morada,
       'coordenadasGPS': coordenadasGPS,
+      'coordenadasGPSEscritorio': coordenadasGPSEscritorio,
       'status': status,
       'createdAt': Timestamp.fromDate(createdAt),
       'createdBy': createdBy,
@@ -95,6 +98,7 @@ class Project {
       localizacao: map['localizacao'],
       morada: map['morada'],
       coordenadasGPS: map['coordenadasGPS'],
+      coordenadasGPSEscritorio: map['coordenadasGPSEscritorio'],
       status: map['status'] ?? 'Planejado',
       createdAt: map['createdAt'] != null
           ? (map['createdAt'] as Timestamp).toDate()
@@ -125,6 +129,7 @@ class Project {
     String? localizacao,
     String? morada,
     String? coordenadasGPS,
+    String? coordenadasGPSEscritorio,
     String? status,
     DateTime? createdAt,
     String? createdBy,
@@ -147,6 +152,8 @@ class Project {
       localizacao: localizacao ?? this.localizacao,
       morada: morada ?? this.morada,
       coordenadasGPS: coordenadasGPS ?? this.coordenadasGPS,
+      coordenadasGPSEscritorio:
+          coordenadasGPSEscritorio ?? this.coordenadasGPSEscritorio,
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
       createdBy: createdBy ?? this.createdBy,

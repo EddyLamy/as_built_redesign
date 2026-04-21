@@ -29,7 +29,7 @@ class GradientIcon extends StatelessWidget {
       gradient: const LinearGradient(
         colors: [
           AppColors.primaryBlue,
-          Color(0xFF00BCD4), // Turquesa
+          AppColors.accentCyan, // Turquesa
         ],
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,

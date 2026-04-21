@@ -12,6 +12,7 @@
 // ════════════════════════════════════════════════════════════════════════════
 
 import 'ocr_service.dart';
+import 'package:flutter/foundation.dart';
 
 class OCRServiceDesktop implements OCRService {
   @override
@@ -19,24 +20,24 @@ class OCRServiceDesktop implements OCRService {
 
   @override
   Future<void> inicializar() async {
-    print('⚠️ OCR Desktop: Plataforma não suportada');
-    print('   OCR está disponível apenas em Android/iOS');
-    print('   Desktop pode usar a app normalmente (validação manual)');
+    debugPrint('⚠️ OCR Desktop: Plataforma não suportada');
+    debugPrint('   OCR está disponível apenas em Android/iOS');
+    debugPrint('   Desktop pode usar a app normalmente (validação manual)');
   }
 
   @override
   Future<String> extrairTexto(String imagePath) async {
-    print('⚠️ OCR Desktop: extrairTexto() chamado mas não implementado');
-    print('   Foto salva: $imagePath');
-    print('   Para OCR real, usar Android ou iOS');
+    debugPrint('⚠️ OCR Desktop: extrairTexto() chamado mas não implementado');
+    debugPrint('   Foto salva: $imagePath');
+    debugPrint('   Para OCR real, usar Android ou iOS');
     return '';
   }
 
   @override
   Future<Map<String, String>> extrairDadosComponente(String imagePath) async {
-    print(
+    debugPrint(
         '⚠️ OCR Desktop: extrairDadosComponente() chamado mas não implementado');
-    print('   Retornando campos vazios (preencher manualmente)');
+    debugPrint('   Retornando campos vazios (preencher manualmente)');
     return {
       'vui': '',
       'serial': '',
@@ -46,6 +47,6 @@ class OCRServiceDesktop implements OCRService {
 
   @override
   void dispose() {
-    print('✅ OCR Desktop: dispose() - noop');
+    debugPrint('✅ OCR Desktop: dispose() - noop');
   }
 }

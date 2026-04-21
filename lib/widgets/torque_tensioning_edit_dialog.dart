@@ -7,6 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../core/theme/app_colors.dart';
 import '../models/torque_tensioning.dart';
 import '../services/torque_tensioning_service.dart';
+import '../widgets/gradient_button.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // TORQUE TENSIONING EDIT DIALOG - 6 TABS COMPLETO
@@ -195,6 +196,10 @@ class _TorqueTensioningEditDialogState
   @override
   Widget build(BuildContext context) {
     return Dialog(
+      backgroundColor: AppColors.backgroundGray,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+      clipBehavior: Clip.antiAlias,
       child: SizedBox(
         width: MediaQuery.of(context).size.width * 0.95,
         height: MediaQuery.of(context).size.height * 0.9,
@@ -232,7 +237,16 @@ class _TorqueTensioningEditDialogState
   Widget _buildHeader() {
     return Container(
       padding: const EdgeInsets.all(16),
-      color: AppColors.primaryBlue,
+      decoration: BoxDecoration(
+        gradient: AppColors.primaryGradient,
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primaryBlue.withValues(alpha: 0.28),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: Row(
         children: [
           const Icon(Icons.handyman, color: Colors.white, size: 28),
@@ -274,13 +288,17 @@ class _TorqueTensioningEditDialogState
 
   Widget _buildTabs() {
     return Container(
-      color: AppColors.primaryBlue,
+      color: Colors.white,
       child: TabBar(
         controller: _tabController,
         isScrollable: true,
-        indicatorColor: Colors.white,
-        labelColor: Colors.white,
-        unselectedLabelColor: Colors.white60,
+        indicatorSize: TabBarIndicatorSize.tab,
+        indicator: UnderlineTabIndicator(
+          borderSide: const BorderSide(color: AppColors.primaryBlue, width: 3),
+          insets: const EdgeInsets.symmetric(horizontal: 16),
+        ),
+        labelColor: AppColors.primaryBlue,
+        unselectedLabelColor: AppColors.mediumGray,
         tabs: const [
           Tab(icon: Icon(Icons.build, size: 20), text: 'Dados'),
           Tab(icon: Icon(Icons.qr_code, size: 20), text: 'Parafusos'),
@@ -829,33 +847,25 @@ class _TorqueTensioningEditDialogState
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey[100],
-        border: Border(top: BorderSide(color: Colors.grey[300]!)),
+        color: Colors.white,
+        border: Border(top: BorderSide(color: Colors.grey.shade200)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
             'Progresso: ${widget.conexao.progresso}%',
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-          ElevatedButton.icon(
-            onPressed: _isSaving ? null : _handleSave,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryBlue,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            style: const TextStyle(
+              fontWeight: FontWeight.w700,
+              color: AppColors.darkGray,
             ),
-            icon: _isSaving
-                ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation(Colors.white),
-                    ),
-                  )
-                : const Icon(Icons.save),
-            label: Text(_isSaving ? 'A guardar...' : 'Guardar'),
+          ),
+          GradientButton(
+            label: _isSaving ? 'A guardar...' : 'Guardar',
+            icon: Icons.save,
+            isSmall: true,
+            isLoading: _isSaving,
+            onPressed: _isSaving ? null : _handleSave,
           ),
         ],
       ),
@@ -867,18 +877,28 @@ class _TorqueTensioningEditDialogState
   // ══════════════════════════════════════════════════════════════════════════
 
   Widget _buildSectionHeader(IconData icon, String title) {
-    return Row(
-      children: [
-        Icon(icon, color: AppColors.primaryBlue, size: 24),
-        const SizedBox(width: 12),
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.primaryBlue.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(10),
+        border:
+            Border.all(color: AppColors.primaryBlue.withValues(alpha: 0.14)),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: AppColors.primaryBlue, size: 20),
+          const SizedBox(width: 10),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: AppColors.darkGray,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 

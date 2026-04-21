@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/turbina.dart';
 import 'package:flutter/foundation.dart' show debugPrint;
+import 'package:flutter/foundation.dart';
 
 class TurbinaService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -412,14 +413,14 @@ class TurbinaService {
 
     await batch.commit();
 
-    print(
+    debugPrint(
         '✅ ${componentes.length} componentes criados para turbina $turbinaId');
-    print('   📦 Main Components: ${10 + numberOfMiddleSections}');
-    print('   ⚡ Electrical Systems: 8');
-    print('   🔧 Mechanical Systems: 4');
-    print('   🛠️  Auxiliary Systems: 7');
-    print('   🏗️  Civil Works: 1');
-    print('   🌪️  Middle Sections: $numberOfMiddleSections');
+    debugPrint('   📦 Main Components: ${10 + numberOfMiddleSections}');
+    debugPrint('   ⚡ Electrical Systems: 8');
+    debugPrint('   🔧 Mechanical Systems: 4');
+    debugPrint('   🛠️  Auxiliary Systems: 7');
+    debugPrint('   🏗️  Civil Works: 1');
+    debugPrint('   🌪️  Middle Sections: $numberOfMiddleSections');
 
     // ════════════════════════════════════════════════════════════════════════
     // 🆕 CRIAR FASE TORQUE & TENSIONING AUTOMATICAMENTE
@@ -441,9 +442,9 @@ class TurbinaService {
         'updatedBy': userId,
       });
 
-      print('✅ Fase Torque & Tensioning criada automaticamente');
+      debugPrint('✅ Fase Torque & Tensioning criada automaticamente');
     } catch (e) {
-      print('⚠️  Erro ao criar fase Torque: $e');
+      debugPrint('⚠️  Erro ao criar fase Torque: $e');
     }
   }
 

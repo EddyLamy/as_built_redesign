@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/theme/app_colors.dart';
 import '../../i18n/installation_translations.dart';
 import '../../models/installation/fase_componente.dart';
 import 'fase_card.dart';
@@ -28,6 +29,11 @@ class _ComponenteSectionState extends ConsumerState<ComponenteSection> {
   Widget build(BuildContext context) {
     final locale = ref.watch(localeStringProvider);
     final t = InstallationTranslations.translations[locale]!;
+    final primaryText = AppColors.adaptivePrimaryText(context);
+    final secondaryText = AppColors.adaptiveSecondaryText(context);
+    final cardSurface = AppColors.adaptiveCardSurface(context);
+    final outline = AppColors.adaptiveOutline(context);
+    final progressTrack = AppColors.adaptiveProgressTrack(context);
 
     // Calcular progresso médio do componente
     final progressoMedio = widget.fases.isEmpty
@@ -35,16 +41,24 @@ class _ComponenteSectionState extends ConsumerState<ComponenteSection> {
         : widget.fases.map((f) => f.progresso).reduce((a, b) => a + b) /
             widget.fases.length;
 
-    Color progressoColor = Colors.grey;
+    Color progressoColor = AppColors.mediumGray;
     if (progressoMedio > 0 && progressoMedio < 100) {
-      progressoColor = Colors.orange;
+      progressoColor = AppColors.warningOrange;
     } else if (progressoMedio == 100) {
-      progressoColor = Colors.green;
+      progressoColor = AppColors.successGreen;
     }
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      elevation: 2,
+      elevation: 7,
+      shadowColor: AppColors.isDarkContext(context)
+          ? Colors.black.withValues(alpha: 0.44)
+          : const Color(0xFF0F4C81).withValues(alpha: 0.18),
+      color: cardSurface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: outline, width: 1),
+      ),
       child: Column(
         children: [
           InkWell(
@@ -69,9 +83,10 @@ class _ComponenteSectionState extends ConsumerState<ComponenteSection> {
                       children: [
                         Text(
                           widget.nomeComponente,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
+                            color: primaryText,
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -79,7 +94,7 @@ class _ComponenteSectionState extends ConsumerState<ComponenteSection> {
                           borderRadius: BorderRadius.circular(4),
                           child: LinearProgressIndicator(
                             value: progressoMedio / 100,
-                            backgroundColor: Colors.grey[200],
+                            backgroundColor: progressTrack,
                             valueColor:
                                 AlwaysStoppedAnimation<Color>(progressoColor),
                             minHeight: 6,
@@ -90,7 +105,7 @@ class _ComponenteSectionState extends ConsumerState<ComponenteSection> {
                           '${progressoMedio.toStringAsFixed(0)}% - ${widget.fases.length} ${t['fases']?.toLowerCase() ?? 'fases'}',
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.grey[600],
+                            color: secondaryText,
                           ),
                         ),
                       ],
@@ -98,7 +113,7 @@ class _ComponenteSectionState extends ConsumerState<ComponenteSection> {
                   ),
                   Icon(
                     _isExpanded ? Icons.expand_less : Icons.expand_more,
-                    color: Colors.grey,
+                    color: secondaryText,
                   ),
                 ],
               ),

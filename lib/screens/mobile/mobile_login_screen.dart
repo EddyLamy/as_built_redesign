@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../../core/localization/translation_helper.dart';
 import '../../core/theme/app_colors.dart';
+import '../../widgets/gradient_button.dart';
 
 /// Login Screen para Mobile
 class MobileLoginScreen extends ConsumerStatefulWidget {
@@ -70,6 +72,7 @@ class _MobileLoginScreenState extends ConsumerState<MobileLoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = TranslationHelper.of(context);
     return Scaffold(
       body: SafeArea(
         child: Center(
@@ -160,10 +163,10 @@ class _MobileLoginScreenState extends ConsumerState<MobileLoginScreen> {
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Por favor insira a password';
+                        return t.translate('mobile_password_required');
                       }
                       if (value.length < 6) {
-                        return 'Password deve ter pelo menos 6 caracteres';
+                        return t.translate('mobile_password_min_length');
                       }
                       return null;
                     },
@@ -172,32 +175,13 @@ class _MobileLoginScreenState extends ConsumerState<MobileLoginScreen> {
                   const SizedBox(height: 24),
 
                   // Login Button
-                  ElevatedButton(
-                    onPressed: _isLoading ? null : _login,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryBlue,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: _isLoading
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                        : const Text(
-                            'Entrar',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                  GradientButton(
+                    label: t.translate('login_button'),
+                    onPressed: _login,
+                    isLoading: _isLoading,
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 14),
                   ),
 
                   const SizedBox(height: 24),
@@ -206,21 +190,21 @@ class _MobileLoginScreenState extends ConsumerState<MobileLoginScreen> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: AppColors.primaryBlue.withOpacity(0.1),
+                      color: AppColors.primaryBlue.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Row(
+                    child: Row(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.info_outline,
                           color: AppColors.primaryBlue,
                           size: 20,
                         ),
-                        SizedBox(width: 12),
+                        const SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            'Versão mobile para instalação em campo',
-                            style: TextStyle(
+                            t.translate('mobile_installation_version_info'),
+                            style: const TextStyle(
                               fontSize: 12,
                               color: AppColors.primaryBlue,
                             ),

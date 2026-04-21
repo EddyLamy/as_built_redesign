@@ -5,6 +5,7 @@ import '../models/project.dart';
 import '../models/project_phase.dart';
 import '../models/turbina.dart';
 import '../models/componente.dart';
+import '../models/equipment.dart';
 
 class NotificationService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -12,21 +13,21 @@ class NotificationService {
   /// Gerar todas as notificações para um utilizador
   Future<List<AppNotification>> generateNotifications(
     String userId,
-    NotificationSettings settings,
-  ) async {
+    NotificationSettings settings, {
+    String? selectedProjectId,
+    List<Project>? accessibleProjects,
+  }) async {
     if (!settings.enabled) return [];
 
     final notifications = <AppNotification>[];
 
-    // Obter todos os projetos do user
-    final projectsSnapshot = await _firestore
-        .collection('projects')
-        .where('userId', isEqualTo: userId)
-        .get();
+    final projects = await _resolveProjects(
+      userId,
+      selectedProjectId: selectedProjectId,
+      accessibleProjects: accessibleProjects,
+    );
 
-    for (var projectDoc in projectsSnapshot.docs) {
-      final project = Project.fromFirestore(projectDoc);
-
+    for (final project in projects) {
       // Skip se projeto está silenciado
       if (settings.isProjectMuted(project.id)) {
         continue;
@@ -60,6 +61,21 @@ class NotificationService {
       }
     }
 
+    // Gerar alertas de calibração de equipamento (global)
+    if (settings.componentAlerts) {
+      final allowedProjectIds = projects.map((project) => project.id).toSet();
+      final projectNamesById = {
+        for (final project in projects) project.id: project.nome,
+      };
+
+      final equipmentAlerts = await _generateEquipmentCalibrationAlerts(
+        userId: userId,
+        allowedProjectIds: allowedProjectIds,
+        projectNamesById: projectNamesById,
+      );
+      notifications.addAll(equipmentAlerts);
+    }
+
     // Filtrar alertas dispensados
     final filtered = notifications.where((n) {
       return !settings.isAlertDismissed(n.id);
@@ -78,6 +94,97 @@ class NotificationService {
     return filtered;
   }
 
+  Future<List<Project>> _resolveProjects(
+    String userId, {
+    String? selectedProjectId,
+    List<Project>? accessibleProjects,
+  }) async {
+    final projects = accessibleProjects ??
+        (await _firestore
+                .collection('projects')
+                .where('userId', isEqualTo: userId)
+                .get())
+            .docs
+            .map(Project.fromFirestore)
+            .toList();
+
+    return projects
+        .where((project) =>
+            selectedProjectId == null || project.id == selectedProjectId)
+        .toList();
+  }
+
+  /// Gerar alertas de calibração de equipamento
+  Future<List<AppNotification>> _generateEquipmentCalibrationAlerts({
+    required String userId,
+    required Set<String> allowedProjectIds,
+    required Map<String, String> projectNamesById,
+  }) async {
+    final alerts = <AppNotification>[];
+    final now = DateTime.now();
+
+    if (allowedProjectIds.isEmpty) {
+      return alerts;
+    }
+
+    final equipmentSnapshot = await _firestore
+        .collection('equipment')
+        .where('createdBy', isEqualTo: userId)
+        .get();
+
+    for (final doc in equipmentSnapshot.docs) {
+      final equipment = Equipment.fromMap(doc.data());
+      if (!allowedProjectIds.contains(equipment.projectId)) {
+        continue;
+      }
+
+      final calibrationAlert = equipment.calibrationAlert;
+
+      if (calibrationAlert == null) continue;
+
+      final priority =
+          calibrationAlert.severity == CalibrationAlertSeverity.critical
+              ? NotificationPriority.critical
+              : NotificationPriority.warning;
+
+      final type =
+          calibrationAlert.severity == CalibrationAlertSeverity.critical
+              ? NotificationType.componentStalled
+              : NotificationType.componentMissingData;
+
+      final alertId =
+          'equipment_${equipment.equipmentId}_calibration_${calibrationAlert.type.name}';
+
+      alerts.add(AppNotification(
+        id: alertId,
+        projectId: equipment.projectId,
+        projectName: projectNamesById[equipment.projectId] ??
+            equipment.currentProjectName ??
+            'Equipamento',
+        type: type,
+        priority: priority,
+        icon: calibrationAlert.type == CalibrationAlertType.expirado
+            ? '⛔'
+            : '🛠️',
+        title: calibrationAlert.type == CalibrationAlertType.expirado
+            ? 'Calibração expirada'
+            : 'Calibração a expirar',
+        description:
+            '${equipment.model} (${equipment.serialNumber}) • ${calibrationAlert.message}',
+        createdAt: now,
+        metadata: {
+          'equipmentId': equipment.equipmentId,
+          'equipmentModel': equipment.model,
+          'serialNumber': equipment.serialNumber,
+          'daysUntilExpiry': calibrationAlert.daysUntilExpiry,
+          'source': 'equipment_calibration',
+        },
+      ));
+    }
+
+    return alerts;
+  }
+
   /// Gerar alertas de fases
   Future<List<AppNotification>> _generatePhaseAlerts(
     Project project,
@@ -86,17 +193,7 @@ class NotificationService {
     final alerts = <AppNotification>[];
     final now = DateTime.now();
 
-    // Obter fases do projeto
-    final phasesSnapshot = await _firestore
-        .collection('projects')
-        .doc(project.id)
-        .collection('phases')
-        .orderBy('ordem')
-        .get();
-
-    final phases = phasesSnapshot.docs
-        .map((doc) => ProjectPhase.fromFirestore(doc))
-        .toList();
+    final phases = await _loadProjectPhases(project.id);
 
     for (var phase in phases) {
       // Skip se não aplicável
@@ -213,54 +310,34 @@ class NotificationService {
     final alerts = <AppNotification>[];
     final now = DateTime.now();
 
-    // Obter todas as turbinas do projeto
-    final turbinasSnapshot = await _firestore
-        .collection('projects')
-        .doc(project.id)
-        .collection('turbinas')
-        .get();
+    final turbinas = await _loadProjectTurbinas(project.id);
+    final componentes = await _loadProjectComponentes(project.id, turbinas);
 
     int totalStalled = 0;
     int totalMissingData = 0;
     int totalReplaced = 0;
 
-    for (var turbinaDoc in turbinasSnapshot.docs) {
-      final turbina = Turbina.fromFirestore(turbinaDoc);
+    for (final comp in componentes) {
+      if (comp.progresso == 0) {
+        final daysSinceCreated = now.difference(comp.createdAt).inDays;
 
-      // Obter componentes da turbina
-      final componentesSnapshot = await _firestore
-          .collection('projects')
-          .doc(project.id)
-          .collection('turbinas')
-          .doc(turbina.id)
-          .collection('componentes')
-          .get();
-
-      for (var compDoc in componentesSnapshot.docs) {
-        final comp = Componente.fromFirestore(compDoc);
-
-        // 1. WARNING - Componente sem progresso há muito tempo
-        if (comp.progresso == 0) {
-          final daysSinceCreated = now.difference(comp.createdAt).inDays;
-
-          if (daysSinceCreated >= settings.daysComponentStalled) {
-            totalStalled++;
-          }
+        if (daysSinceCreated >= settings.daysComponentStalled) {
+          totalStalled++;
         }
+      }
 
-        // 2. INFO - Componente sem dados importantes
-        if (comp.serialNumber == null || comp.vui == null) {
-          totalMissingData++;
-        }
+      final serialNumber = comp.serialNumber?.trim();
+      final vui = comp.vui?.trim();
+      if ((serialNumber == null || serialNumber.isEmpty) ||
+          (vui == null || vui.isEmpty)) {
+        totalMissingData++;
+      }
 
-        // 3. INFO - Componente substituído recentemente
-        if (comp.substituicoes.isNotEmpty) {
-          final lastReplacement = comp.substituicoes.last;
-          final daysSinceReplacement =
-              now.difference(lastReplacement['data'] as DateTime).inDays;
-
+      if (comp.substituicoes.isNotEmpty) {
+        final replacementDate = _readReplacementDate(comp.substituicoes.last);
+        if (replacementDate != null) {
+          final daysSinceReplacement = now.difference(replacementDate).inDays;
           if (daysSinceReplacement <= 7) {
-            // Últimos 7 dias
             totalReplaced++;
           }
         }
@@ -334,19 +411,11 @@ class NotificationService {
     final alerts = <AppNotification>[];
     final now = DateTime.now();
 
-    // Obter turbinas do projeto
-    final turbinasSnapshot = await _firestore
-        .collection('projects')
-        .doc(project.id)
-        .collection('turbinas')
-        .get();
+    final turbinas = await _loadProjectTurbinas(project.id);
 
     int totalLowProgress = 0;
 
-    for (var turbinaDoc in turbinasSnapshot.docs) {
-      final turbina = Turbina.fromFirestore(turbinaDoc);
-
-      // Turbina com baixo progresso há muito tempo
+    for (final turbina in turbinas) {
       if (turbina.progresso < 50) {
         final daysSinceCreated = now.difference(turbina.createdAt).inDays;
 
@@ -403,5 +472,81 @@ class NotificationService {
     }
 
     return counts;
+  }
+
+  Future<List<ProjectPhase>> _loadProjectPhases(String projectId) async {
+    final nestedSnapshot = await _firestore
+        .collection('projects')
+        .doc(projectId)
+        .collection('phases')
+        .orderBy('ordem')
+        .get();
+
+    if (nestedSnapshot.docs.isNotEmpty) {
+      return nestedSnapshot.docs.map(ProjectPhase.fromFirestore).toList();
+    }
+
+    final topLevelSnapshot = await _firestore
+        .collection('project_phases')
+        .where('projectId', isEqualTo: projectId)
+        .orderBy('ordem')
+        .get();
+
+    return topLevelSnapshot.docs.map(ProjectPhase.fromFirestore).toList();
+  }
+
+  Future<List<Turbina>> _loadProjectTurbinas(String projectId) async {
+    final topLevelSnapshot = await _firestore
+        .collection('turbinas')
+        .where('projectId', isEqualTo: projectId)
+        .get();
+
+    if (topLevelSnapshot.docs.isNotEmpty) {
+      return topLevelSnapshot.docs.map(Turbina.fromFirestore).toList();
+    }
+
+    final nestedSnapshot = await _firestore
+        .collection('projects')
+        .doc(projectId)
+        .collection('turbinas')
+        .get();
+
+    return nestedSnapshot.docs.map(Turbina.fromFirestore).toList();
+  }
+
+  Future<List<Componente>> _loadProjectComponentes(
+    String projectId,
+    List<Turbina> turbinas,
+  ) async {
+    final topLevelSnapshot = await _firestore
+        .collection('componentes')
+        .where('projectId', isEqualTo: projectId)
+        .get();
+
+    if (topLevelSnapshot.docs.isNotEmpty) {
+      return topLevelSnapshot.docs.map(Componente.fromFirestore).toList();
+    }
+
+    final componentes = <Componente>[];
+    for (final turbina in turbinas) {
+      final nestedSnapshot = await _firestore
+          .collection('projects')
+          .doc(projectId)
+          .collection('turbinas')
+          .doc(turbina.id)
+          .collection('componentes')
+          .get();
+      componentes.addAll(nestedSnapshot.docs.map(Componente.fromFirestore));
+    }
+
+    return componentes;
+  }
+
+  DateTime? _readReplacementDate(Map<String, dynamic> replacement) {
+    final value = replacement['data'];
+    if (value is Timestamp) return value.toDate();
+    if (value is DateTime) return value;
+    if (value is String) return DateTime.tryParse(value);
+    return null;
   }
 }

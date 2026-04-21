@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/theme/app_colors.dart';
 import '../../widgets/installation/componente_tab.dart';
 import '../../widgets/installation/timeline_tab.dart';
+import '../../widgets/app_bar_dashboard_shortcut.dart';
 
 class TurbineInstallationScreen extends ConsumerStatefulWidget {
   final String turbinaId;
@@ -43,8 +45,14 @@ class _TurbineInstallationScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.turbinaNome),
-        backgroundColor: Colors.orange,
+        title: DashboardShortcutTitle(
+          child: Text(widget.turbinaNome),
+        ),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: AppColors.primaryGradient,
+          ),
+        ),
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: Colors.white,

@@ -4,9 +4,16 @@ import '../../core/theme/app_colors.dart';
 import '../../core/localization/translation_helper.dart';
 import '../../providers/locale_provider.dart';
 import '../../providers/theme_provider.dart';
+import '../../widgets/app_bar_dashboard_shortcut.dart';
+import '../../widgets/background_watermark.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
-  const SettingsScreen({super.key});
+  const SettingsScreen({
+    super.key,
+    this.embeddedInDesktopShell = false,
+  });
+
+  final bool embeddedInDesktopShell;
 
   @override
   ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
@@ -24,291 +31,116 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final t = TranslationHelper.of(context);
     final currentLocale = ref.watch(localeStringProvider);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Row(
+    final screenBody = Stack(
+      children: [
+        const BackgroundWatermark(
+          size: 520,
+          opacity: 0.03,
+          alignment: Alignment.bottomRight,
+        ),
+        ListView(
+          padding: const EdgeInsets.all(16),
           children: [
-            const Icon(Icons.settings, color: Colors.white),
-            const SizedBox(width: 12),
-            Text(t.translate('settings')),
+            _buildSectionHeader(
+              context,
+              Icons.language,
+              t.translate('language'),
+              AppColors.primaryBlue,
+            ),
+            const SizedBox(height: 12),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: Icon(
+                        currentLocale == 'pt'
+                            ? Icons.check_circle
+                            : Icons.radio_button_unchecked,
+                        color: currentLocale == 'pt'
+                            ? AppColors.primaryBlue
+                            : AppColors.mediumGray,
+                      ),
+                      title: const Text('Português'),
+                      onTap: () async {
+                        await ref.read(localeProvider.notifier).setLocale('pt');
+                      },
+                    ),
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: Icon(
+                        currentLocale == 'en'
+                            ? Icons.check_circle
+                            : Icons.radio_button_unchecked,
+                        color: currentLocale == 'en'
+                            ? AppColors.primaryBlue
+                            : AppColors.mediumGray,
+                      ),
+                      title: const Text('English'),
+                      onTap: () async {
+                        await ref.read(localeProvider.notifier).setLocale('en');
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 32),
+            _buildSectionHeader(
+              context,
+              Icons.palette,
+              t.translate('theme'),
+              AppColors.accentTeal,
+            ),
+            const SizedBox(height: 12),
+            _buildThemeSelector(context, ref, t),
+            const SizedBox(height: 32),
+            _buildSectionHeader(
+              context,
+              Icons.notifications,
+              t.translate('notifications'),
+              AppColors.warningOrange,
+            ),
+            const SizedBox(height: 12),
+            _buildNotificationsCard(t),
+            const SizedBox(height: 32),
+            _buildSectionHeader(
+              context,
+              Icons.date_range,
+              t.translate('date_format'),
+              AppColors.primaryBlue,
+            ),
+            const SizedBox(height: 12),
+            _buildDateFormatCard(),
           ],
         ),
+      ],
+    );
+
+    if (widget.embeddedInDesktopShell) {
+      return screenBody;
+    }
+
+    return Scaffold(
+      appBar: AppBar(
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: AppColors.primaryGradient,
+          ),
+        ),
+        title: DashboardShortcutTitle(
+          child: Row(
+            children: [
+              const Icon(Icons.settings, color: Colors.white),
+              const SizedBox(width: 12),
+              Text(t.translate('settings')),
+            ],
+          ),
+        ),
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          // ══════════════════════════════════════════════════════════════
-          // IDIOMA
-          // ══════════════════════════════════════════════════════════════
-          _buildSectionHeader(
-            context,
-            Icons.language,
-            t.translate('language'),
-            AppColors.primaryBlue,
-          ),
-          const SizedBox(height: 12),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  RadioListTile<String>(
-                    title: const Text('Português'),
-                    value: 'pt',
-                    groupValue: currentLocale,
-                    activeColor: AppColors.primaryBlue,
-                    onChanged: (value) async {
-                      if (value != null) {
-                        await ref
-                            .read(localeProvider.notifier)
-                            .setLocale(value);
-                      }
-                    },
-                  ),
-                  RadioListTile<String>(
-                    title: const Text('English'),
-                    value: 'en',
-                    groupValue: currentLocale,
-                    activeColor: AppColors.primaryBlue,
-                    onChanged: (value) async {
-                      if (value != null) {
-                        await ref
-                            .read(localeProvider.notifier)
-                            .setLocale(value);
-                      }
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 32),
-
-          // ══════════════════════════════════════════════════════════════
-          // TEMA
-          // ══════════════════════════════════════════════════════════════
-          _buildSectionHeader(
-            context,
-            Icons.palette_outlined,
-            t.translate('theme'),
-            AppColors.successGreen,
-          ),
-          const SizedBox(height: 12),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Builder(
-                builder: (context) {
-                  final currentTheme = ref.watch(themeStringProvider);
-                  final isDarkMode = currentTheme == 'dark';
-                  return Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              isDarkMode
-                                  ? t.translate('dark_theme')
-                                  : t.translate('light_theme'),
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 14,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              isDarkMode
-                                  ? t.translate('dark_mode_enabled')
-                                  : t.translate('light_mode_enabled'),
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: AppColors.mediumGray,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Switch(
-                        value: isDarkMode,
-                        onChanged: (_) {
-                          // Fire-and-forget async call
-                          final _ = () async {
-                            if (currentTheme == 'light') {
-                              await ref
-                                  .read(themeProvider.notifier)
-                                  .setTheme('dark');
-                            } else {
-                              await ref
-                                  .read(themeProvider.notifier)
-                                  .setTheme('light');
-                            }
-                          }();
-                        },
-                        activeThumbColor: AppColors.primaryBlue,
-                        inactiveThumbColor: Colors.grey,
-                      ),
-                    ],
-                  );
-                },
-              ),
-            ),
-          ),
-          const SizedBox(height: 32),
-          // ══════════════════════════════════════════════════════════════
-          // NOTIFICAÇÕES
-          // ══════════════════════════════════════════════════════════════
-          _buildSectionHeader(
-            context,
-            Icons.notifications_outlined,
-            t.translate('notifications'),
-            AppColors.accentTeal,
-          ),
-          const SizedBox(height: 12),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Column(
-                children: [
-                  SwitchListTile(
-                    title: Text(t.translate('email_phase_complete')),
-                    subtitle: Text(
-                      t.translate('email_phase_complete_desc'),
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                    value: _emailNotifications,
-                    activeThumbColor: AppColors.primaryBlue,
-                    onChanged: (value) {
-                      setState(() => _emailNotifications = value);
-                      // TODO: Salvar preferência
-                    },
-                  ),
-                  const Divider(height: 1),
-                  SwitchListTile(
-                    title: Text(t.translate('deadline_alerts')),
-                    subtitle: Text(
-                      t.translate('deadline_alerts_desc'),
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                    value: _deadlineAlerts,
-                    activeThumbColor: AppColors.primaryBlue,
-                    onChanged: (value) {
-                      setState(() => _deadlineAlerts = value);
-                      // TODO: Salvar preferência
-                    },
-                  ),
-                  const Divider(height: 1),
-                  SwitchListTile(
-                    title: Text(t.translate('turbine_changes')),
-                    subtitle: Text(
-                      t.translate('turbine_changes_desc'),
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                    value: _turbineChanges,
-                    activeThumbColor: AppColors.primaryBlue,
-                    onChanged: (value) {
-                      setState(() => _turbineChanges = value);
-                      // TODO: Salvar preferência
-                    },
-                  ),
-                  const Divider(height: 1),
-                  SwitchListTile(
-                    title: Text(t.translate('weekly_reports')),
-                    subtitle: Text(
-                      t.translate('weekly_reports_desc'),
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                    value: _weeklyReports,
-                    activeThumbColor: AppColors.primaryBlue,
-                    onChanged: (value) {
-                      setState(() => _weeklyReports = value);
-                      // TODO: Salvar preferência
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 32),
-
-          // ══════════════════════════════════════════════════════════════
-          // FORMATO DE DATA
-          // ══════════════════════════════════════════════════════════════
-          _buildSectionHeader(
-            context,
-            Icons.calendar_today,
-            t.translate('date_format'),
-            AppColors.warningOrange,
-          ),
-          const SizedBox(height: 12),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: DropdownButtonFormField<String>(
-                initialValue: _dateFormat,
-                decoration: InputDecoration(
-                  labelText: t.translate('date_format'),
-                  border: const OutlineInputBorder(),
-                ),
-                items: const [
-                  DropdownMenuItem(
-                      value: 'DD/MM/YYYY',
-                      child: Text('DD/MM/YYYY (07/02/2026)')),
-                  DropdownMenuItem(
-                      value: 'MM/DD/YYYY',
-                      child: Text('MM/DD/YYYY (02/07/2026)')),
-                  DropdownMenuItem(
-                      value: 'YYYY-MM-DD',
-                      child: Text('YYYY-MM-DD (2026-02-07)')),
-                ],
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() => _dateFormat = value);
-                    // TODO: Salvar preferência
-                  }
-                },
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 32),
-
-          // ══════════════════════════════════════════════════════════════
-          // DADOS
-          // ══════════════════════════════════════════════════════════════
-          _buildSectionHeader(
-            context,
-            Icons.storage_outlined,
-            t.translate('data'),
-            AppColors.mediumGray,
-          ),
-          const SizedBox(height: 12),
-          Card(
-            child: Column(
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.file_download,
-                      color: AppColors.primaryBlue),
-                  title: Text(t.translate('export_all_data')),
-                  subtitle: Text(t.translate('export_all_data_desc')),
-                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                  onTap: () {
-                    // TODO: Implementar exportação
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(t.translate('coming_soon'))),
-                    );
-                  },
-                ),
-                const Divider(height: 1),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 32),
-        ],
-      ),
+      body: screenBody,
     );
   }
 
@@ -332,6 +164,149 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildThemeSelector(
+    BuildContext context,
+    WidgetRef ref,
+    TranslationHelper t,
+  ) {
+    final currentTheme = ref.watch(themeStringProvider);
+    final isDarkMode = currentTheme == 'dark';
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    isDarkMode
+                        ? t.translate('dark_theme')
+                        : t.translate('light_theme'),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    isDarkMode
+                        ? t.translate('dark_mode_enabled')
+                        : t.translate('light_mode_enabled'),
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
+            Switch(
+              value: isDarkMode,
+              activeThumbColor: AppColors.primaryBlue,
+              onChanged: (_) async {
+                await ref.read(themeProvider.notifier).toggleTheme();
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNotificationsCard(TranslationHelper t) {
+    return Card(
+      child: Column(
+        children: [
+          SwitchListTile(
+            title: Text(t.translate('email_notifications')),
+            subtitle: Text(
+              t.translate('email_notifications_desc'),
+              style: const TextStyle(fontSize: 12),
+            ),
+            value: _emailNotifications,
+            activeThumbColor: AppColors.primaryBlue,
+            onChanged: (value) {
+              setState(() => _emailNotifications = value);
+            },
+          ),
+          const Divider(height: 1),
+          SwitchListTile(
+            title: Text(t.translate('deadline_alerts')),
+            subtitle: Text(
+              t.translate('deadline_alerts_desc'),
+              style: const TextStyle(fontSize: 12),
+            ),
+            value: _deadlineAlerts,
+            activeThumbColor: AppColors.primaryBlue,
+            onChanged: (value) {
+              setState(() => _deadlineAlerts = value);
+            },
+          ),
+          const Divider(height: 1),
+          SwitchListTile(
+            title: Text(t.translate('turbine_changes')),
+            subtitle: Text(
+              t.translate('turbine_changes_desc'),
+              style: const TextStyle(fontSize: 12),
+            ),
+            value: _turbineChanges,
+            activeThumbColor: AppColors.primaryBlue,
+            onChanged: (value) {
+              setState(() => _turbineChanges = value);
+            },
+          ),
+          const Divider(height: 1),
+          SwitchListTile(
+            title: Text(t.translate('weekly_reports')),
+            subtitle: Text(
+              t.translate('weekly_reports_desc'),
+              style: const TextStyle(fontSize: 12),
+            ),
+            value: _weeklyReports,
+            activeThumbColor: AppColors.primaryBlue,
+            onChanged: (value) {
+              setState(() => _weeklyReports = value);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDateFormatCard() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: DropdownButtonFormField<String>(
+          initialValue: _dateFormat,
+          decoration: const InputDecoration(
+            border: OutlineInputBorder(),
+          ),
+          items: const [
+            DropdownMenuItem(
+              value: 'DD/MM/YYYY',
+              child: Text('DD/MM/YYYY (07/02/2026)'),
+            ),
+            DropdownMenuItem(
+              value: 'MM/DD/YYYY',
+              child: Text('MM/DD/YYYY (02/07/2026)'),
+            ),
+            DropdownMenuItem(
+              value: 'YYYY-MM-DD',
+              child: Text('YYYY-MM-DD (2026-02-07)'),
+            ),
+          ],
+          onChanged: (value) {
+            if (value != null) {
+              setState(() => _dateFormat = value);
+            }
+          },
+        ),
+      ),
     );
   }
 }

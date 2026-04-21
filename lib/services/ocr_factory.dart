@@ -16,6 +16,7 @@ import 'dart:io' show Platform;
 import 'ocr_service.dart';
 import 'ocr_service_mobile.dart';
 import 'ocr_service_desktop.dart';
+import 'package:flutter/foundation.dart';
 
 class OCRFactory {
   /// Cria instância de OCRService baseado na plataforma atual
@@ -25,10 +26,10 @@ class OCRFactory {
   /// - `OCRServiceDesktop` em Windows/macOS/Linux
   static OCRService criarServicoOCR() {
     if (Platform.isAndroid || Platform.isIOS) {
-      print('📱 Criando OCR Service para MOBILE (ML Kit)');
+      debugPrint('📱 Criando OCR Service para MOBILE (ML Kit)');
       return OCRServiceMobile();
     } else {
-      print('💻 Criando OCR Service para DESKTOP (stub)');
+      debugPrint('💻 Criando OCR Service para DESKTOP (stub)');
       return OCRServiceDesktop();
     }
   }

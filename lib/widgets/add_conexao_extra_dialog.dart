@@ -74,7 +74,7 @@ class _AddConexaoExtraDialogState extends ConsumerState<AddConexaoExtraDialog> {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: AppColors.accentTeal.withOpacity(0.1),
+                          color: AppColors.accentTeal.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: const Icon(
@@ -235,10 +235,10 @@ class _AddConexaoExtraDialogState extends ConsumerState<AddConexaoExtraDialog> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: AppColors.accentTeal.withOpacity(0.1),
+                      color: AppColors.accentTeal.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: AppColors.accentTeal.withOpacity(0.3),
+                        color: AppColors.accentTeal.withValues(alpha: 0.3),
                       ),
                     ),
                     child: const Row(

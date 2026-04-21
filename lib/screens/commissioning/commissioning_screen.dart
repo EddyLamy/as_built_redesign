@@ -4,23 +4,16 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/localization/translation_helper.dart';
+import '../../providers/permission_provider.dart';
+import '../../providers/app_providers.dart';
+import '../../widgets/app_bar_dashboard_shortcut.dart';
 
 part 'commissioning_screen.g.dart';
 
 // ============================================================================
 // 🔬 COMMISSIONING SCREEN
 // ============================================================================
-//
-// FASES DO COMISSIONAMENTO (10% do progresso total):
-// 1. Pre-Commissioning Tests (3 sub-fases)
-// 2. Commissioning (3 sub-fases)
-// 3. Final Acceptance (2 sub-fases)
-//
-// Cada sub-fase tem: Data início/fim, Responsável, Observações, Fotos, N/A
-//
-// ============================================================================
 
-// Riverpod 3.x annotation-based provider for commissioning phase selection
 @riverpod
 class SelectedCommissioningPhase extends _$SelectedCommissioningPhase {
   @override
@@ -47,9 +40,6 @@ class CommissioningScreen extends ConsumerStatefulWidget {
 class _CommissioningScreenState extends ConsumerState<CommissioningScreen> {
   final ImagePicker _imagePicker = ImagePicker();
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // 📋 DEFINIÇÃO DAS 3 FASES PRINCIPAIS
-  // ══════════════════════════════════════════════════════════════════════════
   final List<Map<String, dynamic>> _mainPhases = [
     {
       'id': 'preCommissioning',
@@ -71,9 +61,6 @@ class _CommissioningScreenState extends ConsumerState<CommissioningScreen> {
     },
   ];
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // 📋 SUB-FASES
-  // ══════════════════════════════════════════════════════════════════════════
   Map<String, List<Map<String, String>>> _getSubPhases() {
     return {
       'preCommissioning': [
@@ -114,28 +101,35 @@ class _CommissioningScreenState extends ConsumerState<CommissioningScreen> {
     final t = TranslationHelper.of(context);
     final selectedPhase = ref.watch(selectedCommissioningPhaseProvider);
 
+    // Buscar projectId via provider global e verificar permissões
+    final projectId = ref.watch(accessibleSelectedProjectIdProvider);
+    final permissions = ref.watch(permissionProvider(projectId));
+    final canEdit = permissions.canManageInstallation;
+
     return Scaffold(
       appBar: AppBar(
-        title:
-            Text('🔬 ${widget.turbineName} - ${t.translate('commissioning')}'),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: AppColors.primaryGradient,
+          ),
+        ),
+        title: DashboardShortcutTitle(
+          child: Text(
+            '🔬 ${widget.turbineName} - ${t.translate('commissioning')}',
+          ),
+        ),
       ),
       body: Column(
         children: [
-          // Barra de fases principais (3 ícones)
           _buildPhasesBar(selectedPhase, t),
-
-          // Conteúdo: Sub-fases
           Expanded(
-            child: _buildSubPhasesContent(selectedPhase, t),
+            child: _buildSubPhasesContent(selectedPhase, t, canEdit),
           ),
         ],
       ),
     );
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // 🎨 WIDGET: BARRA DE FASES PRINCIPAIS
-  // ══════════════════════════════════════════════════════════════════════════
   Widget _buildPhasesBar(String selectedPhase, TranslationHelper t) {
     return Container(
       height: 100,
@@ -143,7 +137,7 @@ class _CommissioningScreenState extends ConsumerState<CommissioningScreen> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -178,7 +172,8 @@ class _CommissioningScreenState extends ConsumerState<CommissioningScreen> {
                 boxShadow: isSelected
                     ? [
                         BoxShadow(
-                          color: (phase['color'] as Color).withOpacity(0.3),
+                          color:
+                              (phase['color'] as Color).withValues(alpha: 0.3),
                           blurRadius: 8,
                           offset: const Offset(0, 4),
                         ),
@@ -218,10 +213,8 @@ class _CommissioningScreenState extends ConsumerState<CommissioningScreen> {
     );
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // 📝 WIDGET: CONTEÚDO DAS SUB-FASES
-  // ══════════════════════════════════════════════════════════════════════════
-  Widget _buildSubPhasesContent(String selectedPhase, TranslationHelper t) {
+  Widget _buildSubPhasesContent(
+      String selectedPhase, TranslationHelper t, bool canEdit) {
     final subPhases = _getSubPhases()[selectedPhase] ?? [];
 
     return ListView.builder(
@@ -229,17 +222,13 @@ class _CommissioningScreenState extends ConsumerState<CommissioningScreen> {
       itemCount: subPhases.length,
       itemBuilder: (context, index) {
         final subPhase = subPhases[index];
-        return _buildSubPhaseCard(subPhase, t);
+        return _buildSubPhaseCard(subPhase, t, canEdit);
       },
     );
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // 🎨 WIDGET: CARD DE SUB-FASE (EXPANSÍVEL)
-  // ══════════════════════════════════════════════════════════════════════════
-  Widget _buildSubPhaseCard(Map<String, String> subPhase, TranslationHelper t) {
-    // TODO: Buscar status real do Firebase (por enquanto sempre mostra como não concluído)
-
+  Widget _buildSubPhaseCard(
+      Map<String, String> subPhase, TranslationHelper t, bool canEdit) {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 2,
@@ -273,6 +262,7 @@ class _CommissioningScreenState extends ConsumerState<CommissioningScreen> {
                       child: _buildDateField(
                         label: t.translate('startDate'),
                         hint: 'DD/MM/AAAA',
+                        enabled: canEdit,
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -280,6 +270,7 @@ class _CommissioningScreenState extends ConsumerState<CommissioningScreen> {
                       child: _buildDateField(
                         label: t.translate('endDate'),
                         hint: 'DD/MM/AAAA',
+                        enabled: canEdit,
                       ),
                     ),
                   ],
@@ -291,6 +282,7 @@ class _CommissioningScreenState extends ConsumerState<CommissioningScreen> {
                   label: t.translate('responsible'),
                   hint: t.translate('enter_responsible_name'),
                   icon: Icons.person,
+                  enabled: canEdit,
                 ),
                 const SizedBox(height: 12),
 
@@ -300,6 +292,7 @@ class _CommissioningScreenState extends ConsumerState<CommissioningScreen> {
                   hint: t.translate('add_notes_optional'),
                   icon: Icons.notes,
                   maxLines: 4,
+                  enabled: canEdit,
                 ),
                 const SizedBox(height: 12),
 
@@ -307,38 +300,63 @@ class _CommissioningScreenState extends ConsumerState<CommissioningScreen> {
                 _buildPhotoField(t),
                 const SizedBox(height: 16),
 
-                // Botões
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () {
-                          // TODO: Marcar como N/A
-                        },
-                        icon: const Icon(Icons.not_interested),
-                        label: const Text('N/A'),
+                // ════════════════════════════════════════════════
+                // Botões — só visíveis para quem tem permissão
+                // ════════════════════════════════════════════════
+                if (canEdit)
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () {
+                            // TODO: Marcar como N/A
+                          },
+                          icon: const Icon(Icons.not_interested),
+                          label: const Text('N/A'),
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      flex: 2,
-                      child: ElevatedButton.icon(
-                        onPressed: () {
-                          // TODO: Salvar
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content:
-                                  Text(t.translate('data_saved_successfully')),
-                              backgroundColor: AppColors.successGreen,
-                            ),
-                          );
-                        },
-                        icon: const Icon(Icons.save),
-                        label: Text(t.translate('save')),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        flex: 2,
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            // TODO: Salvar
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                    t.translate('data_saved_successfully')),
+                                backgroundColor: AppColors.successGreen,
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.save),
+                          label: Text(t.translate('save')),
+                        ),
                       ),
+                    ],
+                  )
+                else
+                  // Mensagem subtil para visitors
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                  ],
-                ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.visibility,
+                            size: 16, color: Colors.grey.shade500),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Modo leitura',
+                          style: TextStyle(
+                              fontSize: 12, color: Colors.grey.shade500),
+                        ),
+                      ],
+                    ),
+                  ),
               ],
             ),
           ),
@@ -347,15 +365,12 @@ class _CommissioningScreenState extends ConsumerState<CommissioningScreen> {
     );
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // 🎨 COMPONENTES REUTILIZÁVEIS
-  // ══════════════════════════════════════════════════════════════════════════
-
   Widget _buildTextField({
     required String label,
     required String hint,
     required IconData icon,
     int maxLines = 1,
+    bool enabled = true,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -371,12 +386,15 @@ class _CommissioningScreenState extends ConsumerState<CommissioningScreen> {
         const SizedBox(height: 6),
         TextField(
           maxLines: maxLines,
+          enabled: enabled,
           decoration: InputDecoration(
             hintText: hint,
             prefixIcon: Icon(icon),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            filled: !enabled,
+            fillColor: enabled ? null : Colors.grey.shade50,
           ),
         ),
       ],
@@ -386,6 +404,7 @@ class _CommissioningScreenState extends ConsumerState<CommissioningScreen> {
   Widget _buildDateField({
     required String label,
     required String hint,
+    bool enabled = true,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -400,21 +419,26 @@ class _CommissioningScreenState extends ConsumerState<CommissioningScreen> {
         ),
         const SizedBox(height: 6),
         TextField(
+          enabled: enabled,
           decoration: InputDecoration(
             hintText: hint,
             prefixIcon: const Icon(Icons.calendar_today),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            filled: !enabled,
+            fillColor: enabled ? null : Colors.grey.shade50,
           ),
-          onTap: () async {
-            await showDatePicker(
-              context: context,
-              initialDate: DateTime.now(),
-              firstDate: DateTime(2020),
-              lastDate: DateTime(2030),
-            );
-          },
+          onTap: enabled
+              ? () async {
+                  await showDatePicker(
+                    context: context,
+                    initialDate: DateTime.now(),
+                    firstDate: DateTime(2020),
+                    lastDate: DateTime(2030),
+                  );
+                }
+              : null,
         ),
       ],
     );
@@ -440,7 +464,7 @@ class _CommissioningScreenState extends ConsumerState<CommissioningScreen> {
           child: Container(
             height: 120,
             decoration: BoxDecoration(
-              color: AppColors.borderGray.withOpacity(0.3),
+              color: AppColors.borderGray.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: AppColors.borderGray, width: 2),
             ),

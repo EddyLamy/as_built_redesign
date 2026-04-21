@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../models/project.dart';
 import '../models/turbina.dart';
@@ -8,6 +10,7 @@ import '../models/componente.dart';
 import '../models/project_phase.dart';
 import '../models/notification_settings.dart';
 import '../models/notification.dart';
+import '../models/app_user.dart';
 
 import '../services/project_service.dart';
 import '../services/turbina_service.dart';
@@ -15,6 +18,7 @@ import '../services/componente_service.dart';
 import '../services/project_phase_service.dart';
 import '../services/notification_service.dart';
 import 'auth_providers.dart';
+import 'permission_provider.dart';
 
 part 'app_providers.g.dart';
 
@@ -150,11 +154,30 @@ final notificationSettingsProvider =
   return await NotificationSettings.load();
 });
 
+/// Trigger para refrescar notificações quando equipamento mudar
+final equipmentNotificationRefreshProvider =
+    StreamProvider.autoDispose<int>((ref) {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) return Stream.value(0);
+
+  return FirebaseFirestore.instance
+      .collection('equipment')
+      .where('createdBy', isEqualTo: user.uid)
+      .snapshots()
+      .map((snapshot) => snapshot.docs.length);
+});
+
 /// Provider das Notificações (auto-refresh)
 final notificationsProvider =
     FutureProvider.autoDispose<List<AppNotification>>((ref) async {
   final user = FirebaseAuth.instance.currentUser;
   if (user == null) return [];
+  final selectedProjectId = ref.watch(accessibleSelectedProjectIdProvider);
+  final accessibleProjects =
+      ref.watch(userProjectsProvider).asData?.value ?? const <Project>[];
+
+  // Recalcular quando houver mudanças de equipamento (calibração)
+  ref.watch(equipmentNotificationRefreshProvider);
 
   final service = ref.watch(notificationServiceProvider);
   final settingsAsync = ref.watch(notificationSettingsProvider);
@@ -166,7 +189,12 @@ final notificationsProvider =
   );
 
   // Gerar notificações
-  final notifications = await service.generateNotifications(user.uid, settings);
+  final notifications = await service.generateNotifications(
+    user.uid,
+    settings,
+    selectedProjectId: selectedProjectId,
+    accessibleProjects: accessibleProjects,
+  );
 
   return notifications;
 });
@@ -321,22 +349,69 @@ final componenteServiceProvider = Provider<ComponenteService>((ref) {
 // PROJECT PROVIDERS (EXISTENTE)
 // ============================================================================
 
-// Stream de projetos do usuário atual
+// Stream de projetos — directores/site managers vêem todos, outros só os seus
+// SUBSTITUIR o userProjectsProvider no app_providers.dart
+
 final userProjectsProvider = StreamProvider<List<Project>>((ref) {
+  ref.watch(authProvider);
   final userId = ref.watch(currentUserIdProvider);
-  print('🔵 USER ID PROVIDER: $userId');
+  debugPrint('🔵 USER ID PROVIDER: $userId');
 
   if (userId == null) {
-    print('❌ USER ID É NULL!');
+    debugPrint('❌ USER ID É NULL!');
     return Stream.value(<Project>[]);
   }
 
-  final projectService = ref.watch(projectServiceProvider);
+  final appUserAsync = ref.watch(currentAppUserProvider);
+  final appUser = appUserAsync.asData?.value;
+  final isGlobalAdmin = appUser?.globalRole == GlobalRole.director ||
+      appUser?.globalRole == GlobalRole.siteManager;
 
-  return projectService.getProjects(userId).map((projects) {
-    print('🟢 PROJETOS RECEBIDOS: ${projects.length}');
+  if (isGlobalAdmin) {
+    return FirebaseFirestore.instance
+        .collection('projects')
+        .snapshots()
+        .map((snapshot) {
+      final projects =
+          snapshot.docs.map((doc) => Project.fromFirestore(doc)).toList();
+      debugPrint('🟢 PROJETOS RECEBIDOS (admin): ${projects.length}');
+      return projects;
+    });
+  }
+
+  // Utilizadores normais — projectos criados por eles OU onde são membros
+  // Usa memberIds array no documento do projecto
+  return FirebaseFirestore.instance
+      .collection('projects')
+      .where(Filter.or(
+        Filter('userId', isEqualTo: userId),
+        Filter('memberIds', arrayContains: userId),
+      ))
+      .snapshots()
+      .asyncMap((snapshot) async {
+    final projects = <Project>[];
+
+    for (final doc in snapshot.docs) {
+      final data = doc.data();
+      final ownerId = data['userId'] as String?;
+
+      // Dono do projeto mantém acesso sempre
+      if (ownerId == userId) {
+        projects.add(Project.fromFirestore(doc));
+        continue;
+      }
+
+      // Membro só tem acesso se ainda existir na subcoleção members
+      final memberDoc =
+          await doc.reference.collection('members').doc(userId).get();
+      if (memberDoc.exists) {
+        projects.add(Project.fromFirestore(doc));
+      }
+    }
+
+    debugPrint('🟢 PROJETOS RECEBIDOS (user): ${projects.length}');
     for (var p in projects) {
-      print('  - ${p.nome} (userId: ${p.userId})');
+      debugPrint('  - ${p.nome}');
     }
     return projects;
   });
@@ -349,12 +424,41 @@ class SelectedProjectId extends _$SelectedProjectId {
   @override
   String? build() => null;
 
-  void setValue(String? id) => state = id;
+  void setValue(String? id) {
+    if (state == id) return;
+
+    state = id;
+
+    ref.invalidate(notificationsProvider);
+    ref.invalidate(notificationCountProvider);
+    ref.invalidate(notificationCountByPriorityProvider);
+    ref.invalidate(criticalNotificationsProvider);
+    ref.invalidate(warningNotificationsProvider);
+    ref.invalidate(infoNotificationsProvider);
+    ref.invalidate(hasCriticalAlertsProvider);
+  }
 }
+
+/// ID do projeto selecionado apenas se ainda for acessível ao utilizador atual
+final accessibleSelectedProjectIdProvider = Provider<String?>((ref) {
+  final selectedProjectId = ref.watch(selectedProjectIdProvider);
+  if (selectedProjectId == null) return null;
+
+  final projectsAsync = ref.watch(userProjectsProvider);
+  final projects = projectsAsync.asData?.value;
+
+  // Enquanto a lista de projetos não resolve, mantém o valor atual
+  if (projects == null) {
+    return selectedProjectId;
+  }
+
+  final hasAccess = projects.any((project) => project.id == selectedProjectId);
+  return hasAccess ? selectedProjectId : null;
+});
 
 /// Stream do projeto selecionado (sem Riverpod state providers)
 final selectedProjectProvider = StreamProvider<Project?>((ref) {
-  final projectId = ref.watch(selectedProjectIdProvider);
+  final projectId = ref.watch(accessibleSelectedProjectIdProvider);
   if (projectId == null) return Stream.value(null);
 
   final projectService = ref.watch(projectServiceProvider);
@@ -367,8 +471,17 @@ final selectedProjectProvider = StreamProvider<Project?>((ref) {
 
 // Stream de turbinas do projeto selecionado
 final projectTurbinasProvider = StreamProvider<List<Turbina>>((ref) {
-  final projectId = ref.watch(selectedProjectIdProvider);
+  final projectId = ref.watch(accessibleSelectedProjectIdProvider);
   if (projectId == null) return Stream.value(<Turbina>[]);
+
+  final turbinaService = ref.watch(turbinaServiceProvider);
+  return turbinaService.getTurbinasPorProjeto(projectId);
+});
+
+// Stream de turbinas por projeto (uso direto em rotas mobile)
+final projectTurbinasByProjectProvider =
+    StreamProvider.family<List<Turbina>, String>((ref, projectId) {
+  if (projectId.isEmpty) return Stream.value(<Turbina>[]);
 
   final turbinaService = ref.watch(turbinaServiceProvider);
   return turbinaService.getTurbinasPorProjeto(projectId);
@@ -387,6 +500,14 @@ class SelectedTurbinaId extends _$SelectedTurbinaId {
 final selectedTurbinaProvider = StreamProvider<Turbina?>((ref) {
   final turbinaId = ref.watch(selectedTurbinaIdProvider);
   if (turbinaId == null) return Stream.value(null);
+
+  final turbinaService = ref.watch(turbinaServiceProvider);
+  return turbinaService.getTurbina(turbinaId);
+});
+
+final turbinaByIdProvider =
+    StreamProvider.family<Turbina?, String>((ref, turbinaId) {
+  if (turbinaId.isEmpty) return Stream.value(null);
 
   final turbinaService = ref.watch(turbinaServiceProvider);
   return turbinaService.getTurbina(turbinaId);
@@ -419,7 +540,7 @@ final componenteProvider =
 // Provider para estatísticas do projeto
 final projectStatisticsProvider =
     FutureProvider<Map<String, dynamic>>((ref) async {
-  final projectId = ref.watch(selectedProjectIdProvider);
+  final projectId = ref.watch(accessibleSelectedProjectIdProvider);
   if (projectId == null) return {};
 
   final turbinas = await ref.watch(projectTurbinasProvider.future);

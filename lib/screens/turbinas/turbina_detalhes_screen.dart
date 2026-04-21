@@ -1,13 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:as_built/widgets/liquid_glass_overlays.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:latlong2/latlong.dart';
 import 'dart:async';
 import '../../core/theme/app_colors.dart';
 import '../../providers/app_providers.dart';
+import '../../providers/auth_providers.dart';
 import '../../models/componente.dart';
 import '../../core/localization/translation_helper.dart';
 import '../../utils/component_mapping.dart';
 import '../../services/installation/photo_service.dart';
+import '../../providers/permission_provider.dart';
+import '../../utils/map_launcher.dart';
+import '../../utils/platform_helper.dart';
+import '../../widgets/app_bar_dashboard_shortcut.dart';
+import '../../widgets/ncr/turbine_ncr_section.dart';
 
 class TurbinaDetalhesScreen extends ConsumerStatefulWidget {
   final String turbinaId;
@@ -26,14 +36,19 @@ class TurbinaDetalhesScreen extends ConsumerStatefulWidget {
 
 class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
   final Map<String, bool> _expandedCategories = {
-    'Main Components': true,
-    'Electrical Systems': true,
-    'Mechanical Systems': true,
-    'Auxiliary Systems': true,
-    'Civil Works': true,
+    'Main Components': false,
+    'Electrical Systems': false,
+    'Mechanical Systems': false,
+    'Auxiliary Systems': false,
+    'Civil Works': false,
   };
+  final TextEditingController _locationController = TextEditingController();
+  final FocusNode _locationFocusNode = FocusNode();
 
   bool _isMigrating = false;
+  bool _isSavingLocation = false;
+
+  bool get _canCaptureGps => PlatformHelper.isMobile;
 
   @override
   void initState() {
@@ -52,15 +67,15 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
       final status =
           await componenteService.getMigrationStatus(widget.turbinaId);
 
-      print('📊 Status migração As-Built:');
-      print('   Total: ${status['total']}');
-      print('   Migrados: ${status['migrated']}');
-      print('   Pendentes: ${status['pending']}');
+      debugPrint('📊 Status migração As-Built:');
+      debugPrint('   Total: ${status['total']}');
+      debugPrint('   Migrados: ${status['migrated']}');
+      debugPrint('   Pendentes: ${status['pending']}');
 
       if (status['pending'] > 0) {
-        print('🔄 As-Built: Migrando ${status['pending']} componentes...');
+        debugPrint('🔄 As-Built: Migrando ${status['pending']} componentes...');
         await componenteService.migrateComponentesForTurbina(widget.turbinaId);
-        print('✅ As-Built: Migração automática concluída!');
+        debugPrint('✅ As-Built: Migração automática concluída!');
       }
 
       // ════════════════════════════════════════════════════════════════════
@@ -68,12 +83,19 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
       // ════════════════════════════════════════════════════════════════════
       await _checkAndFixComponentsIfNeeded();
     } catch (e) {
-      print('❌ Erro na migração automática: $e');
+      debugPrint('❌ Erro na migração automática: $e');
     } finally {
       if (mounted) {
         setState(() => _isMigrating = false);
       }
     }
+  }
+
+  @override
+  void dispose() {
+    _locationController.dispose();
+    _locationFocusNode.dispose();
+    super.dispose();
   }
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -92,11 +114,13 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
       final alreadyFixed = turbinaData?['componentsFixed'] == true;
 
       if (alreadyFixed) {
-        print('✅ Componentes desta turbina já foram corrigidos anteriormente');
+        debugPrint(
+            '✅ Componentes desta turbina já foram corrigidos anteriormente');
         return;
       }
 
-      print('🔄 Primeira vez abrindo esta turbina. Verificando componentes...');
+      debugPrint(
+          '🔄 Primeira vez abrindo esta turbina. Verificando componentes...');
 
       // Buscar componentes da turbina
       final snapshot = await firestore
@@ -153,13 +177,13 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
 
         if (!exists.exists) {
           needsFix = true;
-          print('⚠️  Componente faltando: $hardcodedId');
+          debugPrint('⚠️  Componente faltando: $hardcodedId');
           break;
         }
       }
 
       if (needsFix) {
-        print(
+        debugPrint(
             '🔧 Componentes precisam de correção. Corrigindo automaticamente...');
         await _fixAllComponents();
 
@@ -169,9 +193,9 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
           'componentsFixedAt': FieldValue.serverTimestamp(),
         });
 
-        print('✅ Componentes corrigidos e turbina marcada!');
+        debugPrint('✅ Componentes corrigidos e turbina marcada!');
       } else {
-        print('✅ Todos os componentes estão OK!');
+        debugPrint('✅ Todos os componentes estão OK!');
 
         // Marcar como OK mesmo sem correção
         await firestore.collection('turbinas').doc(widget.turbinaId).update({
@@ -180,7 +204,7 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
         });
       }
     } catch (e) {
-      print('❌ Erro na verificação automática: $e');
+      debugPrint('❌ Erro na verificação automática: $e');
       // Não bloquear a UI por erro de verificação
     }
   }
@@ -189,14 +213,25 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
   Widget build(BuildContext context) {
     final t = TranslationHelper.of(context);
     final turbinaAsync = ref.watch(selectedTurbinaProvider);
+    final primaryText = AppColors.adaptivePrimaryText(context);
+    final secondaryText = AppColors.adaptiveSecondaryText(context);
+    final panelColor = AppColors.adaptivePanelSurface(context);
+    final outlineColor = AppColors.adaptiveOutline(context);
 
     if (_isMigrating) {
       return Scaffold(
         appBar: AppBar(
-          title: turbinaAsync.when(
-            data: (turbina) => Text(turbina?.nome ?? 'Turbina'),
-            loading: () => const Text('Loading...'),
-            error: (_, __) => const Text('Error'),
+          flexibleSpace: Container(
+            decoration: const BoxDecoration(
+              gradient: AppColors.primaryGradient,
+            ),
+          ),
+          title: DashboardShortcutTitle(
+            child: turbinaAsync.when(
+              data: (turbina) => Text(turbina?.nome ?? 'Turbina'),
+              loading: () => Text(t.translate('loading')),
+              error: (_, __) => Text(t.translate('error')),
+            ),
           ),
         ),
         body: Center(
@@ -211,16 +246,18 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
               const SizedBox(height: 24),
               Text(
                 t.translate('preparing_components'),
-                style:
-                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: primaryText,
+                ),
               ),
               const SizedBox(height: 12),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 48),
                 child: Text(
                   t.translate('migration_once_per_turbine'),
-                  style: const TextStyle(
-                      fontSize: 14, color: AppColors.mediumGray),
+                  style: TextStyle(fontSize: 14, color: secondaryText),
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -229,28 +266,26 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryBlue.withOpacity(0.1),
+                  color: panelColor,
                   borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: outlineColor),
                 ),
-                child: const Column(
+                child: Column(
                   children: [
                     Text(
-                      '🔧 Auto-fixing components...',
-                      style: TextStyle(
+                      '🔧 ${t.translate('syncing_from_installation')}',
+                      style: const TextStyle(
                         fontSize: 12,
                         color: AppColors.primaryBlue,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(
-                      '✓ Adding hardcodedId fields\n'
-                      '✓ Fixing component names\n'
-                      '✓ Creating missing components',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: AppColors.mediumGray,
-                      ),
+                      '✓ ${t.translate('adding_hardcoded_ids')}\n'
+                      '✓ ${t.translate('fixing_component_names')}\n'
+                      '✓ ${t.translate('creating_missing_components')}',
+                      style: TextStyle(fontSize: 11, color: secondaryText),
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -264,11 +299,18 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: turbinaAsync.when(
-          data: (turbina) =>
-              Text(turbina?.nome ?? t.translate('turbine_details')),
-          loading: () => Text(t.translate('loading')),
-          error: (_, __) => Text(t.translate('error')),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: AppColors.primaryGradient,
+          ),
+        ),
+        title: DashboardShortcutTitle(
+          child: turbinaAsync.when(
+            data: (turbina) =>
+                Text(turbina?.nome ?? t.translate('turbine_details')),
+            loading: () => Text(t.translate('loading')),
+            error: (_, __) => Text(t.translate('error')),
+          ),
         ),
         actions: [
           IconButton(
@@ -289,82 +331,873 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
           return _buildContent(context, turbina, t);
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(child: Text('Error: $error')),
+        error: (error, _) => Center(
+          child: Text('${t.translate('error')}: $error'),
+        ),
       ),
     );
   }
 
-  Widget _buildContent(BuildContext context, turbina, TranslationHelper t) {
+  Widget _buildContent(
+      BuildContext context, dynamic turbina, TranslationHelper t) {
     return SingleChildScrollView(
       child: Column(
         children: [
           _buildHeaderCard(turbina, t),
+          TurbineNcrSection(
+            projectId: turbina.projectId,
+            turbinaId: turbina.id,
+            turbinaNome: turbina.nome,
+          ),
           _buildCategoriesSection(t),
         ],
       ),
     );
   }
 
-  Widget _buildHeaderCard(turbina, TranslationHelper t) {
+  Widget _buildHeaderCard(dynamic turbina, TranslationHelper t) {
+    final permissions = ref.watch(permissionProvider(turbina.projectId));
+    final canEditLocation = permissions.canManageEquipmentAndDocs;
     final color = AppColors.getStatusColor(turbina.status);
     final progresso = turbina.progresso;
+    final location = (turbina.localizacao as String?)?.trim() ?? '';
+    _syncLocationDraft(location);
+    final draftLocation = _locationController.text.trim();
+    final parsedCoordinates = MapLauncher.tryParseCoordinates(draftLocation);
+    final hasLocation = draftLocation.isNotEmpty;
+    final isDesktop = !PlatformHelper.isMobile;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryText = AppColors.adaptivePrimaryText(context);
+    final secondaryText = AppColors.adaptiveSecondaryText(context);
+    final outlineColor = AppColors.adaptiveOutline(context);
+    final trackColor = AppColors.adaptiveProgressTrack(context);
+    final gradientColors = isDark
+        ? <Color>[
+            AppColors.glassSurfaceStrongDark,
+            color.withValues(alpha: 0.18),
+            AppColors.glassCanvasDark,
+          ]
+        : <Color>[
+            color.withValues(alpha: 0.12),
+            Colors.white.withValues(alpha: 0.96),
+          ];
 
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [color.withOpacity(0.1), Colors.white],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
+    if (isDesktop) {
+      return Container(
+        width: double.infinity,
+        margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: gradientColors,
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: outlineColor, width: 1.1),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.24 : 0.08),
+              blurRadius: isDark ? 18 : 10,
+              offset: const Offset(0, 8),
+            ),
+          ],
         ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Expanded(
+              flex: 4,
+              child: _buildDesktopLocationCard(
+                turbina,
+                t,
+                canEditLocation: canEditLocation,
+                color: color,
+                primaryText: primaryText,
+                secondaryText: secondaryText,
+                outlineColor: outlineColor,
+                isDark: isDark,
+                location: location,
+                draftLocation: draftLocation,
+                hasLocation: hasLocation,
+                parsedCoordinates: parsedCoordinates,
+              ),
+            ),
+            const SizedBox(width: 16),
             SizedBox(
-              width: 100,
-              height: 100,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  SizedBox(
-                    width: 100,
-                    height: 100,
-                    child: CircularProgressIndicator(
-                      value: progresso / 100,
-                      strokeWidth: 8,
-                      backgroundColor: AppColors.borderGray,
-                      valueColor: AlwaysStoppedAnimation(color),
-                    ),
-                  ),
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        '${progresso.toStringAsFixed(0)}%',
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: color,
-                        ),
-                      ),
-                      Text(
-                        turbina.status,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: AppColors.mediumGray,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+              width: 260,
+              child: _buildDesktopProgressCard(
+                turbina,
+                t,
+                color: color,
+                progresso: progresso,
+                primaryText: primaryText,
+                secondaryText: secondaryText,
+                outlineColor: outlineColor,
+                trackColor: trackColor,
+                isDark: isDark,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              flex: 4,
+              child: _buildDesktopMapCard(
+                t,
+                parsedCoordinates,
+                primaryText: primaryText,
+                secondaryText: secondaryText,
+                outlineColor: outlineColor,
+                isDark: isDark,
               ),
             ),
           ],
         ),
+      );
+    }
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: gradientColors,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: outlineColor, width: 1.1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.24 : 0.08),
+            blurRadius: isDark ? 18 : 10,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          SizedBox(
+            width: 108,
+            height: 108,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                SizedBox(
+                  width: 108,
+                  height: 108,
+                  child: CircularProgressIndicator(
+                    value: progresso / 100,
+                    strokeWidth: 8,
+                    backgroundColor: trackColor,
+                    valueColor: AlwaysStoppedAnimation(color),
+                  ),
+                ),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '${progresso.toStringAsFixed(0)}%',
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: color,
+                      ),
+                    ),
+                    Text(
+                      t.translateStatus(turbina.status),
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: secondaryText,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            turbina.nome,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: primaryText,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            "${t.translate('status')}: ${t.translateStatus(turbina.status)}",
+            style: TextStyle(
+              fontSize: 13,
+              color: secondaryText,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.05)
+                  : Colors.white.withValues(alpha: 0.72),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: outlineColor),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.location_on_outlined, size: 18, color: color),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        parsedCoordinates != null
+                            ? t.translate('gps_coordinates')
+                            : t.translate('location'),
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: primaryText,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: _locationController,
+                  focusNode: _locationFocusNode,
+                  readOnly: !canEditLocation || _isSavingLocation,
+                  onChanged: (_) => setState(() {}),
+                  onSubmitted: (_) {
+                    if (canEditLocation) {
+                      _saveTurbinaLocation(turbina, t);
+                    }
+                  },
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: primaryText,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: t.translate('coordinates_hint_turbine'),
+                    hintStyle: TextStyle(color: secondaryText),
+                    prefixIcon:
+                        Icon(Icons.edit_location_alt_outlined, color: color),
+                    filled: true,
+                    fillColor: isDark
+                        ? Colors.white.withValues(alpha: 0.03)
+                        : Colors.white.withValues(alpha: 0.84),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: outlineColor),
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 12,
+                    ),
+                  ),
+                ),
+                if (canEditLocation) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    t.translate('manual_coordinates_hint'),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: secondaryText,
+                    ),
+                  ),
+                ],
+                if (!canEditLocation) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    hasLocation
+                        ? parsedCoordinates?.displayValue ?? draftLocation
+                        : t.translate('no_location_available'),
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: secondaryText,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 10),
+                if (canEditLocation && _canCaptureGps)
+                  Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: [
+                      FilledButton.tonalIcon(
+                        onPressed: _isSavingLocation
+                            ? null
+                            : () => _captureCurrentGpsLocation(turbina, t),
+                        icon: const Icon(Icons.my_location, size: 16),
+                        label: Text(t.translate('capture_gps')),
+                      ),
+                      OutlinedButton.icon(
+                        onPressed: hasLocation
+                            ? () => _openTurbineMap(draftLocation, t)
+                            : null,
+                        icon: const Icon(Icons.map_outlined, size: 16),
+                        label: Text(t.translate('open_in_maps')),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: color,
+                          side: BorderSide(color: color.withValues(alpha: 0.5)),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 10,
+                          ),
+                        ),
+                      ),
+                      FilledButton.icon(
+                        onPressed:
+                            _isSavingLocation || draftLocation == location
+                                ? null
+                                : () => _saveTurbinaLocation(turbina, t),
+                        icon: _isSavingLocation
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Icon(Icons.save_outlined, size: 16),
+                        label: Text(t.translate('save')),
+                      ),
+                    ],
+                  ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
+  }
+
+  Widget _buildDesktopLocationCard(
+    dynamic turbina,
+    TranslationHelper t, {
+    required bool canEditLocation,
+    required Color color,
+    required Color primaryText,
+    required Color secondaryText,
+    required Color outlineColor,
+    required bool isDark,
+    required String location,
+    required String draftLocation,
+    required bool hasLocation,
+    required ParsedCoordinates? parsedCoordinates,
+  }) {
+    return _buildDesktopPanel(
+      outlineColor: outlineColor,
+      isDark: isDark,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.location_on_outlined, size: 20, color: color),
+              const SizedBox(width: 8),
+              Text(
+                parsedCoordinates != null
+                    ? t.translate('gps_coordinates')
+                    : t.translate('location'),
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: primaryText,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          TextField(
+            controller: _locationController,
+            focusNode: _locationFocusNode,
+            readOnly: !canEditLocation || _isSavingLocation,
+            onChanged: (_) => setState(() {}),
+            onSubmitted: (_) {
+              if (canEditLocation) {
+                _saveTurbinaLocation(turbina, t);
+              }
+            },
+            style: TextStyle(fontSize: 14, color: primaryText),
+            decoration: InputDecoration(
+              hintText: t.translate('coordinates_hint_turbine'),
+              hintStyle: TextStyle(color: secondaryText),
+              prefixIcon: Icon(Icons.edit_location_alt_outlined, color: color),
+              filled: true,
+              fillColor: isDark
+                  ? Colors.white.withValues(alpha: 0.03)
+                  : Colors.white.withValues(alpha: 0.88),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide(color: outlineColor),
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 14,
+                vertical: 12,
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            canEditLocation
+                ? t.translate('manual_coordinates_hint')
+                : hasLocation
+                    ? parsedCoordinates?.displayValue ?? draftLocation
+                    : t.translate('no_location_available'),
+            style: TextStyle(
+              fontSize: 12,
+              color: secondaryText,
+            ),
+          ),
+          const Spacer(),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: hasLocation
+                      ? () => _openTurbineMap(draftLocation, t)
+                      : null,
+                  icon: const Icon(Icons.map_outlined, size: 16),
+                  label: Text(t.translate('open_in_maps')),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: color,
+                    side: BorderSide(color: color.withValues(alpha: 0.5)),
+                    padding: const EdgeInsets.symmetric(vertical: 13),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: FilledButton.icon(
+                  onPressed: _isSavingLocation || draftLocation == location
+                      ? null
+                      : () => _saveTurbinaLocation(turbina, t),
+                  icon: _isSavingLocation
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Icon(Icons.save_outlined, size: 16),
+                  label: Text(t.translate('save')),
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 13),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDesktopProgressCard(
+    dynamic turbina,
+    TranslationHelper t, {
+    required Color color,
+    required double progresso,
+    required Color primaryText,
+    required Color secondaryText,
+    required Color outlineColor,
+    required Color trackColor,
+    required bool isDark,
+  }) {
+    return _buildDesktopPanel(
+      outlineColor: outlineColor,
+      isDark: isDark,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: 112,
+            height: 112,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                SizedBox(
+                  width: 112,
+                  height: 112,
+                  child: CircularProgressIndicator(
+                    value: progresso / 100,
+                    strokeWidth: 8,
+                    backgroundColor: trackColor,
+                    valueColor: AlwaysStoppedAnimation(color),
+                  ),
+                ),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '${progresso.toStringAsFixed(0)}%',
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: color,
+                      ),
+                    ),
+                    Text(
+                      t.translateStatus(turbina.status),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: secondaryText,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            turbina.nome,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.bold,
+              color: primaryText,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            '${t.translate('status')}: ${t.translateStatus(turbina.status)}',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 13,
+              color: secondaryText,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDesktopMapCard(
+    TranslationHelper t,
+    ParsedCoordinates? parsedCoordinates, {
+    required Color primaryText,
+    required Color secondaryText,
+    required Color outlineColor,
+    required bool isDark,
+  }) {
+    return _buildDesktopPanel(
+      outlineColor: outlineColor,
+      isDark: isDark,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.map_outlined,
+                  size: 20, color: AppColors.accentTeal),
+              const SizedBox(width: 8),
+              Text(
+                t.translate('open_in_maps'),
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: primaryText,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Expanded(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: parsedCoordinates == null
+                  ? Container(
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.04)
+                          : const Color(0xFFF4F7FB),
+                      child: Center(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                width: 68,
+                                height: 68,
+                                decoration: BoxDecoration(
+                                  color: AppColors.primaryBlue
+                                      .withValues(alpha: 0.10),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.map,
+                                  size: 34,
+                                  color: AppColors.primaryBlue,
+                                ),
+                              ),
+                              const SizedBox(height: 14),
+                              Text(
+                                t.translate('map_preview_waiting'),
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: primaryText,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                t.translate('map_preview_hint'),
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: secondaryText,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    )
+                  : Stack(
+                      children: [
+                        FlutterMap(
+                          options: MapOptions(
+                            initialCenter: LatLng(
+                              parsedCoordinates.latitude,
+                              parsedCoordinates.longitude,
+                            ),
+                            initialZoom: 15,
+                          ),
+                          children: [
+                            TileLayer(
+                              urlTemplate:
+                                  'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                              userAgentPackageName: 'com.asbuilt.app',
+                            ),
+                            MarkerLayer(
+                              markers: [
+                                Marker(
+                                  point: LatLng(
+                                    parsedCoordinates.latitude,
+                                    parsedCoordinates.longitude,
+                                  ),
+                                  width: 56,
+                                  height: 56,
+                                  child: const Icon(
+                                    Icons.location_on,
+                                    color: AppColors.errorRed,
+                                    size: 38,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                        Positioned(
+                          left: 12,
+                          right: 12,
+                          bottom: 12,
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.92),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 10,
+                              ),
+                              child: Text(
+                                parsedCoordinates.displayValue,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.darkGray,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDesktopPanel({
+    required Widget child,
+    required Color outlineColor,
+    required bool isDark,
+  }) {
+    return Container(
+      height: 252,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.05)
+            : Colors.white.withValues(alpha: 0.72),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: outlineColor),
+      ),
+      child: child,
+    );
+  }
+
+  Future<void> _openTurbineMap(String location, TranslationHelper t) async {
+    final opened = await MapLauncher.openLocation(location);
+    if (!mounted || opened) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(t.translate('unable_to_open_map'))),
+    );
+  }
+
+  Future<void> _captureCurrentGpsLocation(
+      dynamic turbina, TranslationHelper t) async {
+    try {
+      final servicesEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!servicesEnabled) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(t.translate('location_services_disabled'))),
+          );
+        }
+        await Geolocator.openLocationSettings();
+        return;
+      }
+
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+
+      if (permission == LocationPermission.denied) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(t.translate('location_permission_denied'))),
+          );
+        }
+        return;
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(t.translate('location_permission_denied_forever')),
+            ),
+          );
+        }
+        await Geolocator.openAppSettings();
+        return;
+      }
+
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
+      );
+
+      final capturedLocation =
+          MapLauncher.formatCoordinates(position.latitude, position.longitude);
+      _locationController.value = TextEditingValue(
+        text: capturedLocation,
+        selection: TextSelection.collapsed(offset: capturedLocation.length),
+      );
+
+      await _saveTurbinaLocation(
+        turbina,
+        t,
+        locationOverride: capturedLocation,
+        successMessage: t.translate('gps_capture_success'),
+      );
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${t.translate('gps_capture_error')}: $error')),
+      );
+    }
+  }
+
+  void _syncLocationDraft(String persistedLocation) {
+    if (_locationFocusNode.hasFocus) {
+      return;
+    }
+
+    if (_locationController.text == persistedLocation) {
+      return;
+    }
+
+    _locationController.value = TextEditingValue(
+      text: persistedLocation,
+      selection: TextSelection.collapsed(offset: persistedLocation.length),
+    );
+  }
+
+  Future<void> _saveTurbinaLocation(
+    dynamic turbina,
+    TranslationHelper t, {
+    String? locationOverride,
+    String? successMessage,
+  }) async {
+    final newLocation = (locationOverride ?? _locationController.text).trim();
+    final currentLocation = (turbina.localizacao as String?)?.trim() ?? '';
+
+    if (_isSavingLocation || newLocation == currentLocation) {
+      return;
+    }
+
+    setState(() => _isSavingLocation = true);
+
+    try {
+      final turbinaService = ref.read(turbinaServiceProvider);
+      await turbinaService.updateTurbina(turbina.id, {
+        'localizacao': newLocation.isEmpty ? null : newLocation,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(successMessage ?? t.translate('record_saved'))),
+      );
+      _locationFocusNode.unfocus();
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${t.translate('error')}: $error')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isSavingLocation = false);
+      }
+    }
   }
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -499,27 +1332,46 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
       'Civil Works': _getCivilWorksComponents(),
     };
 
+    final projectId = ref.watch(selectedProjectIdProvider); // ← NOVO
+    final permissions = ref.watch(permissionProvider(projectId)); // ← NOVO
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
         children: categories.entries.map((entry) {
-          return _buildCategoryCard(entry.key, entry.value, t);
+          return _buildCategoryCard(entry.key, entry.value, t, permissions);
         }).toList(),
       ),
     );
   }
 
-  Widget _buildCategoryCard(String categoria,
-      List<Map<String, dynamic>> components, TranslationHelper t) {
+  Widget _buildCategoryCard(
+      String categoria,
+      List<Map<String, dynamic>> components,
+      TranslationHelper t,
+      PermissionNotifier permissions) {
     final isExpanded = _expandedCategories[categoria] ?? false;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final categoryColor = _getCategoryColor(categoria);
-    final allowsDynamicComponents = [
-      'Auxiliary Systems',
+    final panelColor = AppColors.adaptivePanelSurface(context);
+    final primaryText = AppColors.adaptivePrimaryText(context);
+    final outlineColor = AppColors.adaptiveOutline(context);
+    final categoryLabel = _getCategoryLabel(categoria, t);
+    final allowsDynamicComponents = const {
+      'Main Components',
+      'Electrical Systems',
       'Mechanical Systems',
-    ].contains(categoria);
+      'Auxiliary Systems',
+      'Civil Works',
+    }.contains(categoria);
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
+      elevation: 0,
+      color: panelColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: outlineColor, width: 1),
+      ),
       child: Column(
         children: [
           InkWell(
@@ -535,7 +1387,7 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: categoryColor.withOpacity(0.1),
+                      color: categoryColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
@@ -547,10 +1399,11 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      t.translate(categoria.toLowerCase().replaceAll(' ', '_')),
-                      style: const TextStyle(
+                      categoryLabel,
+                      style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
+                        color: primaryText,
                       ),
                     ),
                   ),
@@ -558,7 +1411,9 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
                   // ════════════════════════════════════════════════════════════════
                   // 🆕 ADICIONAR ISTO (botão "+")
                   // ════════════════════════════════════════════════════════════════
-                  if (allowsDynamicComponents && isExpanded)
+                  if (allowsDynamicComponents &&
+                      isExpanded &&
+                      permissions.canManageEquipmentAndDocs)
                     IconButton(
                       icon: Icon(Icons.add_circle, color: categoryColor),
                       onPressed: () => _showAddDynamicComponentDialog(
@@ -567,13 +1422,13 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
                         categoryColor,
                         t,
                       ),
-                      tooltip: 'Adicionar componente',
+                      tooltip: t.translate('add_component_dialog_title'),
                     ),
                   // ════════════════════════════════════════════════════════════════
 
                   Icon(
                     isExpanded ? Icons.expand_less : Icons.expand_more,
-                    color: AppColors.mediumGray,
+                    color: isDark ? categoryColor : AppColors.mediumGray,
                   ),
                 ],
               ),
@@ -582,36 +1437,28 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
           if (isExpanded)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-              child: allowsDynamicComponents
-                  ? _buildComponentsGridWithDynamic(
-                      components, categoria, t) // ← NOVO
-                  : _buildComponentsGrid(components, t), // ← MANTÉM ORIGINAL
+              child: _buildComponentsGridWithDynamic(components, categoria, t),
             ),
         ],
       ),
     );
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // 📦 GRID DE COMPONENTES (IGUAL À INSTALAÇÃO)
-  // ══════════════════════════════════════════════════════════════════════════
-
-  Widget _buildComponentsGrid(
-      List<Map<String, dynamic>> components, TranslationHelper t) {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: MediaQuery.of(context).size.width > 600 ? 8 : 4,
-        crossAxisSpacing: 10,
-        mainAxisSpacing: 10,
-        childAspectRatio: 1.0,
-      ),
-      itemCount: components.length,
-      itemBuilder: (context, index) {
-        return _buildComponentCard(components[index], t);
-      },
-    );
+  String _getCategoryLabel(String categoria, TranslationHelper t) {
+    switch (categoria) {
+      case 'Main Components':
+        return t.translate('main_components');
+      case 'Electrical Systems':
+        return t.translate('electrical_systems');
+      case 'Mechanical Systems':
+        return t.translate('mechanical_systems');
+      case 'Auxiliary Systems':
+        return t.translate('auxiliary_systems');
+      case 'Civil Works':
+        return t.translate('civil_works');
+      default:
+        return t.translateValueOrKey(categoria);
+    }
   }
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -645,7 +1492,7 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
         // ERROR
         // ─────────────────────────────────────────────────────────────────
         if (snapshot.hasError) {
-          print('❌ Erro ao buscar $fullComponentId: ${snapshot.error}');
+          debugPrint('❌ Erro ao buscar $fullComponentId: ${snapshot.error}');
           return _buildErrorCard(component, t);
         }
 
@@ -754,22 +1601,31 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
 
   Widget _buildFilledCard(Map<String, dynamic> component, double progresso,
       String? vui, TranslationHelper t) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryText = AppColors.adaptivePrimaryText(context);
+    final secondaryText = AppColors.adaptiveSecondaryText(context);
     final Color statusColor = progresso >= 100
         ? AppColors.successGreen
         : progresso > 0
             ? AppColors.warningOrange
             : AppColors.mediumGray;
+    final cardColor = AppColors.adaptiveCardSurface(context);
+    final outlineColor = AppColors.adaptiveOutline(context);
 
     final displayName =
         component['displayName'] ?? t.translate(component['nameKey'] as String);
 
     return Card(
-      elevation: 2,
+      elevation: 0,
       margin: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      color: cardColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+        side: BorderSide(color: outlineColor, width: 1),
+      ),
       child: InkWell(
         onTap: () => _openComponentDetails(component),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(10),
         child: Container(
           padding: const EdgeInsets.all(8),
           child: Column(
@@ -780,10 +1636,10 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
               const SizedBox(height: 4),
               Text(
                 displayName,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 9,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.darkGray,
+                  color: isDark ? primaryText : AppColors.darkGray,
                 ),
                 textAlign: TextAlign.center,
                 maxLines: 2,
@@ -793,9 +1649,9 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
                 const SizedBox(height: 2),
                 Text(
                   vui,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 8,
-                    color: AppColors.mediumGray,
+                    color: secondaryText,
                     fontWeight: FontWeight.w500,
                   ),
                   textAlign: TextAlign.center,
@@ -809,7 +1665,7 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
-                  color: statusColor,
+                  color: isDark ? primaryText : statusColor,
                 ),
               ),
             ],
@@ -820,43 +1676,49 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
   }
 
   Widget _buildEmptyCard(Map<String, dynamic> component, TranslationHelper t) {
+    final cardColor = AppColors.adaptiveCardSurface(context);
+    final outlineColor = AppColors.adaptiveOutline(context);
+    final mutedText = AppColors.adaptiveMutedText(context);
+    final primaryText = AppColors.adaptivePrimaryText(context);
     final displayName =
         component['displayName'] ?? t.translate(component['nameKey'] as String);
 
     return Card(
-      elevation: 1,
+      elevation: 0,
       margin: EdgeInsets.zero,
-      color: Colors.grey[100],
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      color: cardColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+        side: BorderSide(color: outlineColor, width: 1),
+      ),
       child: InkWell(
         onTap: () => _openComponentDetails(component),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(10),
         child: Container(
           padding: const EdgeInsets.all(8),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(component['icon'] as IconData,
-                  size: 28, color: AppColors.mediumGray),
+              Icon(component['icon'] as IconData, size: 28, color: mutedText),
               const SizedBox(height: 4),
               Text(
                 displayName,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 9,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.mediumGray,
+                  color: primaryText,
                 ),
                 textAlign: TextAlign.center,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 4),
-              const Text(
+              Text(
                 '0%',
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.mediumGray,
+                  color: mutedText,
                 ),
               ),
             ],
@@ -868,10 +1730,16 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
 
   Widget _buildCardSkeleton(
       Map<String, dynamic> component, TranslationHelper t) {
+    final cardColor = AppColors.adaptiveCardSurface(context);
+    final outlineColor = AppColors.adaptiveOutline(context);
     return Card(
-      elevation: 1,
+      elevation: 0,
       margin: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      color: cardColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+        side: BorderSide(color: outlineColor, width: 1),
+      ),
       child: Container(
         padding: const EdgeInsets.all(8),
         child: const Center(
@@ -886,14 +1754,19 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
   }
 
   Widget _buildErrorCard(Map<String, dynamic> component, TranslationHelper t) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final outlineColor = AppColors.adaptiveOutline(context);
     return Card(
-      elevation: 1,
+      elevation: 0,
       margin: EdgeInsets.zero,
-      color: Colors.red[50],
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      color: isDark ? const Color(0xFF3A2326) : Colors.red[50],
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+        side: BorderSide(color: outlineColor, width: 1),
+      ),
       child: InkWell(
         onTap: () => _openComponentDetails(component),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(10),
         child: Container(
           padding: const EdgeInsets.all(8),
           child: Column(
@@ -921,25 +1794,29 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
   // ══════════════════════════════════════════════════════════════════════════
 
   void _openComponentDetails(Map<String, dynamic> component) async {
+    final projectId = ref.read(selectedProjectIdProvider);
+    final permissions = ref.read(permissionProvider(projectId));
     final componentHardcodedId = component['id'] as String;
     final fullComponentId = ComponentMapping.buildFullComponentId(
       componentHardcodedId,
       widget.turbinaId,
     );
 
-    print('\n╔════════════════════════════════════════════════════════════╗');
-    print('║  🔍 ABRINDO DETALHES DO COMPONENTE                        ║');
-    print('╚════════════════════════════════════════════════════════════╝');
-    print('   hardcodedId: $componentHardcodedId');
-    print('   fullComponentId: $fullComponentId');
-    print('   turbinaId: ${widget.turbinaId}');
-    print('───────────────────────────────────────────────────────────');
+    debugPrint(
+        '\n╔════════════════════════════════════════════════════════════╗');
+    debugPrint('║  🔍 ABRINDO DETALHES DO COMPONENTE                        ║');
+    debugPrint(
+        '╚════════════════════════════════════════════════════════════╝');
+    debugPrint('   hardcodedId: $componentHardcodedId');
+    debugPrint('   fullComponentId: $fullComponentId');
+    debugPrint('   turbinaId: ${widget.turbinaId}');
+    debugPrint('───────────────────────────────────────────────────────────');
 
     try {
       // ════════════════════════════════════════════════════════════════════
       // ESTRATÉGIA 1: Busca Direta por ID
       // ════════════════════════════════════════════════════════════════════
-      print('🔄 Tentando busca direta por ID: $fullComponentId');
+      debugPrint('🔄 Tentando busca direta por ID: $fullComponentId');
 
       final snapshot = await FirebaseFirestore.instance
           .collection('componentes')
@@ -947,36 +1824,40 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
           .get();
 
       if (snapshot.exists) {
-        print('✅ ENCONTRADO via busca direta!');
+        debugPrint('✅ ENCONTRADO via busca direta!');
         final data = snapshot.data()!;
 
         // Debug: Mostrar TODOS os campos
-        print('📋 Campos do componente:');
+        debugPrint('📋 Campos do componente:');
         data.forEach((key, value) {
-          print('   • $key: $value');
+          debugPrint('   • $key: $value');
         });
-        print('───────────────────────────────────────────────────────────');
+        debugPrint(
+            '───────────────────────────────────────────────────────────');
 
         final componente = Componente.fromFirestore(snapshot);
-        print('✅ Componente parseado com sucesso: ${componente.nome}');
+        debugPrint('✅ Componente parseado com sucesso: ${componente.nome}');
 
         if (mounted) {
-          showDialog(
+          showLiquidDialog(
             context: context,
-            builder: (context) => EditComponenteDialog(componente: componente),
+            builder: (context) => EditComponenteDialog(
+              componente: componente,
+              canEdit: permissions.canManageEquipmentAndDocs,
+            ),
           );
         }
         return;
       }
 
-      print('❌ NÃO encontrado via busca direta');
+      debugPrint('❌ NÃO encontrado via busca direta');
 
       // ════════════════════════════════════════════════════════════════════
       // ESTRATÉGIA 2: Busca por Query (Fallback)
       // ════════════════════════════════════════════════════════════════════
-      print('🔄 Tentando busca por query...');
-      print('   turbinaId: ${widget.turbinaId}');
-      print('   hardcodedId: $componentHardcodedId');
+      debugPrint('🔄 Tentando busca por query...');
+      debugPrint('   turbinaId: ${widget.turbinaId}');
+      debugPrint('   hardcodedId: $componentHardcodedId');
 
       final querySnapshot = await FirebaseFirestore.instance
           .collection('componentes')
@@ -986,51 +1867,55 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        print('✅ ENCONTRADO via query!');
+        debugPrint('✅ ENCONTRADO via query!');
         final doc = querySnapshot.docs.first;
         final data = doc.data();
 
         // Debug: Mostrar TODOS os campos
-        print('📋 Campos do componente:');
+        debugPrint('📋 Campos do componente:');
         data.forEach((key, value) {
-          print('   • $key: $value');
+          debugPrint('   • $key: $value');
         });
-        print('───────────────────────────────────────────────────────────');
+        debugPrint(
+            '───────────────────────────────────────────────────────────');
 
         final componente = Componente.fromFirestore(doc);
-        print('✅ Componente parseado com sucesso: ${componente.nome}');
+        debugPrint('✅ Componente parseado com sucesso: ${componente.nome}');
 
         if (mounted) {
-          showDialog(
+          showLiquidDialog(
             context: context,
-            builder: (context) => EditComponenteDialog(componente: componente),
+            builder: (context) => EditComponenteDialog(
+              componente: componente,
+              canEdit: permissions.canManageEquipmentAndDocs,
+            ),
           );
         }
         return;
       }
 
-      print('❌ NÃO encontrado via query');
+      debugPrint('❌ NÃO encontrado via query');
 
       // ════════════════════════════════════════════════════════════════════
       // ESTRATÉGIA 3: Listar TODOS os componentes da turbina (DEBUG)
       // ════════════════════════════════════════════════════════════════════
-      print('🔍 Listando TODOS os componentes desta turbina:');
+      debugPrint('🔍 Listando TODOS os componentes desta turbina:');
 
       final allComponents = await FirebaseFirestore.instance
           .collection('componentes')
           .where('turbinaId', isEqualTo: widget.turbinaId)
           .get();
 
-      print('📊 Total encontrados: ${allComponents.docs.length}');
+      debugPrint('📊 Total encontrados: ${allComponents.docs.length}');
 
       for (var doc in allComponents.docs) {
         final data = doc.data();
-        print('   • ID: ${doc.id}');
-        print('     nome: ${data['nome']}');
-        print('     hardcodedId: ${data['hardcodedId'] ?? "[NÃO TEM]"}');
-        print('     categoria: ${data['categoria']}');
+        debugPrint('   • ID: ${doc.id}');
+        debugPrint('     nome: ${data['nome']}');
+        debugPrint('     hardcodedId: ${data['hardcodedId'] ?? "[NÃO TEM]"}');
+        debugPrint('     categoria: ${data['categoria']}');
       }
-      print('───────────────────────────────────────────────────────────');
+      debugPrint('───────────────────────────────────────────────────────────');
 
       // ════════════════════════════════════════════════════════════════════
       // ESTRATÉGIA 4: Buscar por NOME (último recurso)
@@ -1038,7 +1923,7 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
       final componentName =
           ComponentMapping.hardcodedToName[componentHardcodedId];
       if (componentName != null) {
-        print('🔄 Tentando buscar por nome: $componentName');
+        debugPrint('🔄 Tentando buscar por nome: $componentName');
 
         final nameQuerySnapshot = await FirebaseFirestore.instance
             .collection('componentes')
@@ -1048,20 +1933,23 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
             .get();
 
         if (nameQuerySnapshot.docs.isNotEmpty) {
-          print('✅ ENCONTRADO por nome!');
+          debugPrint('✅ ENCONTRADO por nome!');
           final doc = nameQuerySnapshot.docs.first;
 
-          print(
+          debugPrint(
               '⚠️  PROBLEMA: Componente existe mas não tem hardcodedId correto!');
-          print('   Executar script de correção: fixComponentsHardcodedId()');
+          debugPrint(
+              '   Executar script de correção: fixComponentsHardcodedId()');
 
           final componente = Componente.fromFirestore(doc);
 
           if (mounted) {
-            showDialog(
+            showLiquidDialog(
               context: context,
-              builder: (context) =>
-                  EditComponenteDialog(componente: componente),
+              builder: (context) => EditComponenteDialog(
+                componente: componente,
+                canEdit: permissions.canManageEquipmentAndDocs,
+              ),
             );
           }
           return;
@@ -1071,8 +1959,9 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
       // ════════════════════════════════════════════════════════════════════
       // Nenhuma estratégia funcionou
       // ════════════════════════════════════════════════════════════════════
-      print('❌ COMPONENTE NÃO ENCONTRADO em nenhuma estratégia!');
-      print('═══════════════════════════════════════════════════════════\n');
+      debugPrint('❌ COMPONENTE NÃO ENCONTRADO em nenhuma estratégia!');
+      debugPrint(
+          '═══════════════════════════════════════════════════════════\n');
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1084,9 +1973,10 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
         );
       }
     } catch (error, stackTrace) {
-      print('❌ ERRO ao buscar componente: $error');
-      print('StackTrace: $stackTrace');
-      print('═══════════════════════════════════════════════════════════\n');
+      debugPrint('❌ ERRO ao buscar componente: $error');
+      debugPrint('StackTrace: $stackTrace');
+      debugPrint(
+          '═══════════════════════════════════════════════════════════\n');
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1145,9 +2035,11 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
   Future<void> _fixAllComponents() async {
     final firestore = FirebaseFirestore.instance;
 
-    print('\n╔════════════════════════════════════════════════════════════╗');
-    print('║  🔧 CORREÇÃO COMPLETA DE COMPONENTES                      ║');
-    print('╚════════════════════════════════════════════════════════════╝\n');
+    debugPrint(
+        '\n╔════════════════════════════════════════════════════════════╗');
+    debugPrint('║  🔧 CORREÇÃO COMPLETA DE COMPONENTES                      ║');
+    debugPrint(
+        '╚════════════════════════════════════════════════════════════╝\n');
 
     final componentFixes = {
       'Trafo': {
@@ -1193,7 +2085,7 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
           .where('turbinaId', isEqualTo: widget.turbinaId)
           .get();
 
-      print('✅ Encontrados ${snapshot.docs.length} componentes\n');
+      debugPrint('✅ Encontrados ${snapshot.docs.length} componentes\n');
 
       int fixed = 0;
 
@@ -1207,7 +2099,7 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
           final hardcodedId = fix['hardcodedId']!;
           final newId = '${hardcodedId}_${widget.turbinaId}';
 
-          print('🔧 Corrigindo: $nome → $newName');
+          debugPrint('🔧 Corrigindo: $nome → $newName');
 
           await firestore.collection('componentes').doc(newId).set({
             ...data,
@@ -1219,7 +2111,7 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
 
           await doc.reference.delete();
 
-          print('   ✅ CORRIGIDO: $newId');
+          debugPrint('   ✅ CORRIGIDO: $newId');
           fixed++;
         }
       }
@@ -1289,7 +2181,7 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
             await firestore.collection('componentes').doc(newId).get();
 
         if (!exists.exists) {
-          print('🆕 Criando: ${comp['nome']}');
+          debugPrint('🆕 Criando: ${comp['nome']}');
 
           final turbinaDoc = await firestore
               .collection('turbinas')
@@ -1310,17 +2202,19 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
             'updatedAt': FieldValue.serverTimestamp(),
           });
 
-          print('   ✅ CRIADO: $newId');
+          debugPrint('   ✅ CRIADO: $newId');
           created++;
         }
       }
 
-      print('\n═══════════════════════════════════════════════════════════');
-      print('📊 RESUMO: $fixed corrigidos, $created criados');
-      print('═══════════════════════════════════════════════════════════\n');
+      debugPrint(
+          '\n═══════════════════════════════════════════════════════════');
+      debugPrint('📊 RESUMO: $fixed corrigidos, $created criados');
+      debugPrint(
+          '═══════════════════════════════════════════════════════════\n');
     } catch (e, stackTrace) {
-      print('❌ ERRO: $e');
-      print('StackTrace: $stackTrace');
+      debugPrint('❌ ERRO: $e');
+      debugPrint('StackTrace: $stackTrace');
       rethrow;
     }
   }
@@ -1386,6 +2280,11 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
   ) {
     final nameController = TextEditingController();
     final selectedPhases = <String>{};
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryText = AppColors.adaptivePrimaryText(context);
+    final secondaryText = AppColors.adaptiveSecondaryText(context);
+    final panelColor = AppColors.adaptivePanelSurface(context);
+    final outlineColor = AppColors.adaptiveOutline(context);
 
     final availablePhases = [
       {'id': 'reception', 'name': 'Reception', 'icon': '📦'},
@@ -1394,7 +2293,7 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
       {'id': 'assembly', 'name': 'Assembly', 'icon': '🏗️'},
     ];
 
-    showDialog(
+    showLiquidDialog(
       context: context,
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, setDialogState) {
@@ -1403,7 +2302,10 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
               children: [
                 Icon(Icons.add_circle, color: categoryColor),
                 const SizedBox(width: 12),
-                const Text('Adicionar Componente'),
+                Text(
+                  t.translate('add_component_dialog_title'),
+                  style: TextStyle(color: primaryText),
+                ),
               ],
             ),
             content: SingleChildScrollView(
@@ -1413,26 +2315,49 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Nome do Componente',
-                        style: TextStyle(
-                            fontSize: 14, fontWeight: FontWeight.w600)),
+                    Text(
+                      t.translate('component_name'),
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: primaryText,
+                      ),
+                    ),
                     const SizedBox(height: 8),
                     TextField(
                       controller: nameController,
-                      decoration: const InputDecoration(
-                        hintText: 'Ex: Spare Part 1',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.label),
+                      style: TextStyle(color: primaryText),
+                      decoration: InputDecoration(
+                        hintText: t.translate('component_name_hint'),
+                        hintStyle: TextStyle(color: secondaryText),
+                        border: const OutlineInputBorder(),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: outlineColor),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: categoryColor),
+                        ),
+                        filled: true,
+                        fillColor: AppColors.adaptiveCardSurface(context),
+                        prefixIcon: Icon(Icons.label, color: categoryColor),
                       ),
                     ),
                     const SizedBox(height: 24),
-                    const Text('Fases de Integração',
-                        style: TextStyle(
-                            fontSize: 14, fontWeight: FontWeight.w600)),
+                    Text(
+                      'Fases de Integração',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: primaryText,
+                      ),
+                    ),
                     const SizedBox(height: 12),
                     Container(
                       decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey[300]!),
+                        color: panelColor,
+                        border: Border.all(color: outlineColor),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Column(
@@ -1447,11 +2372,16 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
                               children: [
                                 Text(phaseIcon),
                                 const SizedBox(width: 8),
-                                Text(phaseName),
+                                Text(
+                                  phaseName,
+                                  style: TextStyle(color: primaryText),
+                                ),
                               ],
                             ),
                             value: isSelected,
                             activeColor: categoryColor,
+                            checkColor: Colors.white,
+                            side: BorderSide(color: outlineColor),
                             onChanged: (value) {
                               setDialogState(() {
                                 if (value == true) {
@@ -1471,16 +2401,26 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
                         child: Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: Colors.orange.withOpacity(0.1),
+                            color: Colors.orange.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: Colors.orange.withValues(alpha: 0.35),
+                            ),
                           ),
-                          child: const Row(
+                          child: Row(
                             children: [
-                              Icon(Icons.info_outline,
+                              const Icon(Icons.info_outline,
                                   color: Colors.orange, size: 20),
-                              SizedBox(width: 8),
-                              Text('Selecione pelo menos uma fase',
-                                  style: TextStyle(fontSize: 12)),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Selecione pelo menos uma fase',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: isDark
+                                      ? AppColors.adaptivePrimaryText(context)
+                                      : null,
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -1492,7 +2432,7 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('Cancelar'),
+                child: Text(t.translate('cancel')),
               ),
               ElevatedButton.icon(
                 onPressed: nameController.text.trim().isEmpty ||
@@ -1505,7 +2445,7 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
                             componentName, categoria, selectedPhases.toList());
                       },
                 icon: const Icon(Icons.add),
-                label: const Text('Criar'),
+                label: Text(t.translate('create')),
                 style: ElevatedButton.styleFrom(backgroundColor: categoryColor),
               ),
             ],
@@ -1525,7 +2465,7 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
     List<String> selectedPhases,
   ) async {
     try {
-      print('🆕 Criando: $componentName');
+      debugPrint('🆕 Criando: $componentName');
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1626,7 +2566,7 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
         setState(() {});
       }
     } catch (e) {
-      print('❌ Erro: $e');
+      debugPrint('❌ Erro: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1643,10 +2583,12 @@ class _TurbinaDetalhesScreenState extends ConsumerState<TurbinaDetalhesScreen> {
 
 class EditComponenteDialog extends ConsumerStatefulWidget {
   final Componente componente;
+  final bool canEdit;
 
   const EditComponenteDialog({
     super.key,
     required this.componente,
+    required this.canEdit,
   });
 
   @override
@@ -1670,6 +2612,7 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
   bool _isBlocked = false;
   String? _blockReason;
   String? _blockedBy;
+  bool get _canInteract => widget.canEdit && !_isBlocked;
 
   List<String> _photos = [];
   List<Map<String, dynamic>> _aggregatedNotes = [];
@@ -1710,9 +2653,9 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
   }
 
   void _startInstallationListener() {
-    print(
+    debugPrint(
         '🔄 Iniciando listener para: ${widget.componente.turbinaId} / ${widget.componente.id}');
-    print('📋 hardcodedId: ${widget.componente.hardcodedId}');
+    debugPrint('📋 hardcodedId: ${widget.componente.hardcodedId}');
 
     String installationDocId;
 
@@ -1721,10 +2664,11 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
         widget.componente.hardcodedId!,
         widget.componente.turbinaId,
       );
-      print('✅ Usando hardcodedId: $installationDocId');
+      debugPrint('✅ Usando hardcodedId: $installationDocId');
     } else {
       installationDocId = widget.componente.id;
-      print('⚠️ Sem hardcodedId, usando ID do componente: $installationDocId');
+      debugPrint(
+          '⚠️ Sem hardcodedId, usando ID do componente: $installationDocId');
     }
 
     _installationListener = FirebaseFirestore.instance
@@ -1736,16 +2680,16 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
         .listen(
       (snapshot) {
         if (!snapshot.exists) {
-          print(
+          debugPrint(
               'ℹ️ Documento de instalação ainda não existe: $installationDocId');
           return;
         }
 
-        print('✅ Dados da instalação recebidos para: $installationDocId');
+        debugPrint('✅ Dados da instalação recebidos para: $installationDocId');
         _syncFromInstallation(snapshot.data() as Map<String, dynamic>);
       },
       onError: (error) {
-        print('❌ Erro no listener: $error');
+        debugPrint('❌ Erro no listener: $error');
       },
     );
   }
@@ -1763,22 +2707,22 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
         _serialNumberController.text = reception['serialNumber'] ?? '';
         _itemNumberController.text = reception['itemNumber'] ?? '';
 
-        print('📦 Campos auto-preenchidos da Receção');
+        debugPrint('📦 Campos auto-preenchidos da Receção');
       }
 
       _progresso = _calculateProgressFromPhases(data);
-      print('📊 Progresso calculado: $_progresso%');
+      debugPrint('📊 Progresso calculado: $_progresso%');
 
       if (!_isBlocked && _status != 'N/A') {
         _status = _getAutoStatus();
-        print('📊 Status atualizado: $_status');
+        debugPrint('📊 Status atualizado: $_status');
       }
 
       _aggregatedNotes = _aggregateNotes(data);
-      print('📝 ${_aggregatedNotes.length} notas agregadas');
+      debugPrint('📝 ${_aggregatedNotes.length} notas agregadas');
 
       _photos = _aggregatePhotos(data);
-      print('📸 ${_photos.length} fotos agregadas');
+      debugPrint('📸 ${_photos.length} fotos agregadas');
 
       _isSyncingFromInstallation = false;
     });
@@ -1949,9 +2893,9 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
       await turbinaService
           .atualizarProgressoTurbina(widget.componente.turbinaId);
 
-      print('✅ Componente atualizado no As-Built');
+      debugPrint('✅ Componente atualizado no As-Built');
     } catch (e) {
-      print('❌ Erro ao atualizar componente: $e');
+      debugPrint('❌ Erro ao atualizar componente: $e');
     }
   }
 
@@ -1969,8 +2913,19 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
   Widget build(BuildContext context) {
     final t = TranslationHelper.of(context);
     final isNA = _status == 'N/A';
+    final theme = Theme.of(context);
+    final dialogBackground =
+        theme.dialogTheme.backgroundColor ?? theme.colorScheme.surface;
+    final outlineColor = AppColors.adaptiveOutline(context);
 
     return Dialog(
+      backgroundColor: dialogBackground,
+      surfaceTintColor: Colors.transparent,
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(24),
+        side: BorderSide(color: outlineColor, width: 1),
+      ),
       child: Container(
         width: MediaQuery.of(context).size.width * 0.9,
         constraints: BoxConstraints(
@@ -1985,33 +2940,81 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (_isSyncingFromInstallation)
+                    if (!widget.canEdit)
                       Container(
+                        width: double.infinity,
                         padding: const EdgeInsets.all(12),
                         margin: const EdgeInsets.only(bottom: 16),
                         decoration: BoxDecoration(
-                          color: AppColors.primaryBlue.withOpacity(0.1),
+                          color: AppColors.warningOrange.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
-                              color: AppColors.primaryBlue.withOpacity(0.3)),
+                            color:
+                                AppColors.warningOrange.withValues(alpha: 0.35),
+                          ),
                         ),
                         child: Row(
-                          children: [
-                            const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2),
+                          children: const [
+                            Icon(
+                              Icons.visibility,
+                              color: AppColors.warningOrange,
+                              size: 18,
                             ),
-                            const SizedBox(width: 12),
-                            Text(
-                              t.translate('syncing_from_installation'),
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: AppColors.primaryBlue,
+                            SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Modo leitura — sem permissão para editar',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.warningOrange,
+                                ),
                               ),
                             ),
                           ],
                         ),
+                      ),
+                    if (_isSyncingFromInstallation)
+                      Builder(
+                        builder: (context) {
+                          final outlineColor =
+                              AppColors.adaptiveOutline(context);
+                          final panelColor =
+                              AppColors.adaptivePanelSurface(context);
+                          final primaryText =
+                              AppColors.adaptivePrimaryText(context);
+
+                          return Container(
+                            padding: const EdgeInsets.all(12),
+                            margin: const EdgeInsets.only(bottom: 16),
+                            decoration: BoxDecoration(
+                              color: panelColor,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: outlineColor),
+                            ),
+                            child: Row(
+                              children: [
+                                const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child:
+                                      CircularProgressIndicator(strokeWidth: 2),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    t.translate('syncing_from_installation'),
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: primaryText,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
                       ),
                     _buildNAToggle(t, isNA),
                     if (!isNA) ...[
@@ -2044,11 +3047,12 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
   // ═══════════════════════════════════════════════════════════════
 
   Widget _buildHeader(TranslationHelper t) {
+    final outlineColor = AppColors.adaptiveOutline(context);
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.primaryBlue,
-        border: Border(bottom: BorderSide(color: AppColors.borderGray)),
+        border: Border(bottom: BorderSide(color: outlineColor)),
       ),
       child: Row(
         children: [
@@ -2074,7 +3078,7 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
               ],
             ),
           ),
-          if (_canBlock())
+          if (_canBlock() && widget.canEdit)
             IconButton(
               icon: Icon(_isBlocked ? Icons.lock : Icons.lock_open,
                   color: Colors.white),
@@ -2092,23 +3096,40 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
   }
 
   Widget _buildNAToggle(TranslationHelper t, bool isNA) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryText = AppColors.adaptivePrimaryText(context);
+    final secondaryText = AppColors.adaptiveSecondaryText(context);
+    final outlineColor = AppColors.adaptiveOutline(context);
+    final mutedText = AppColors.adaptiveMutedText(context);
     return Card(
+      elevation: 0,
       color: isNA
-          ? AppColors.mediumGray.withOpacity(0.1)
-          : AppColors.accentTeal.withOpacity(0.1),
+          ? (isDark
+              ? AppColors.glassSurfaceDark
+              : AppColors.mediumGray.withValues(alpha: 0.1))
+          : (isDark
+              ? AppColors.glassSurfaceDark
+              : AppColors.accentTeal.withValues(alpha: 0.1)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: outlineColor, width: 1),
+      ),
       child: SwitchListTile(
         title: Text(
           t.translate('not_applicable'),
-          style: const TextStyle(fontWeight: FontWeight.w600),
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: primaryText,
+          ),
         ),
         subtitle: Text(
           isNA
               ? t.translate('component_not_used')
               : t.translate('mark_if_not_installed'),
-          style: const TextStyle(fontSize: 12),
+          style: TextStyle(fontSize: 12, color: secondaryText),
         ),
         value: isNA,
-        onChanged: _isBlocked
+        onChanged: !_canInteract
             ? null
             : (value) {
                 setState(() {
@@ -2122,12 +3143,15 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
                   }
                 });
               },
-        activeThumbColor: AppColors.mediumGray,
+        activeThumbColor: mutedText,
       ),
     );
   }
 
   Widget _buildProgressSection(TranslationHelper t) {
+    final primaryText = AppColors.adaptivePrimaryText(context);
+    final secondaryText = AppColors.adaptiveSecondaryText(context);
+    final trackColor = AppColors.adaptiveProgressTrack(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -2136,17 +3160,17 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
           children: [
             Text(
               t.translate('progress'),
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
-                color: AppColors.mediumGray,
+                color: secondaryText,
               ),
             ),
             Text(
               '${_progresso.toStringAsFixed(0)}%',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: AppColors.darkGray,
+                color: primaryText,
               ),
             ),
           ],
@@ -2160,7 +3184,7 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
               height: 12,
               margin: const EdgeInsets.only(right: 4),
               decoration: BoxDecoration(
-                color: isFilled ? AppColors.primaryBlue : AppColors.borderGray,
+                color: isFilled ? AppColors.primaryBlue : trackColor,
                 shape: BoxShape.circle,
               ),
             );
@@ -2173,7 +3197,7 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
           max: 100,
           divisions: 20,
           label: '${_progresso.toStringAsFixed(0)}%',
-          onChanged: _isBlocked
+          onChanged: !_canInteract
               ? null
               : (value) {
                   setState(() {
@@ -2193,6 +3217,9 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
   }
 
   Widget _buildStatusDropdown(TranslationHelper t) {
+    final primaryText = AppColors.adaptivePrimaryText(context);
+    final secondaryText = AppColors.adaptiveSecondaryText(context);
+    final outlineColor = AppColors.adaptiveOutline(context);
     final statuses = [
       {'value': 'Pendente', 'color': AppColors.mediumGray},
       {'value': 'Em Progresso', 'color': AppColors.warningOrange},
@@ -2206,17 +3233,18 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
       children: [
         Text(
           t.translate('status'),
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: AppColors.darkGray,
+            color: primaryText,
           ),
         ),
         const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           decoration: BoxDecoration(
-            border: Border.all(color: AppColors.borderGray),
+            color: AppColors.adaptiveCardSurface(context),
+            border: Border.all(color: outlineColor),
             borderRadius: BorderRadius.circular(8),
           ),
           child: DropdownButtonHideUnderline(
@@ -2225,7 +3253,9 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
                   ? _status
                   : 'Pendente',
               isExpanded: true,
-              icon: const Icon(Icons.arrow_drop_down),
+              icon: Icon(Icons.arrow_drop_down, color: secondaryText),
+              dropdownColor: AppColors.adaptiveCardSurface(context),
+              style: TextStyle(color: primaryText),
               items: statuses.map((status) {
                 return DropdownMenuItem<String>(
                   value: status['value'] as String,
@@ -2240,12 +3270,15 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
                         ),
                       ),
                       const SizedBox(width: 12),
-                      Text(t.translate('component_status_${status['value']}')),
+                      Text(
+                        t.translate('component_status_${status['value']}'),
+                        style: TextStyle(color: primaryText),
+                      ),
                     ],
                   ),
                 );
               }).toList(),
-              onChanged: _isBlocked
+              onChanged: !_canInteract
                   ? null
                   : (value) {
                       if (value != null) {
@@ -2262,13 +3295,13 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.red.withOpacity(0.1),
+              color: const Color(0xFF5A2529).withValues(alpha: 0.32),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.red.withOpacity(0.3)),
+              border: Border.all(color: const Color(0xFFFF8F8F)),
             ),
             child: Row(
               children: [
-                const Icon(Icons.lock, color: Colors.red, size: 20),
+                const Icon(Icons.lock, color: Color(0xFFFF8F8F), size: 20),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Column(
@@ -2279,7 +3312,7 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
                         style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
-                          color: Colors.red,
+                          color: Color(0xFFFFB4B4),
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -2287,7 +3320,7 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
                         _blockReason ?? '',
                         style: TextStyle(
                           fontSize: 11,
-                          color: Colors.red.shade700,
+                          color: const Color(0xFFFFD7D7),
                         ),
                       ),
                     ],
@@ -2334,27 +3367,36 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
     required IconData icon,
     required TranslationHelper t,
   }) {
+    final primaryText = AppColors.adaptivePrimaryText(context);
+    final secondaryText = AppColors.adaptiveSecondaryText(context);
+    final outlineColor = AppColors.adaptiveOutline(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: AppColors.darkGray,
+            color: primaryText,
           ),
         ),
         const SizedBox(height: 6),
         TextField(
           controller: controller,
           readOnly: true,
+          style: TextStyle(color: primaryText),
           decoration: InputDecoration(
-            prefixIcon: Icon(icon),
+            prefixIcon: Icon(icon, color: AppColors.primaryBlue),
             suffixIcon: const Icon(Icons.sync, color: AppColors.successGreen),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: outlineColor),
+            ),
             filled: true,
-            fillColor: AppColors.successGreen.withOpacity(0.05),
+            fillColor: AppColors.adaptiveCardSurface(context),
+            hintStyle: TextStyle(color: secondaryText),
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
           ),
@@ -2364,15 +3406,19 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
   }
 
   Widget _buildAggregatedNotes(TranslationHelper t) {
+    final primaryText = AppColors.adaptivePrimaryText(context);
+    final secondaryText = AppColors.adaptiveSecondaryText(context);
+    final cardColor = AppColors.adaptiveCardSurface(context);
+    final outlineColor = AppColors.adaptiveOutline(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           t.translate('notes'),
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
-            color: AppColors.darkGray,
+            color: primaryText,
           ),
         ),
         const SizedBox(height: 12),
@@ -2380,13 +3426,14 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.borderGray.withOpacity(0.3),
+              color: cardColor,
               borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: outlineColor),
             ),
             child: Center(
               child: Text(
                 t.translate('no_notes'),
-                style: const TextStyle(color: AppColors.mediumGray),
+                style: TextStyle(color: secondaryText),
               ),
             ),
           )
@@ -2396,7 +3443,8 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
               margin: const EdgeInsets.only(bottom: 12),
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                border: Border.all(color: AppColors.borderGray),
+                color: cardColor,
+                border: Border.all(color: outlineColor),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Column(
@@ -2420,9 +3468,9 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
                       const Spacer(),
                       Text(
                         _formatDate(note['date']),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 11,
-                          color: AppColors.mediumGray,
+                          color: secondaryText,
                         ),
                       ),
                     ],
@@ -2430,9 +3478,9 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
                   const SizedBox(height: 8),
                   Text(
                     note['text'],
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
-                      color: AppColors.darkGray,
+                      color: primaryText,
                     ),
                   ),
                 ],
@@ -2444,6 +3492,10 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
   }
 
   Widget _buildPhotosGallery(TranslationHelper t) {
+    final primaryText = AppColors.adaptivePrimaryText(context);
+    final secondaryText = AppColors.adaptiveSecondaryText(context);
+    final cardColor = AppColors.adaptiveCardSurface(context);
+    final outlineColor = AppColors.adaptiveOutline(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -2452,14 +3504,14 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
           children: [
             Text(
               '📸 ${t.translate('photos')} (${_photos.length})',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: AppColors.darkGray,
+                color: primaryText,
               ),
             ),
             TextButton.icon(
-              onPressed: _addPhoto,
+              onPressed: _canInteract ? _addPhoto : null,
               icon: const Icon(Icons.add_photo_alternate),
               label: Text(t.translate('add')),
             ),
@@ -2470,13 +3522,14 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.borderGray.withOpacity(0.3),
+              color: cardColor,
               borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: outlineColor),
             ),
             child: Center(
               child: Text(
                 t.translate('no_photos'),
-                style: const TextStyle(color: AppColors.mediumGray),
+                style: TextStyle(color: secondaryText),
               ),
             ),
           )
@@ -2495,22 +3548,21 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
                 onTap: () => _showPhotoFullscreen(index),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: AppColors.borderGray,
+                    color: cardColor,
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppColors.borderGray),
+                    border: Border.all(color: outlineColor),
                   ),
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
-                      const Icon(Icons.image,
-                          size: 40, color: AppColors.mediumGray),
+                      Icon(Icons.image, size: 40, color: secondaryText),
                       Positioned(
                         bottom: 4,
                         right: 4,
                         child: Container(
                           padding: const EdgeInsets.all(4),
                           decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.7),
+                            color: Colors.black.withValues(alpha: 0.7),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: const Text(
@@ -2530,29 +3582,52 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
   }
 
   Widget _buildObservationsField(TranslationHelper t) {
+    final primaryText = AppColors.adaptivePrimaryText(context);
+    final secondaryText = AppColors.adaptiveSecondaryText(context);
+    final outlineColor = AppColors.adaptiveOutline(context);
     return TextField(
       controller: _observacoesController,
+      style: TextStyle(color: primaryText),
       decoration: InputDecoration(
         labelText: t.translate('observations'),
+        labelStyle: TextStyle(color: secondaryText),
         border: const OutlineInputBorder(),
-        prefixIcon: const Icon(Icons.notes),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: outlineColor),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: AppColors.primaryBlue),
+        ),
+        prefixIcon: Icon(Icons.notes, color: secondaryText),
         hintText: t.translate('add_notes_optional'),
+        hintStyle: TextStyle(color: secondaryText),
+        filled: true,
+        fillColor: AppColors.adaptiveCardSurface(context),
       ),
       maxLines: 3,
-      enabled: !_isBlocked,
+      enabled: _canInteract,
     );
   }
 
   Widget _buildFooter(TranslationHelper t, bool isNA) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: const BoxDecoration(
-        color: AppColors.backgroundGray,
-        border: Border(top: BorderSide(color: AppColors.borderGray)),
+      decoration: BoxDecoration(
+        color: isDark
+            ? AppColors.glassSurfaceStrongDark
+            : AppColors.glassSurfaceLight,
+        border: Border(
+          top: BorderSide(color: AppColors.adaptiveOutline(context)),
+        ),
       ),
       child: Row(
         children: [
-          if (!isNA && widget.componente.status != 'Substituído')
+          if (!isNA &&
+              widget.componente.status != 'Substituído' &&
+              _canInteract)
             TextButton.icon(
               onPressed: _isLoading || _isBlocked
                   ? null
@@ -2569,20 +3644,22 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
             onPressed: _isLoading ? null : () => Navigator.pop(context),
             child: Text(t.translate('cancel')),
           ),
-          const SizedBox(width: 8),
-          ElevatedButton(
-            onPressed: _isLoading || _isBlocked ? null : _handleSave,
-            child: _isLoading
-                ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
-                : Text(t.translate('save')),
-          ),
+          if (widget.canEdit) ...[
+            const SizedBox(width: 8),
+            ElevatedButton(
+              onPressed: _isLoading || _isBlocked ? null : _handleSave,
+              child: _isLoading
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : Text(t.translate('save')),
+            ),
+          ],
         ],
       ),
     );
@@ -2591,16 +3668,19 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
   final PhotoService _photoService = PhotoService();
 
   void _addPhoto() async {
+    if (!_canInteract) return;
+
     try {
-      print('🔵 _addPhoto START');
+      debugPrint('🔵 _addPhoto START');
 
       final String? turbinaId = ref.read(selectedTurbinaIdProvider);
       if (turbinaId == null) {
-        print('❌ turbinaId null em _addPhoto');
+        debugPrint('❌ turbinaId null em _addPhoto');
         return;
       }
 
-      print('🔵 _addPhoto -> turbinaId=$turbinaId componenteId=$_componenteId');
+      debugPrint(
+          '🔵 _addPhoto -> turbinaId=$turbinaId componenteId=$_componenteId');
 
       final url = await _photoService.pickAndUploadPhotoForFase(
         turbinaId: turbinaId,
@@ -2608,10 +3688,10 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
         tipoFase: 'as_built',
       );
 
-      print('🔵 _addPhoto -> url retornada: $url');
+      debugPrint('🔵 _addPhoto -> url retornada: $url');
 
       if (url == null) {
-        print('⚠️ _addPhoto: url null, não vou atualizar Firestore/UI');
+        debugPrint('⚠️ _addPhoto: url null, não vou atualizar Firestore/UI');
         return;
       }
 
@@ -2628,8 +3708,8 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
         'asBuiltPhotos': FieldValue.arrayUnion([url]),
       });
     } catch (e, st) {
-      print('❌ ERRO em _addPhoto: $e');
-      print(st);
+      debugPrint('❌ ERRO em _addPhoto: $e');
+      debugPrint(st.toString());
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -2640,7 +3720,7 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
   }
 
   void _showPhotoFullscreen(int index) {
-    showDialog(
+    showLiquidDialog(
       context: context,
       builder: (context) => Dialog(
         backgroundColor: Colors.transparent,
@@ -2650,7 +3730,13 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
               child: Container(
                 width: MediaQuery.of(context).size.width * 0.9,
                 height: MediaQuery.of(context).size.height * 0.8,
-                color: Colors.black,
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.92),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.12),
+                  ),
+                ),
                 child: Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -2683,18 +3769,24 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
 
   void _showBlockDialog(TranslationHelper t) {
     final reasonController = TextEditingController();
+    final primaryText = AppColors.adaptivePrimaryText(context);
 
-    showDialog(
+    showLiquidDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(_isBlocked
-            ? t.translate('unblock_component')
-            : t.translate('block_component')),
+        title: Text(
+            _isBlocked
+                ? t.translate('unblock_component')
+                : t.translate('block_component'),
+            style: TextStyle(color: primaryText)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             if (!_isBlocked) ...[
-              Text(t.translate('block_reason_required')),
+              Text(
+                t.translate('block_reason_required'),
+                style: TextStyle(color: primaryText),
+              ),
               const SizedBox(height: 16),
               TextField(
                 controller: reasonController,
@@ -2705,7 +3797,10 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
                 ),
               ),
             ] else ...[
-              Text(t.translate('confirm_unblock')),
+              Text(
+                t.translate('confirm_unblock'),
+                style: TextStyle(color: primaryText),
+              ),
             ],
           ],
         ),
@@ -2813,6 +3908,274 @@ class _EditComponenteDialogState extends ConsumerState<EditComponenteDialog> {
   }
 
   void _showReplaceDialog(BuildContext context, TranslationHelper t) {
-    // Use existing replace dialog
+    final reasonController = TextEditingController();
+    final notesController = TextEditingController();
+    final primaryText = AppColors.adaptivePrimaryText(context);
+    final secondaryText = AppColors.adaptiveSecondaryText(context);
+    final surfaceColor = AppColors.adaptiveCardSurface(context);
+    final outlineColor = AppColors.adaptiveOutline(context);
+    final rootNavigator = Navigator.of(context, rootNavigator: true);
+
+    showLiquidDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        var isSubmitting = false;
+
+        return StatefulBuilder(
+          builder: (dialogContext, setDialogState) {
+            final dialogNavigator = Navigator.of(dialogContext);
+            final pageNavigator = Navigator.of(context);
+
+            Future<void> submitReplacement() async {
+              if (isSubmitting) {
+                return;
+              }
+
+              final reason = reasonController.text.trim();
+              final notes = notesController.text.trim();
+
+              if (reason.isEmpty) {
+                ScaffoldMessenger.of(dialogContext).showSnackBar(
+                  SnackBar(
+                    content: Text(t.translate('reason_for_replacement')),
+                    backgroundColor: AppColors.warningOrange,
+                  ),
+                );
+                return;
+              }
+
+              setDialogState(() => isSubmitting = true);
+
+              try {
+                final userId = ref.read(currentUserIdProvider);
+                if (userId == null || userId.isEmpty) {
+                  throw Exception(t.translate('error'));
+                }
+
+                final componenteService = ref.read(componenteServiceProvider);
+                final turbinaService = ref.read(turbinaServiceProvider);
+
+                final newComponentId =
+                    await componenteService.substituirComponente(
+                  componenteAntigoId: widget.componente.id,
+                  razao: reason,
+                  observacoes: notes,
+                  userId: userId,
+                );
+
+                await turbinaService.atualizarProgressoTurbina(
+                  widget.componente.turbinaId,
+                );
+
+                final newComponentDoc = await FirebaseFirestore.instance
+                    .collection('componentes')
+                    .doc(newComponentId)
+                    .get();
+
+                if (!newComponentDoc.exists) {
+                  throw Exception(t.translate('component_replace_error'));
+                }
+
+                final newComponent = Componente.fromFirestore(newComponentDoc);
+
+                if (!mounted) {
+                  return;
+                }
+
+                dialogNavigator.pop();
+                pageNavigator.pop();
+
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (!rootNavigator.context.mounted) {
+                    return;
+                  }
+
+                  showLiquidDialog(
+                    context: rootNavigator.context,
+                    builder: (context) => EditComponenteDialog(
+                      componente: newComponent,
+                      canEdit: widget.canEdit,
+                    ),
+                  );
+
+                  final messenger =
+                      ScaffoldMessenger.maybeOf(rootNavigator.context);
+                  messenger?.showSnackBar(
+                    SnackBar(
+                      content: Text(t.translate('component_replaced_success')),
+                      backgroundColor: AppColors.successGreen,
+                    ),
+                  );
+                });
+              } catch (e) {
+                if (dialogContext.mounted) {
+                  ScaffoldMessenger.of(dialogContext).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        '${t.translate('component_replace_error')}: $e',
+                      ),
+                      backgroundColor: AppColors.errorRed,
+                    ),
+                  );
+                }
+              } finally {
+                if (dialogContext.mounted) {
+                  setDialogState(() => isSubmitting = false);
+                }
+              }
+            }
+
+            return AlertDialog(
+              backgroundColor: surfaceColor,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+                side: BorderSide(color: outlineColor),
+              ),
+              title: Text(
+                t.translate('replace_dialog_title'),
+                style: TextStyle(color: primaryText),
+              ),
+              content: SizedBox(
+                width: 480,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        t.translate('component_to_replace'),
+                        style: TextStyle(
+                          color: secondaryText,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 12,
+                        ),
+                        decoration: BoxDecoration(
+                          color: surfaceColor,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: outlineColor),
+                        ),
+                        child: Text(
+                          widget.componente.nome,
+                          style: TextStyle(
+                            color: primaryText,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: reasonController,
+                        enabled: !isSubmitting,
+                        style: TextStyle(color: primaryText),
+                        decoration: InputDecoration(
+                          labelText: t.translate('reason_for_replacement'),
+                          hintText: t.translate('explain_replacement'),
+                          labelStyle: TextStyle(color: secondaryText),
+                          hintStyle: TextStyle(color: secondaryText),
+                          filled: true,
+                          fillColor: surfaceColor,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: outlineColor),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(
+                              color: AppColors.primaryBlue,
+                            ),
+                          ),
+                        ),
+                        maxLines: 3,
+                        textInputAction: TextInputAction.newline,
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: notesController,
+                        enabled: !isSubmitting,
+                        style: TextStyle(color: primaryText),
+                        decoration: InputDecoration(
+                          labelText: t.translate('replacement_notes'),
+                          hintText: t.translate('add_notes_optional'),
+                          labelStyle: TextStyle(color: secondaryText),
+                          hintStyle: TextStyle(color: secondaryText),
+                          filled: true,
+                          fillColor: surfaceColor,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: outlineColor),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(
+                              color: AppColors.primaryBlue,
+                            ),
+                          ),
+                        ),
+                        maxLines: 3,
+                      ),
+                      const SizedBox(height: 12),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color:
+                              AppColors.warningOrange.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color:
+                                AppColors.warningOrange.withValues(alpha: 0.35),
+                          ),
+                        ),
+                        child: Text(
+                          t.translate('replacement_warning'),
+                          style: TextStyle(
+                            color: primaryText,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isSubmitting
+                      ? null
+                      : () => Navigator.of(dialogContext).pop(),
+                  child: Text(t.translate('cancel')),
+                ),
+                ElevatedButton.icon(
+                  onPressed: isSubmitting ? null : submitReplacement,
+                  icon: isSubmitting
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.swap_horiz),
+                  label: Text(t.translate('replace')),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 }
