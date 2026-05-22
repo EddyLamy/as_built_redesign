@@ -5,6 +5,7 @@ import '../../core/localization/translation_helper.dart';
 import '../../widgets/app_bar_dashboard_shortcut.dart';
 import '../../providers/app_providers.dart';
 import '../installation/turbine_installation_details_screen.dart';
+import '../safety_alerts/safety_alert_screen.dart';
 
 /// Tela de seleção de turbinas (Mobile)
 /// ATUALIZADA: Navega diretamente para o ecrã de instalação com fases
@@ -34,6 +35,23 @@ class MobileTurbinesScreen extends ConsumerWidget {
         title: DashboardShortcutTitle(
           child: Text(projectName),
         ),
+        actions: [
+          IconButton(
+            tooltip: t.translate('safety_alerts'),
+            icon: const Icon(Icons.health_and_safety_outlined),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => SafetyAlertScreen(
+                    projectIdOverride: projectId,
+                    projectNameOverride: projectName,
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: turbinasAsync.when(
         data: (turbinas) {

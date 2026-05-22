@@ -157,7 +157,7 @@ class _TrabalhosMecanicosSection extends ConsumerWidget {
               const Icon(Icons.build, color: AppColors.warningOrange),
               const SizedBox(width: 8),
               Text(
-                t['trabalhosMecanicos'] ?? 'Trabalhos Mecânicos',
+                t['mechanicalWorks'] ?? 'Mechanical completion',
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,

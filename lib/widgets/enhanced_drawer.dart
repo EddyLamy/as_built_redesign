@@ -16,6 +16,7 @@ import '../screens/help/help_screen.dart';
 import '../screens/installation/installation_screen.dart';
 import '../screens/mobile/gruas_gerais_screen.dart';
 import '../screens/ncr/ncr_screen.dart';
+import '../screens/safety_alerts/safety_alert_screen.dart';
 import '../screens/daily_journal/daily_journal_screen.dart';
 import '../screens/settings/settings_screen.dart';
 import '../screens/team/team_screen.dart';
@@ -35,6 +36,7 @@ enum DrawerMenuItemKey {
   reports,
   dailyJournal,
   ncrs,
+  safetyAlerts,
   generalCranes,
   equipment,
   team,
@@ -365,6 +367,26 @@ class _EnhancedDrawerState extends ConsumerState<EnhancedDrawer> {
                       context,
                       MaterialPageRoute(
                         builder: (_) => const NcrScreen(),
+                      ),
+                    );
+                  },
+                ),
+                _DrawerMenuItem(
+                  icon: Icons.health_and_safety_outlined,
+                  label: t.translate('safety_alerts'),
+                  isSelected:
+                      _selectedDrawerItem == DrawerMenuItemKey.safetyAlerts,
+                  mutedColor: mutedText,
+                  hoverColor: sidebarSection,
+                  onTap: () {
+                    setState(() {
+                      _selectedDrawerItem = DrawerMenuItemKey.safetyAlerts;
+                    });
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const SafetyAlertScreen(),
                       ),
                     );
                   },
@@ -1076,6 +1098,21 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
                           ref
                               .read(desktopSelectedItemProvider.notifier)
                               .setItem(DrawerMenuItemKey.ncrs);
+                        },
+                      ),
+                      _SidebarNavItem(
+                        icon: Icons.health_and_safety_outlined,
+                        label: t.translate('safety_alerts'),
+                        isSelected:
+                            _selectedItem == DrawerMenuItemKey.safetyAlerts,
+                        mutedColor: sidebarMuted,
+                        hoverColor: sidebarSection,
+                        onTap: () {
+                          setState(() =>
+                              _selectedItem = DrawerMenuItemKey.safetyAlerts);
+                          ref
+                              .read(desktopSelectedItemProvider.notifier)
+                              .setItem(DrawerMenuItemKey.safetyAlerts);
                         },
                       ),
                       _SidebarNavItem(

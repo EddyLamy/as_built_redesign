@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/foundation.dart';
 import 'daily_journal_service.dart';
 import 'export_translation_service.dart';
+import 'safety_alert_service.dart';
 import 'team_service.dart';
 
 /// Provider do serviço de relatórios
@@ -19,6 +20,7 @@ class ReportService {
   final TeamService _teamService = TeamService();
   final ExportTranslationService _exportTranslationService =
       ExportTranslationService();
+  final SafetyAlertService _safetyAlertService = SafetyAlertService();
 
   static const String _dailyJournalPhaseKey = 'dailyJournal';
   static const String _exportLanguage = 'en';
@@ -370,6 +372,40 @@ class ReportService {
     return map[status] ?? status;
   }
 
+  String _safetyAlertCategoryLabel(String category,
+      {String language = _exportLanguage}) {
+    const mapEn = {
+      'near_miss': 'Near Miss',
+      'hazardous_observation': 'Safety Alert',
+      'walk_and_talk': 'Walk and Talk',
+    };
+    const mapPt = {
+      'near_miss': 'Near Miss',
+      'hazardous_observation': 'Safety Alert',
+      'walk_and_talk': 'Walk and Talk',
+    };
+    final map = language == 'en' ? mapEn : mapPt;
+    return map[category] ?? category;
+  }
+
+  String _safetyAlertStatusLabel(String status,
+      {String language = _exportLanguage}) {
+    const mapEn = {
+      'resolved': 'Resolved',
+      'under_study': 'Under Study',
+      'in_resolution': 'In Resolution',
+      'future_company_action': 'Future Company Action Required',
+    };
+    const mapPt = {
+      'resolved': 'Resolvido',
+      'under_study': 'Em estudo',
+      'in_resolution': 'Em fase de resolução',
+      'future_company_action': 'Requer ação futura da companhia',
+    };
+    final map = language == 'en' ? mapEn : mapPt;
+    return map[status] ?? status;
+  }
+
   /// Gerar e salvar relatório localmente
   Future<void> generateAndSendReport({
     required String projectId,
@@ -403,7 +439,12 @@ class ReportService {
 
       debugPrint('Turbinas encontradas: ${turbinasSnapshot.docs.length}');
 
-      final phasesWithoutTurbines = {'gruasGerais', 'equipamentos', 'ncrs'};
+      final phasesWithoutTurbines = {
+        'gruasGerais',
+        'equipamentos',
+        'ncrs',
+        'safetyAlerts',
+      };
       final needsTurbines = standardPhases.any(
         (phase) => !phasesWithoutTurbines.contains(phase),
       );
@@ -429,6 +470,11 @@ class ReportService {
         } else if (phase == 'ncrs') {
           dataByPhase[phase] =
               await _collectNcrsData(projectId, language: exportLanguage);
+        } else if (phase == 'safetyAlerts') {
+          dataByPhase[phase] = await _collectSafetyAlertsData(
+            projectId,
+            language: exportLanguage,
+          );
         } else {
           dataByPhase[phase] = await _collectPhaseData(
             projectId,
@@ -820,6 +866,40 @@ class ReportService {
     }).toList();
   }
 
+  Future<List<Map<String, dynamic>>> _collectSafetyAlertsData(
+    String projectId, {
+    String language = _exportLanguage,
+  }) async {
+    debugPrint('Coletando dados de IMS...');
+
+    final alerts =
+        await _safetyAlertService.watchProjectAlerts(projectId).first;
+
+    return alerts.map((alert) {
+      return {
+        'code': alert.code,
+        'category': _safetyAlertCategoryLabel(
+          alert.category.value,
+          language: language,
+        ),
+        'status': _safetyAlertStatusLabel(
+          alert.status.value,
+          language: language,
+        ),
+        'destinationTo': alert.destinationTo,
+        'department': alert.department,
+        'problemDescription': alert.problemDescription,
+        'proposedSolution': alert.proposedSolution,
+        'resolucaoEfetuada': alert.resolucaoEfetuada,
+        'problemPhotos': alert.evidence.length,
+        'resolutionPhotos': alert.resolutionEvidence.length,
+        'createdByName': alert.createdByName,
+        'createdAt': _formatDate(alert.createdAt),
+        'updatedAt': _formatDate(alert.updatedAt),
+      };
+    }).toList();
+  }
+
   Future<Map<String, List<Map<String, dynamic>>>>
       _translateExportDataForEnglish(
     Map<String, List<Map<String, dynamic>>> dataByPhase,
@@ -849,6 +929,18 @@ class ReportService {
               'description',
               'closureNote',
               'latestStatusNote',
+            },
+          );
+          break;
+        case 'safetyAlerts':
+          translated[entry.key] = await _exportTranslationService.translateRows(
+            entry.value,
+            fields: const {
+              'destinationTo',
+              'department',
+              'problemDescription',
+              'proposedSolution',
+              'resolucaoEfetuada',
             },
           );
           break;

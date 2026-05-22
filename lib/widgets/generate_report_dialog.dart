@@ -33,6 +33,7 @@ class _GenerateReportDialogState extends ConsumerState<GenerateReportDialog> {
     'torqueTensionamento': false,
     'fasesFinais': false,
     'ncrs': false,
+    'safetyAlerts': false,
     'equipamentos': false, // 🆕 EQUIPAMENTOS
     'gruasPads': false, // 🆕 GRUAS DE PADS
     'gruasGerais': false, // 🆕 GRUAS GERAIS
@@ -218,6 +219,12 @@ class _GenerateReportDialogState extends ConsumerState<GenerateReportDialog> {
                             'ncrs',
                             Icons.rule_folder_outlined,
                             t.translate('ncrs'),
+                          ),
+                          const Divider(height: 1),
+                          _buildPhaseCheckbox(
+                            'safetyAlerts',
+                            Icons.health_and_safety_outlined,
+                            t.translate('safety_alerts'),
                           ),
 
                           // ══════════════════════════════════════════════

@@ -80,6 +80,50 @@ const Map<String, String> _runtimePtOverrides = {
   'office_coordinates_optional':
       'Opcional. Use este campo quando o escritório/base estiver noutro local.',
   'clear_selection': 'Limpar seleção',
+  'safety_alerts': 'SGI',
+  'safety_alert_management': 'Sistema de Gestão de Incidentes (SGI)',
+  'safety_alert_new': 'Novo registo SGI',
+  'safety_alert_category': 'Categoria',
+  'safety_alert_destination_to': 'Destinado a',
+  'safety_alert_department': 'Departamento',
+  'safety_alert_problem_description': 'Descrição da situação/problema',
+  'safety_alert_possible_solution': 'Possível solução',
+  'safety_alert_resolucao_efetuada': 'Ação corretiva aplicada',
+  'safety_alert_status': 'Estado do problema',
+  'safety_alert_photos': 'Fotos',
+  'safety_alert_resolution_photos': 'Fotos da resolução',
+  'safety_alert_add_photos': 'Adicionar fotos',
+  'safety_alert_photos_hint':
+      'Pode anexar até 3 fotos de evidência para cada alerta.',
+  'safety_alert_resolution_photos_hint':
+      'Pode anexar até 3 fotos da resolução do problema.',
+  'safety_alert_max_photos_reached':
+      'O máximo de 3 fotos por alerta já foi atingido.',
+  'safety_alert_created_success': 'Registo SGI criado com sucesso.',
+  'safety_alert_updated_success': 'Registo SGI atualizado com sucesso.',
+  'safety_alert_deleted_success': 'Registo SGI removido com sucesso.',
+  'safety_alert_delete_confirm':
+      'Tem a certeza de que pretende eliminar este registo SGI?',
+  'safety_alert_empty': 'Ainda não existem registos SGI para este projeto.',
+  'safety_alert_search_hint':
+      'Pesquisar por código, descrição do problema ou solução proposta',
+  'safety_alert_export_saved': 'PDF do registo SGI guardado com sucesso.',
+  'safety_alert_export_error': 'Não foi possível gerar o PDF do registo SGI.',
+  'safety_alert_print': 'Imprimir',
+  'safety_alert_total': 'Total',
+  'safety_alert_created_at': 'Criado em',
+  'safety_alert_updated_at': 'Atualizado em',
+  'safety_alert_category_near_miss': 'Near Miss',
+  'safety_alert_category_hazardous_observation': 'Alerta de Segurança',
+  'safety_alert_category_walk_and_talk': 'Walk and Talk',
+  'safety_alert_status_resolved': 'Resolvido',
+  'safety_alert_status_under_study': 'Em estudo',
+  'safety_alert_status_in_resolution': 'Em fase de resolução',
+  'safety_alert_status_future_company_action':
+      'Requer ação futura da companhia',
+  'safety_alert_status_requires_action': 'Requer ação',
+  'export': 'Exportar',
+  'all': 'Todos',
 };
 
 const Map<String, String> _runtimeEnOverrides = {
@@ -160,6 +204,49 @@ const Map<String, String> _runtimeEnOverrides = {
   'office_coordinates_optional':
       'Optional. Use this field when the office/base is in a different place.',
   'clear_selection': 'Clear selection',
+  'safety_alerts': 'IMS',
+  'safety_alert_management': 'Incident Management System (IMS)',
+  'safety_alert_new': 'New IMS record',
+  'safety_alert_category': 'Category',
+  'safety_alert_destination_to': 'Intended for',
+  'safety_alert_department': 'Department',
+  'safety_alert_problem_description': 'Problem situation description',
+  'safety_alert_possible_solution': 'Possible solution',
+  'safety_alert_resolucao_efetuada': 'Corrective action taken',
+  'safety_alert_status': 'Problem status',
+  'safety_alert_photos': 'Photos',
+  'safety_alert_resolution_photos': 'Resolution photos',
+  'safety_alert_add_photos': 'Add photos',
+  'safety_alert_photos_hint':
+      'You can attach up to 3 evidence photos to each alert.',
+  'safety_alert_resolution_photos_hint':
+      'You can attach up to 3 problem resolution photos to each alert.',
+  'safety_alert_max_photos_reached':
+      'The maximum of 3 photos per alert has already been reached.',
+  'safety_alert_created_success': 'IMS record created successfully.',
+  'safety_alert_updated_success': 'IMS record updated successfully.',
+  'safety_alert_deleted_success': 'IMS record removed successfully.',
+  'safety_alert_delete_confirm':
+      'Are you sure you want to delete this IMS record?',
+  'safety_alert_empty': 'There are no IMS records for this project yet.',
+  'safety_alert_search_hint':
+      'Search by code, problem description or proposed solution',
+  'safety_alert_export_saved': 'IMS record PDF saved successfully.',
+  'safety_alert_export_error': 'Unable to generate the IMS record PDF.',
+  'safety_alert_print': 'Print',
+  'safety_alert_total': 'Total',
+  'safety_alert_created_at': 'Created at',
+  'safety_alert_updated_at': 'Updated at',
+  'safety_alert_category_near_miss': 'Near Miss',
+  'safety_alert_category_hazardous_observation': 'Safety Alert',
+  'safety_alert_category_walk_and_talk': 'Walk and Talk',
+  'safety_alert_status_resolved': 'Resolved',
+  'safety_alert_status_under_study': 'Under study',
+  'safety_alert_status_in_resolution': 'In resolution',
+  'safety_alert_status_future_company_action': 'Future company action required',
+  'safety_alert_status_requires_action': 'Requires action',
+  'export': 'Export',
+  'all': 'All',
 };
 
 class TranslationHelper {

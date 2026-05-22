@@ -21,6 +21,23 @@ class ProjectPhasesTimeline extends ConsumerStatefulWidget {
 }
 
 class _ProjectPhasesTimelineState extends ConsumerState<ProjectPhasesTimeline> {
+  static const Set<String> _hiddenPhaseKeys = {
+    'phase_subcontractors',
+    'phase_accessories_receipt',
+    'phase_swg_receipt',
+    'phase_mv_cables_receipt',
+  };
+
+  static const Set<String> _hiddenPhaseNames = {
+    'Subcontratados',
+    'Recepção Acessórios',
+    'Recepção SWG',
+    'Recepção Cabos MV',
+    'Receção de Acessórios',
+    'Receção de SWG',
+    'Receção de Cabos MV',
+  };
+
   final ScrollController _scrollController = ScrollController();
   bool _canScrollLeft = false;
   bool _canScrollRight = false;
@@ -119,13 +136,16 @@ class _ProjectPhasesTimelineState extends ConsumerState<ProjectPhasesTimeline> {
             // Timeline
             phasesAsync.when(
               data: (phases) {
-                if (phases.isEmpty) {
+                final visiblePhases =
+                    phases.where((phase) => !_isHiddenPhase(phase)).toList();
+
+                if (visiblePhases.isEmpty) {
                   return Center(
                     child: Text(t.translate('no_phases_found')),
                   );
                 }
 
-                return _buildTimeline(context, t, phases, ref);
+                return _buildTimeline(context, t, visiblePhases, ref);
               },
               loading: () => const Center(
                 child: Padding(
@@ -169,6 +189,13 @@ class _ProjectPhasesTimelineState extends ConsumerState<ProjectPhasesTimeline> {
         ),
       ],
     );
+  }
+
+  bool _isHiddenPhase(ProjectPhase phase) {
+    final nomeKey = phase.nomeKey?.trim();
+    final nome = phase.nome.trim();
+    return _hiddenPhaseKeys.contains(nomeKey) ||
+        _hiddenPhaseNames.contains(nome);
   }
 
   Widget _buildLegendItem(IconData icon, String label, Color color) {
@@ -405,7 +432,11 @@ class _ProjectPhasesTimelineState extends ConsumerState<ProjectPhasesTimeline> {
                 SizedBox(
                   width: itemWidth - 16,
                   child: Text(
-                    _abbreviatePhaseName(t.translate('phase_${phase.nome}')),
+                    _abbreviatePhaseName(
+                      phase.nomeKey != null
+                          ? t.translate(phase.nomeKey!)
+                          : t.translateValueOrKey('phase_${phase.nome}'),
+                    ),
                     style: TextStyle(
                       fontSize: itemWidth < 64 ? 9 : 10,
                       fontWeight: FontWeight.w600,

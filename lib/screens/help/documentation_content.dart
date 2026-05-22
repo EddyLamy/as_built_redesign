@@ -205,6 +205,48 @@ class DocumentationContent {
   ✓ Não altere o estado sem justificar a mudança
   ✓ Revise NCRs em atraso antes de emitir relatórios
     ''',
+    'safety_alerts': '''
+  # 🛡️ Sistema de Gestão de Incidentes (SGI)
+
+  ## Objetivo
+
+  O módulo **Sistema de Gestão de Incidentes (SGI)** regista situações de risco, observações e ações corretivas no projeto, mantendo histórico e evidências.
+
+  ## Como aceder
+
+  • Selecione um projeto
+  • Abra o menu lateral
+  • Entre em **Sistema de Gestão de Incidentes (SGI)**
+
+  ## O que pode fazer
+
+  • Criar registos por categoria (Alerta de Segurança, Near Miss, Walk and Talk)
+  • Definir o estado do problema (Em estudo, Em fase de resolução, Resolvido, Requer ação futura)
+  • Registar destino e departamento responsável
+  • Escrever descrição do problema, possível solução e ação corretiva aplicada
+  • Anexar fotos do problema e da resolução
+
+  ## Fluxo recomendado
+
+  1. Criar o registo com descrição clara e categoria correta
+  2. Adicionar evidência fotográfica do problema
+  3. Definir responsável (destino/departamento) e estado inicial
+  4. Atualizar progresso até resolução
+  5. Registar ação corretiva aplicada e fotos de resolução
+
+  ## Exportação
+
+  • Pode exportar ou imprimir cada registo em PDF
+  • O relatório inclui campos principais e evidências disponíveis
+  • O módulo também integra o relatório global quando selecionado
+
+  ## 🎯 Boas Práticas
+
+  ✓ Escreva descrições objetivas e auditáveis
+  ✓ Atualize o estado sempre que houver evolução
+  ✓ Use fotos antes/depois para comprovar a resolução
+  ✓ Evite encerrar registos sem ação corretiva registada
+    ''',
     'reports': '''
 # 📈 Relatórios - Guia Completo
 
@@ -635,6 +677,48 @@ Clique no membro → **Remover do Projeto**
   ✓ Always link the NCR to the correct turbine
   ✓ Do not change status without a reason
   ✓ Review overdue NCRs before issuing reports
+    ''',
+    'safety_alerts': '''
+  # 🛡️ Incident Management System (IMS)
+
+  ## Purpose
+
+  The **Incident Management System (IMS)** module is used to register risk situations, observations, and corrective actions while keeping evidence and progress history.
+
+  ## How to access
+
+  • Select a project
+  • Open the side menu
+  • Enter **Incident Management System (IMS)**
+
+  ## What you can do
+
+  • Create records by category (Safety Alert, Near Miss, Walk and Talk)
+  • Set problem status (Under study, In resolution, Resolved, Future company action)
+  • Register destination and responsible department
+  • Fill in problem description, possible solution, and corrective action taken
+  • Attach problem and resolution photos
+
+  ## Recommended workflow
+
+  1. Create the record with a clear description and correct category
+  2. Attach problem evidence photos
+  3. Define destination/department and initial status
+  4. Update progress as actions evolve
+  5. Register corrective action and resolution photos
+
+  ## Export
+
+  • You can export or print each record as PDF
+  • The report includes key fields and available evidence
+  • The module is also included in the global report when selected
+
+  ## 🎯 Best Practices
+
+  ✓ Keep descriptions objective and audit-ready
+  ✓ Update status whenever there is progress
+  ✓ Use before/after photos to prove resolution
+  ✓ Avoid closing records without recording corrective action
     ''',
     'reports': '''
 # 📈 Reports - Complete Guide

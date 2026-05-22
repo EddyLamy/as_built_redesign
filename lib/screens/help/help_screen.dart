@@ -120,6 +120,14 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
                   const Divider(height: 1),
                   _buildDocTile(
                     context,
+                    Icons.health_and_safety_outlined,
+                    t.translate('safety_alerts_help'),
+                    t.translate('safety_alerts_help_desc'),
+                    () => _showDocumentation(context, 'safety_alerts'),
+                  ),
+                  const Divider(height: 1),
+                  _buildDocTile(
+                    context,
                     Icons.description_outlined,
                     t.translate('reports_help'),
                     t.translate('reports_and_exports_help'),
@@ -611,6 +619,7 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
       'phases': t.translate('phase_management'),
       'daily_journal': t.translate('daily_journal_help'),
       'ncrs': t.translate('ncr_help'),
+      'safety_alerts': t.translate('safety_alerts_help'),
       'reports': t.translate('reports_help'),
       'cranes': t.translate('cranes_logistics'),
       'users_permissions': t.translate('users_permissions_help'),

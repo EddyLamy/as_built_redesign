@@ -14,6 +14,9 @@ final Map<String, String> translationsEN = {
   'invalid_credentials': 'Invalid credentials',
 
   // Dashboard
+  'safety_alert_resolution_action': 'What was done to resolve the problem',
+  'safety_alert_resolucao_efetuada': 'Corrective action taken',
+
   'dashboard_title': 'Dashboard',
   'search_turbines': 'Search turbines...',
   'filters': 'Filters',
@@ -367,8 +370,8 @@ final Map<String, String> translationsEN = {
   // Phase names
   'phase_Início do Projeto': 'Project Start',
   'phase_Trabalhos Civis': 'Civil Works',
-  'phase_Tools Contêiner': 'Tools Container',
-  'phase_Instalações': 'Installations',
+  'phase_Tools Contêiner': 'Lifting & Tools Conteiner',
+  'phase_Instalações': 'Facilities',
   'phase_Subcontratados': 'Subcontractors',
   'phase_Recepção Componentes Principais': 'Main Components Reception',
   'phase_Recepção Acessórios': 'Accessories Reception',
@@ -389,8 +392,8 @@ final Map<String, String> translationsEN = {
   // Phase names (notifications format) - ADD THIS
   'phase_project_start': 'Project Start',
   'phase_civil_works': 'Civil Works',
-  'phase_tools_container': 'Tools Container',
-  'phase_installations': 'Installations',
+  'phase_tools_container': 'Lifting & Tools Conteiner',
+  'phase_installations': 'Facilities',
   'phase_subcontractors': 'Subcontractors',
   'phase_main_components_receipt': 'Main Components Reception',
   'phase_accessories_receipt': 'Accessories Reception',
@@ -568,12 +571,12 @@ final Map<String, String> translationsEN = {
   'reception': 'Reception',
   'preparation': 'Preparation',
   'preInstallation': 'Pre-Installation',
-  'electricalWorks': 'Electrical Works',
-  'mechanicalWorks': 'Mechanical Works',
+  'electricalWorks': 'Electrical completion',
+  'mechanicalWorks': 'Mechanical completion',
   'finish': 'Cleaning and Painting',
-  'supervisorInspection': 'Supervisor Inspection',
+  'supervisorInspection': 'walkdown',
   'punchlist': 'Punch-List',
-  'clientInspection': 'Client Inspection',
+  'clientInspection': 'Client walkdown',
   'clientPunchlist': 'Client Punch-List',
   // ============================================================================
   // MATERIAIS
@@ -864,7 +867,7 @@ final Map<String, String> translationsEN = {
   'phase_testes': 'Testing',
   'phase_entrega': 'Handover',
   'phase_garantia': 'Warranty',
-  'phase_facilities': 'Installations',
+  'phase_facilities': 'Facilities',
 
   // Turbine - Creation Dialog
   'number_of_middle_sections': 'Number of Middle Sections',
@@ -1133,6 +1136,8 @@ final Map<String, String> translationsEN = {
   'daily_journal_help_desc': 'Daily progress, crew, and wind logging',
   'ncr_help': 'NCRs & Non-Conformities',
   'ncr_help_desc': 'How to register, track, and close NCRs',
+  'safety_alerts_help': 'Incident Management System (IMS)',
+  'safety_alerts_help_desc': 'How to register, track, and close IMS records',
   'reports_help': 'Reports',
   'reports_help_desc': 'Generate installation, NCR, crane, and journal reports',
   'cranes_logistics': 'Cranes & Logistics',

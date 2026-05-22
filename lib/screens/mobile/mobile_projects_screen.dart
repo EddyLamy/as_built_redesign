@@ -149,6 +149,10 @@ class MobileProjectsScreen extends ConsumerWidget {
                     color: AppColors.mediumGray,
                   ),
                   onTap: () {
+                    ref
+                        .read(selectedProjectIdProvider.notifier)
+                        .setValue(project.id);
+
                     // Navegar para turbinas
                     Navigator.push(
                       context,

@@ -152,11 +152,11 @@ class CheckpointCard extends ConsumerWidget {
       case TipoFase.finish:
         return 'Finish';
       case TipoFase.inspecaoSupervisor:
-        return t['inspecaoSupervisor'] ?? 'Inspeção Supervisor';
+        return t['inspecaoSupervisor'] ?? 'walkdown';
       case TipoFase.punchlist:
         return 'Punch-List';
       case TipoFase.inspecaoCliente:
-        return t['inspecaoCliente'] ?? 'Inspeção Cliente';
+        return t['inspecaoCliente'] ?? 'Client walkdown';
       case TipoFase.punchlistCliente:
         return 'Punch-List Cliente';
       default:

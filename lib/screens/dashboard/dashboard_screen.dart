@@ -32,6 +32,7 @@ import '../equipment/equipment_screen.dart';
 import '../help/help_screen.dart';
 import '../mobile/gruas_gerais_screen.dart';
 import '../ncr/ncr_screen.dart';
+import '../safety_alerts/safety_alert_screen.dart';
 import '../settings/settings_screen.dart';
 import '../team/team_screen.dart';
 
@@ -122,6 +123,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
         return Icons.menu_book_outlined;
       case DrawerMenuItemKey.ncrs:
         return Icons.rule_folder_outlined;
+      case DrawerMenuItemKey.safetyAlerts:
+        return Icons.health_and_safety_outlined;
       case DrawerMenuItemKey.generalCranes:
         return Icons.precision_manufacturing;
       case DrawerMenuItemKey.equipment:
@@ -150,6 +153,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
         return t.translate('daily_journal');
       case DrawerMenuItemKey.ncrs:
         return t.translate('ncrs');
+      case DrawerMenuItemKey.safetyAlerts:
+        return t.translate('safety_alerts');
       case DrawerMenuItemKey.generalCranes:
         return t.translate('general_cranes');
       case DrawerMenuItemKey.equipment:
@@ -176,6 +181,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
   }) {
     switch (item) {
       case DrawerMenuItemKey.dailyJournal:
+      case DrawerMenuItemKey.safetyAlerts:
       case DrawerMenuItemKey.generalCranes:
       case DrawerMenuItemKey.team:
         return projectName;
@@ -206,6 +212,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
         );
       case DrawerMenuItemKey.ncrs:
         return const NcrScreen(embeddedInDesktopShell: true);
+      case DrawerMenuItemKey.safetyAlerts:
+        return const SafetyAlertScreen(embeddedInDesktopShell: true);
       case DrawerMenuItemKey.generalCranes:
         if (selectedProject == null) {
           return const Center(child: CircularProgressIndicator());
@@ -335,6 +343,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
           ),
           const SizedBox(width: 8),
         ];
+      case DrawerMenuItemKey.safetyAlerts:
+        return const [];
       case DrawerMenuItemKey.equipment:
         return [
           Container(

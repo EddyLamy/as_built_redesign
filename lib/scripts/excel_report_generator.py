@@ -107,7 +107,8 @@ def translate_phase(phase_key, lang='pt'):
             'assemblagem': 'Assembly',
             'torqueTensionamento': 'Torque & Tensioning',
             'fasesFinal': 'Final Phases',
-            'ncrs': 'NCRs'
+            'ncrs': 'NCRs',
+            'safetyAlerts': 'Incident Management System (IMS)'
         }
     else:  # pt
         translations = {
@@ -117,9 +118,64 @@ def translate_phase(phase_key, lang='pt'):
             'assemblagem': 'Assemblagem',
             'torqueTensionamento': 'Torque & Tensioning',
             'fasesFinal': 'Fases Finais',
-            'ncrs': 'NCRs'
+            'ncrs': 'NCRs',
+            'safetyAlerts': 'Sistema de Gestão de Incidentes (SGI)'
         }
     return translations.get(phase_key, phase_key)
+
+def _add_safety_alerts_sheet(wb, alerts_data, language='pt'):
+    ws = wb.create_sheet(
+        'Incident Management System (IMS)'
+        if language == 'en'
+        else 'Sistema de Gestão de Incidentes (SGI)'
+    )
+
+    widths = [16, 22, 22, 22, 22, 16, 16, 18, 18, 18, 42, 42, 42]
+    for idx, width in enumerate(widths, 1):
+        ws.column_dimensions[get_column_letter(idx)].width = width
+
+    headers = [
+        'Code' if language == 'en' else 'Código',
+        'Category' if language == 'en' else 'Categoria',
+        'Status' if language == 'en' else 'Estado',
+        'Intended For' if language == 'en' else 'Destinado a',
+        'Department' if language == 'en' else 'Departamento',
+        'Problem Photos' if language == 'en' else 'Fotos do Problema',
+        'Resolution Photos' if language == 'en' else 'Fotos da Resolução',
+        'Created' if language == 'en' else 'Criado',
+        'Updated' if language == 'en' else 'Atualizado',
+        'Created By' if language == 'en' else 'Criado por',
+        'Problem Description' if language == 'en' else 'Descrição do Problema',
+        'Possible Solution' if language == 'en' else 'Possível Solução',
+        'Corrective Action' if language == 'en' else 'Ação corretiva aplicada',
+    ]
+
+    for col, header_text in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col)
+        cell.value = header_text
+        cell.font = Font(name='Arial', size=10, bold=True, color=COLORS['white'])
+        cell.fill = PatternFill(start_color=COLORS['subheader'], end_color=COLORS['subheader'], fill_type='solid')
+        cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+        cell.border = BORDER_ALL
+
+    for row_idx, item in enumerate(alerts_data, 2):
+        ws.cell(row=row_idx, column=1, value=item.get('code', '')).border = BORDER_ALL
+        ws.cell(row=row_idx, column=2, value=item.get('category', '')).border = BORDER_ALL
+        ws.cell(row=row_idx, column=3, value=item.get('status', '')).border = BORDER_ALL
+        ws.cell(row=row_idx, column=4, value=item.get('destinationTo', '')).border = BORDER_ALL
+        ws.cell(row=row_idx, column=5, value=item.get('department', '')).border = BORDER_ALL
+        ws.cell(row=row_idx, column=6, value=item.get('problemPhotos', 0)).border = BORDER_ALL
+        ws.cell(row=row_idx, column=7, value=item.get('resolutionPhotos', 0)).border = BORDER_ALL
+        ws.cell(row=row_idx, column=8, value=item.get('createdAt', '')).border = BORDER_ALL
+        ws.cell(row=row_idx, column=9, value=item.get('updatedAt', '')).border = BORDER_ALL
+        ws.cell(row=row_idx, column=10, value=item.get('createdByName', '')).border = BORDER_ALL
+        ws.cell(row=row_idx, column=11, value=item.get('problemDescription', '')).border = BORDER_ALL
+        ws.cell(row=row_idx, column=12, value=item.get('proposedSolution', '')).border = BORDER_ALL
+        ws.cell(row=row_idx, column=13, value=item.get('resolucaoEfetuada', '')).border = BORDER_ALL
+
+    ws.auto_filter.ref = f"A1:M{max(len(alerts_data) + 1, 2)}"
+    ws.freeze_panes = 'A2'
+    print(f"✓ IMS sheet created with {len(alerts_data)} items")
 
 def _add_ncr_sheet(wb, ncrs_data, language='pt'):
     ws = wb.create_sheet('NCRs')
@@ -1578,6 +1634,7 @@ def generate_excel_report(project_name, data_by_phase, selected_phases, output_p
     gruas_gerais_data = data_by_phase.get('gruasGerais', [])
     equipamentos_data = data_by_phase.get('equipamentos', [])
     ncrs_data = data_by_phase.get('ncrs', [])
+    safety_alerts_data = data_by_phase.get('safetyAlerts', [])
     
     if (gruas_pads_data or gruas_gerais_data) or complete_report:
         _add_deviation_analysis_sheet(wb, data_by_phase, language)
@@ -1699,6 +1756,24 @@ def generate_excel_report(project_name, data_by_phase, selected_phases, output_p
         _add_ncr_sheet(wb, ncrs_data, language)
         ws = wb['NCRs']
         _add_project_header(ws, project_name, 'NCRs', language)
+        _add_footer(ws, language)
+
+    if safety_alerts_data:
+        print(
+            "[OK] Adding 'Incident Management System (IMS)' sheet with "
+            f"{len(safety_alerts_data)} items"
+            if language == 'en'
+            else "[OK] Adding 'Sistema de Gestão de Incidentes (SGI)' sheet with "
+            f"{len(safety_alerts_data)} items"
+        )
+        _add_safety_alerts_sheet(wb, safety_alerts_data, language)
+        sheet_name = (
+            'Incident Management System (IMS)'
+            if language == 'en'
+            else 'Sistema de Gestão de Incidentes (SGI)'
+        )
+        ws = wb[sheet_name]
+        _add_project_header(ws, project_name, sheet_name, language)
         _add_footer(ws, language)
     
     # Garantir que o workbook tem pelo menos uma sheet visível
