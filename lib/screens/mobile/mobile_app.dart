@@ -8,23 +8,23 @@ import 'mobile_login_screen.dart';
 import 'mobile_language_screen.dart';
 
 /// App Mobile - Apenas Instalação
-/// Fluxo: Login → Seleção de Idioma → Projetos → Turbinas → Instalação
+/// Fluxo: Seleção de Idioma → Login → Projetos → Turbinas → Instalação
 class MobileApp extends ConsumerWidget {
   const MobileApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final authState = ref.watch(authStateProvider);
+    final languageSelectedAsync = ref.watch(languageSelectedProvider);
 
-    return authState.when(
+    return languageSelectedAsync.when(
       // ────────────────────────────────────────────────────────────────────────
-      // USER AUTENTICADO OU NÃO
+      // VERIFICAR SE IDIOMA FOI SELECIONADO
       // ────────────────────────────────────────────────────────────────────────
-      data: (user) {
-        if (user == null) {
-          return const MobileLoginScreen();
+      data: (languageSelected) {
+        if (!languageSelected) {
+          return const MobileLanguageScreen();
         }
-        return const _MobileAuthenticatedFlow();
+        return const _MobileAuthenticationFlow();
       },
 
       // ────────────────────────────────────────────────────────────────────────
@@ -56,25 +56,25 @@ class MobileApp extends ConsumerWidget {
       // ERRO
       // ────────────────────────────────────────────────────────────────────────
       error: (error, stack) {
-        debugPrint('❌ Erro no authState: $error');
-        return const MobileLoginScreen();
+        debugPrint('❌ Erro ao carregar idioma: $error');
+        return const MobileLanguageScreen();
       },
     );
   }
 }
 
-/// Widget que controla o fluxo após autenticação
-class _MobileAuthenticatedFlow extends ConsumerWidget {
-  const _MobileAuthenticatedFlow();
+/// Widget que controla o fluxo de autenticação após seleção de idioma
+class _MobileAuthenticationFlow extends ConsumerWidget {
+  const _MobileAuthenticationFlow();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final languageSelectedAsync = ref.watch(languageSelectedProvider);
+    final authState = ref.watch(authStateProvider);
 
-    return languageSelectedAsync.when(
-      data: (languageSelected) {
-        if (!languageSelected) {
-          return const MobileLanguageScreen();
+    return authState.when(
+      data: (user) {
+        if (user == null) {
+          return const MobileLoginScreen();
         }
         return const MobileProjectsScreen();
       },
@@ -100,8 +100,8 @@ class _MobileAuthenticatedFlow extends ConsumerWidget {
         ),
       ),
       error: (error, stack) {
-        debugPrint('❌ Erro ao carregar idioma: $error');
-        return const MobileProjectsScreen();
+        debugPrint('❌ Erro no authState: $error');
+        return const MobileLoginScreen();
       },
     );
   }
