@@ -31,6 +31,7 @@ class LocaleNotifier extends _$LocaleNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('locale', locale);
+      await prefs.setBool('language_selected', true);
     } catch (e) {
       debugPrint('Erro ao salvar locale: $e');
     }
@@ -41,3 +42,16 @@ class LocaleNotifier extends _$LocaleNotifier {
 final localeStringProvider = Provider<String>((ref) {
   return ref.watch(localeProvider);
 });
+
+/// Provider que verifica se a tela de seleção de idioma já foi mostrada
+final languageSelectedProvider =
+    FutureProvider.autoDispose<bool>((ref) async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('language_selected') ?? false;
+  } catch (e) {
+    debugPrint('Erro ao carregar language_selected: $e');
+    return false;
+  }
+});
+
